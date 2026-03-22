@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.codex-dev.log
+.codex-dev.err.log
+.codex-dev.pid
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

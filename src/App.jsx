@@ -1,0 +1,38 @@
+import React from "react";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { NoticeProvider } from "./context/NoticeContext";
+import { themeVars } from "./theme/tokens";
+import { CaseDetailPage } from "./pages/CaseDetailPage";
+import { CaseMapPage } from "./pages/CaseMapPage";
+import { CasesOverviewPage } from "./pages/CasesOverviewPage";
+import { EntryPage } from "./pages/EntryPage";
+import { HomePage } from "./pages/HomePage";
+import { HotProductsPage } from "./pages/HotProductsPage";
+import { LoginPage } from "./pages/LoginPage";
+import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { ProductsOverviewPage } from "./pages/ProductsOverviewPage";
+import { SearchPage } from "./pages/SearchPage";
+
+export default function App() {
+  return (
+    <div style={themeVars}>
+      <NoticeProvider>
+        <HashRouter>
+          <Routes>
+            <Route path="/" element={<EntryPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/cases" element={<CasesOverviewPage />} />
+            <Route path="/case-map" element={<CaseMapPage />} />
+            <Route path="/case/:id" element={<CaseDetailPage />} />
+            <Route path="/products" element={<ProductsOverviewPage />} />
+            <Route path="/products/hot" element={<HotProductsPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </HashRouter>
+      </NoticeProvider>
+    </div>
+  );
+}
