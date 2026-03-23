@@ -15,12 +15,14 @@ Add the OpenSpec contract files required for the mock auth shell slice. This cha
 This change documents:
 
 - `login(identifier, password)` request and success/error payloads
-- `getSession(token)` request and success/error payloads
+- `getSession({ token })` request and success/error payloads
 - `logout()` request and success payloads
 - shared error object shape and supported error codes
 - role landing rules
 - unauthorized and forbidden route behavior
 - corrupted persisted-session recovery policy
+
+The `getSession` contract in this change uses a token request object, not a bodyless session read.
 
 ## Non-Goals
 

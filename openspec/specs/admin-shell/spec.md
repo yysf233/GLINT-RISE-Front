@@ -27,6 +27,7 @@ If a user is not authenticated and visits any `#/workspace/*` route, the shell M
 If an authenticated user visits a `#/workspace/*` route that is not allowed for that user's role, the shell MUST redirect that user to `#/workspace/forbidden`.
 
 The route `#/workspace/forbidden` MUST be accessible to authenticated users of all supported roles.
+The shell MUST NOT redirect away from `#/workspace/forbidden` for a user who has already been routed there.
 
 ### 3. Unauthorized and Forbidden Behavior
 

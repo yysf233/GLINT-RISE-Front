@@ -23,6 +23,7 @@ An unauthenticated user who visits any `#/workspace/*` route MUST be redirected 
 An authenticated user who visits a workspace route that is not allowed for that user's role MUST be redirected to `#/workspace/forbidden`.
 
 `#/workspace/forbidden` MUST be available to all authenticated users.
+The shell MUST NOT redirect away from `#/workspace/forbidden` for a user who has already been routed there.
 
 ### Corrupted Persisted-Session Recovery
 
@@ -32,7 +33,7 @@ If persisted session data is missing `token`, `user.id`, or `user.role`, or if `
 
 1. clear persisted storage
 2. reset auth state to unauthenticated
-3. redirect workspace access to `#/login`
+3. if the current route is under `#/workspace/*`, redirect to `#/login`
 4. show a non-blocking invalid-session notice
 
 The invalid-session notice text MUST be `登录状态已失效，请重新登录`.

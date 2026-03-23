@@ -73,9 +73,9 @@
 }
 ```
 
-### Session Response
+### Session Request / Response
 
-`getSession` 本阶段不接收请求体。
+`authApi.getSession` MUST accept a `{ token }` request object. The token MUST be a required string.
 
 ```json
 {
@@ -174,6 +174,7 @@
 - `#/workspace/dashboard`
 - `#/workspace/content`
 - `#/workspace/forbidden`
+  - authenticated users already on `#/workspace/forbidden` MUST stay on that route; the shell MUST NOT redirect again
 
 角色落点规则固定为：
 
@@ -249,7 +250,7 @@ OpenSpec 采用仓库内标准组织方式，当前项目建议结构如下：
 
 - 初始化读取本地会话
 - 调用 `authApi.login`
-- 调用 `authApi.getSession`
+- 调用 `authApi.getSession({ token })`
 - 调用 `authApi.logout`
 - 暴露当前用户与权限判断结果
 

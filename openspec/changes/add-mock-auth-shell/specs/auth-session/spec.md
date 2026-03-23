@@ -23,7 +23,7 @@ The implementation MUST accept only these identities:
 | `director` | `glintrise-123` | `director` |
 | `developer` | `glintrise-123` | `developer` |
 
-Missing or non-string fields MUST fail with `VALIDATION_ERROR`.
+Missing, empty, or non-string fields MUST fail with `VALIDATION_ERROR`.
 Unknown identifiers MUST fail with `USER_NOT_FOUND`.
 Known identifiers with a mismatched password MUST fail with `INVALID_CREDENTIALS`.
 
@@ -98,4 +98,3 @@ The supported error codes are:
 - `USER_NOT_FOUND`
 - `INVALID_CREDENTIALS`
 - `INVALID_SESSION`
-
