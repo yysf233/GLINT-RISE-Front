@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.worktrees/
 .codex-dev.log
 .codex-dev.err.log
 .codex-dev.pid
