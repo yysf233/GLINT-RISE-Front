@@ -40,6 +40,79 @@
 - 角色落点规则
 - 未登录与无权限时的前端行为
 
+当前子项目先固定以下认证契约字段，后续 OpenSpec 必须与此一致：
+
+### Login Request
+
+```json
+{
+  "identifier": "employee",
+  "password": "******"
+}
+```
+
+约束：
+
+- `identifier` 为必填字符串
+- `password` 为必填字符串
+- 当前 mock 账号允许使用 `employee`、`director`、`developer`
+
+### Login Success Response
+
+```json
+{
+  "session": {
+    "token": "mock-session-token",
+    "user": {
+      "id": "user-employee",
+      "name": "内部员工",
+      "role": "employee"
+    }
+  }
+}
+```
+
+### Session Response
+
+```json
+{
+  "session": {
+    "token": "mock-session-token",
+    "user": {
+      "id": "user-employee",
+      "name": "内部员工",
+      "role": "employee"
+    }
+  }
+}
+```
+
+### Logout Response
+
+```json
+{
+  "success": true
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "账号或密码错误"
+  }
+}
+```
+
+错误码本阶段至少覆盖：
+
+- `VALIDATION_ERROR`
+- `USER_NOT_FOUND`
+- `INVALID_CREDENTIALS`
+- `INVALID_SESSION`
+
 ### 2. 前端 mock 服务
 
 在前端仓内实现可替换的认证服务层，要求：
@@ -133,6 +206,12 @@ OpenSpec 采用仓库内标准组织方式，当前项目建议结构如下：
 
 设计上允许登录页展示“测试账号提示”或“填充示例账号”的快捷操作，但实际登录仍然必须走表单提交。
 
+快捷填充的行为本阶段固定为：
+
+- 点击账号卡片只填充表单
+- 不自动提交
+- 用户仍需点击登录按钮或回车提交
+
 ## Frontend Architecture
 
 ### Route Layer
@@ -160,6 +239,20 @@ OpenSpec 采用仓库内标准组织方式，当前项目建议结构如下：
 ### Mock Persistence
 
 会话可以持久化在本地存储，但必须通过服务层和认证状态层读写，而不是页面直接操作。
+
+如果本地持久化会话存在以下任一问题，则必须执行统一恢复策略：
+
+- `token` 缺失
+- `user.id` 缺失
+- `user.role` 缺失
+- `user.role` 不在 `employee | director | developer` 内
+
+统一恢复策略固定为：
+
+1. 清空本地持久化会话
+2. 将当前认证状态恢复为未登录
+3. 若用户正在访问 `#/workspace/*`，则重定向到 `#/login`
+4. 显示一次“登录状态已失效，请重新登录”的非阻塞提示
 
 ## UI Structure
 
