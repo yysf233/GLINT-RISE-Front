@@ -22,8 +22,24 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/dashboard")).toBe(false);
   });
 
+  it("allows employee dashboard access", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/dashboard")).toBe(true);
+  });
+
+  it("allows employee forbidden access", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/forbidden")).toBe(true);
+  });
+
   it("allows director dashboard access", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/dashboard")).toBe(true);
+  });
+
+  it("allows developer content access", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/content")).toBe(true);
+  });
+
+  it("allows developer forbidden access", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/forbidden")).toBe(true);
   });
 
   it("allows known roles access to forbidden", () => {
