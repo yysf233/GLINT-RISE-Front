@@ -29,7 +29,7 @@ function createAuthenticatedState(session) {
 }
 
 function hasPersistedSessionEntry(storage = window.localStorage) {
-  return Boolean(storage.getItem("auth-session"));
+  return storage.getItem("auth-session") !== null;
 }
 
 export function AuthProvider({ children }) {

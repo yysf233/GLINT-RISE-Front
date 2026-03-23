@@ -576,16 +576,17 @@ const verifyDetailShareTargets = async () => {
 };
 
 const verifyWorkspaceAuthFlows = async () => {
-  const runIsolatedAuthScenario = async ({ route, persistedRole, verify }) => {
+  const runIsolatedAuthScenario = async ({ route, persistedRole, persistedSessionValue, verify }) => {
     const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 
-    if (persistedRole) {
-      const session = createPersistedSession(persistedRole);
+    if (persistedRole || persistedSessionValue !== undefined) {
+      const value = persistedSessionValue ?? createPersistedSession(persistedRole);
       await authContext.addInitScript(
         ({ storageKey, value }) => {
-          window.localStorage.setItem(storageKey, JSON.stringify(value));
+          const normalizedValue = typeof value === "string" ? value : JSON.stringify(value);
+          window.localStorage.setItem(storageKey, normalizedValue);
         },
-        { storageKey: SESSION_STORAGE_KEY, value: session },
+        { storageKey: SESSION_STORAGE_KEY, value },
       );
     }
 
@@ -677,6 +678,30 @@ const verifyWorkspaceAuthFlows = async () => {
         pushError(
           "auth-workspace",
           `missing workspace/auth flow assertion: forbidden employee access should land on /workspace/forbidden, got ${hash}`,
+        );
+      }
+    },
+  });
+
+  activeRoute = "/workspace/dashboard";
+  await runIsolatedAuthScenario({
+    route: "/workspace/dashboard",
+    persistedSessionValue: "",
+    verify: async (authPage) => {
+      const hash = currentHashForPage(authPage);
+      const storedValue = await authPage.evaluate((storageKey) => window.localStorage.getItem(storageKey), SESSION_STORAGE_KEY);
+
+      if (hash !== hashForRoute("/login")) {
+        pushError(
+          "auth-workspace",
+          `missing workspace/auth flow assertion: corrupted empty-string session should redirect workspace access to /login, got ${hash}`,
+        );
+      }
+
+      if (storedValue !== null) {
+        pushError(
+          "auth-workspace",
+          `missing workspace/auth flow assertion: corrupted empty-string session should be cleared from storage, got ${JSON.stringify(storedValue)}`,
         );
       }
     },

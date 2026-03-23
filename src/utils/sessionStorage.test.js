@@ -119,6 +119,14 @@ describe("sessionStorage", () => {
     expect(loadPersistedSession(storage)).toBeNull();
   });
 
+  it("returns null for empty-string persisted data", () => {
+    const storage = createStorageStub();
+
+    storage.setItem("auth-session", "");
+
+    expect(loadPersistedSession(storage)).toBeNull();
+  });
+
   it("clears the persisted session", () => {
     const storage = createStorageStub();
 
