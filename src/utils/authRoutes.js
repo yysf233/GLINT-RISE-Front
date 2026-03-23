@@ -5,15 +5,15 @@ export function isKnownRole(role) {
 }
 
 export function getDefaultWorkspaceRoute(role) {
+  if (!isKnownRole(role)) {
+    return undefined;
+  }
+
   if (role === "developer") {
     return "/workspace/content";
   }
 
-  if (isKnownRole(role)) {
-    return "/workspace/dashboard";
-  }
-
-  return "/workspace/forbidden";
+  return "/workspace/dashboard";
 }
 
 export function canAccessWorkspaceRoute(role, pathname) {
