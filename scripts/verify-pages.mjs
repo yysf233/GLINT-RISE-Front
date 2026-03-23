@@ -602,6 +602,28 @@ const verifyWorkspaceAuthFlows = async () => {
     }
   };
 
+  const readBodyText = async (targetPage) =>
+    targetPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  const expectBodyText = async (targetPage, fragment, label) => {
+    const bodyText = await readBodyText(targetPage);
+    if (!bodyText.includes(fragment)) {
+      pushError("workspace-shell", `${label} missing visible copy: ${fragment}`);
+    }
+  };
+
+  const expectButton = async (targetPage, name, label) => {
+    const button = targetPage.getByRole("button", { name });
+    if ((await button.count()) === 0) {
+      pushError("workspace-shell", `${label} missing control: ${name}`);
+    }
+  };
+
+  const expectWorkspaceShellControls = async (targetPage, label) => {
+    await expectButton(targetPage, "Back to Public Site", label);
+    await expectButton(targetPage, "Log Out", label);
+  };
+
   activeRoute = "/workspace/dashboard";
   await runIsolatedAuthScenario({
     route: "/workspace/dashboard",
@@ -719,6 +741,51 @@ const verifyWorkspaceAuthFlows = async () => {
           `missing workspace/auth flow assertion: forbidden employee access should land on /workspace/forbidden, got ${hash}`,
         );
       }
+    },
+  });
+
+  activeRoute = "/workspace/dashboard:employee-shell";
+  await runIsolatedAuthScenario({
+    route: "/workspace/dashboard",
+    persistedRole: "employee",
+    verify: async (authPage) => {
+      await expectBodyText(authPage, "Employee Workspace", "employee dashboard");
+      await expectBodyText(authPage, "Future Modules", "employee dashboard");
+      await expectWorkspaceShellControls(authPage, "employee dashboard");
+    },
+  });
+
+  activeRoute = "/workspace/dashboard:director-shell";
+  await runIsolatedAuthScenario({
+    route: "/workspace/dashboard",
+    persistedRole: "director",
+    verify: async (authPage) => {
+      await expectBodyText(authPage, "Director Workspace", "director dashboard");
+      await expectBodyText(authPage, "Decision View", "director dashboard");
+      await expectWorkspaceShellControls(authPage, "director dashboard");
+    },
+  });
+
+  activeRoute = "/workspace/content:developer-shell";
+  await runIsolatedAuthScenario({
+    route: "/workspace/content",
+    persistedRole: "developer",
+    verify: async (authPage) => {
+      await expectBodyText(authPage, "Developer Workspace", "developer content page");
+      await expectBodyText(authPage, "Content Maintenance", "developer content page");
+      await expectWorkspaceShellControls(authPage, "developer content page");
+    },
+  });
+
+  activeRoute = "/workspace/forbidden:actions";
+  await runIsolatedAuthScenario({
+    route: "/workspace/forbidden",
+    persistedRole: "employee",
+    verify: async (authPage) => {
+      await expectBodyText(authPage, "No Access", "forbidden page");
+      await expectButton(authPage, "Return to My Workspace", "forbidden page");
+      await expectButton(authPage, "Switch Account", "forbidden page");
+      await expectWorkspaceShellControls(authPage, "forbidden page");
     },
   });
 
