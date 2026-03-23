@@ -814,6 +814,173 @@ const verifyWorkspaceAuthFlows = async () => {
   });
 };
 
+const verifyLoginPageFlow = async () => {
+  const runLoginScenario = async ({ route = "/login", persistedRole, verify }) => {
+    const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+
+    if (persistedRole) {
+      await authContext.addInitScript(
+        ({ storageKey, value }) => {
+          window.localStorage.setItem(storageKey, JSON.stringify(value));
+        },
+        { storageKey: SESSION_STORAGE_KEY, value: createPersistedSession(persistedRole) },
+      );
+    }
+
+    const authPage = await authContext.newPage();
+    attachPageDiagnostics(authPage);
+
+    try {
+      await authPage.goto(`${baseUrl}/${hashForRoute(route)}`, { waitUntil: "domcontentloaded" });
+      await waitForPageApp(authPage);
+      await verify(authPage);
+    } finally {
+      await authContext.close().catch(() => {});
+    }
+  };
+
+  const getLoginForm = (authPage) => authPage.locator("form").filter({ has: authPage.locator('input[type="password"]') }).first();
+  const getIdentifierInput = (loginForm) => loginForm.locator("input").nth(0);
+  const getPasswordInput = (loginForm) => loginForm.locator('input[type="password"]').first();
+  const getSubmitButton = (loginForm) => loginForm.locator('button[type="submit"]').first();
+
+  activeRoute = "/login:validation";
+  await runLoginScenario({
+    verify: async (authPage) => {
+      const loginForm = getLoginForm(authPage);
+      const submitButton = getSubmitButton(loginForm);
+      await submitButton.click();
+      await waitForPageApp(authPage);
+
+      const bodyText = await authPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+      if (!bodyText.includes("请输入账号")) {
+        pushError("login-flow", "expected empty submit to show identifier validation");
+      }
+      if (!bodyText.includes("请输入密码")) {
+        pushError("login-flow", "expected empty submit to show password validation");
+      }
+    },
+  });
+
+  activeRoute = "/login:quick-fill";
+  await runLoginScenario({
+    verify: async (authPage) => {
+      const loginForm = getLoginForm(authPage);
+      const identifierInput = getIdentifierInput(loginForm);
+      const passwordInput = getPasswordInput(loginForm);
+      const quickFillCases = [
+        { label: /内部员工/, identifier: "employee" },
+        { label: /部门总监/, identifier: "director" },
+        { label: /开发维护/, identifier: "developer" },
+      ];
+
+      for (const quickFillCase of quickFillCases) {
+        const quickFillButton = authPage.getByRole("button", { name: quickFillCase.label });
+        if ((await quickFillButton.count()) === 0) {
+          pushError("login-flow", `expected login page to expose quick-fill card ${quickFillCase.identifier}`);
+          return;
+        }
+
+        await quickFillButton.click();
+        await authPage.waitForTimeout(150);
+
+        const hash = currentHashForPage(authPage);
+
+        if ((await identifierInput.inputValue()) !== quickFillCase.identifier) {
+          pushError("login-flow", `expected ${quickFillCase.identifier} quick-fill to populate identifier`);
+        }
+
+        if ((await passwordInput.inputValue()) !== FIXED_PASSWORD) {
+          pushError("login-flow", `expected ${quickFillCase.identifier} quick-fill to populate password`);
+        }
+
+        if (hash !== hashForRoute("/login")) {
+          pushError("login-flow", `expected quick-fill to stay on /login before submit, got ${hash}`);
+        }
+      }
+    },
+  });
+
+  activeRoute = "/login:trimmed-submit";
+  await runLoginScenario({
+    verify: async (authPage) => {
+      const loginForm = getLoginForm(authPage);
+      const identifierInput = getIdentifierInput(loginForm);
+      const passwordInput = getPasswordInput(loginForm);
+      const submitButton = getSubmitButton(loginForm);
+
+      await identifierInput.fill(" employee ");
+      await passwordInput.fill(` ${FIXED_PASSWORD} `);
+      await submitButton.click();
+      await waitForPageApp(authPage);
+
+      const hash = currentHashForPage(authPage);
+      if (hash !== hashForRoute("/workspace/dashboard")) {
+        pushError("login-flow", `expected trimmed employee credentials to land on dashboard, got ${hash}`);
+      }
+    },
+  });
+
+  activeRoute = "/login:wrong-password";
+  await runLoginScenario({
+    verify: async (authPage) => {
+      const loginForm = getLoginForm(authPage);
+      const identifierInput = getIdentifierInput(loginForm);
+      const passwordInput = getPasswordInput(loginForm);
+      const submitButton = getSubmitButton(loginForm);
+
+      await identifierInput.fill("employee");
+      await passwordInput.fill("bad-password");
+      await submitButton.click();
+      await waitForPageApp(authPage);
+
+      const bodyText = await authPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+      if (!bodyText.includes("账号或密码错误")) {
+        pushError("login-flow", "expected wrong password submit to show API error");
+      }
+      if (currentHashForPage(authPage) !== hashForRoute("/login")) {
+        pushError("login-flow", `expected wrong password submit to stay on /login, got ${currentHashForPage(authPage)}`);
+      }
+    },
+  });
+
+  activeRoute = "/login:redirect-away";
+  await runLoginScenario({
+    persistedRole: "employee",
+    verify: async (authPage) => {
+      const hash = currentHashForPage(authPage);
+      if (hash !== hashForRoute("/workspace/dashboard")) {
+        pushError("login-flow", `expected authenticated employee revisiting /login to redirect to dashboard, got ${hash}`);
+      }
+    },
+  });
+
+  activeRoute = "/login:logout";
+  await runLoginScenario({
+    persistedRole: "employee",
+    route: "/workspace/dashboard",
+    verify: async (authPage) => {
+      const logoutButton = authPage.getByRole("button", { name: "Log Out" });
+      if ((await logoutButton.count()) === 0) {
+        pushError("login-flow", "expected workspace shell to expose logout button");
+        return;
+      }
+
+      await logoutButton.click();
+      await waitForPageApp(authPage);
+
+      const hash = currentHashForPage(authPage);
+      const storedValue = await authPage.evaluate((storageKey) => window.localStorage.getItem(storageKey), SESSION_STORAGE_KEY);
+      if (hash !== hashForRoute("/login")) {
+        pushError("login-flow", `expected logout to return to /login, got ${hash}`);
+      }
+      if (storedValue !== null) {
+        pushError("login-flow", `expected logout to clear persisted auth session, got ${JSON.stringify(storedValue)}`);
+      }
+    },
+  });
+};
+
 const verifyRoute = async (route) => {
   activeRoute = route;
   const errorsBefore = errors.length;
@@ -929,6 +1096,7 @@ try {
   await verifyDetailShareTargets();
   await verifyProductsOverviewFilterSection();
   await verifyWorkspaceAuthFlows();
+  await verifyLoginPageFlow();
 
   await browser.close();
 

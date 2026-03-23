@@ -145,7 +145,7 @@ export function TopNav() {
                     onClick={() => navigate("/login")}
                     className="hidden text-sm tracking-[0.18em] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] md:block"
                   >
-                    登录占位
+                    内部登录
                   </button>
                 ) : null}
 
