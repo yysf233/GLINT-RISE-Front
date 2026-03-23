@@ -235,6 +235,26 @@ const checkCommonPageState = async (route) => {
   }
 };
 
+const verifyProductSearchExperience = async () => {
+  activeRoute = "/search";
+  await setHashRoute("/search?keyword=Hub&category=all&tag=all");
+
+  const bodyText = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  if (!bodyText.includes("Smart Hub")) {
+    pushError("search-products", "expected product search results to include Smart Hub");
+  }
+
+  if (!bodyText.includes("个产品结果")) {
+    pushError("search-products", "expected search page to describe product results");
+  }
+
+  const productCard = page.getByRole("button", { name: /Smart Hub/ });
+  if ((await productCard.count()) === 0) {
+    pushError("search-products", "expected product search result card to be clickable");
+  }
+};
+
 const verifyRoute = async (route) => {
   activeRoute = route;
   const errorsBefore = errors.length;
@@ -338,6 +358,8 @@ try {
   if (!searchInputValue.includes("GLINT")) {
     pushError("search-query", `search input did not retain the keyword after reload: ${searchInputValue}`);
   }
+
+  await verifyProductSearchExperience();
 
   await browser.close();
 

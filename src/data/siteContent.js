@@ -16,6 +16,18 @@ export const footerLinks = ["隐私政策", "服务条款", "合规说明", "无
 export const industryOptions = ["全部行业", "明星艺人", "奶茶饮品", "快消品牌", "科技数码"];
 export const searchCategoryOptions = ["全部分类", "明星艺人", "奶茶饮品", "生活方式", "产品特质"];
 export const subTagOptions = ["全部标签", "全案策划", "联名", "品牌升级", "视觉", "包装", "活动", "私域流量"];
+export const productSearchCategoryOptions = ["全部产品", "旗舰产品", "智能设备", "空间体验", "热门精选"];
+export const productSearchCategoryMap = {
+  "lumina-arc": "旗舰产品",
+  "product-a": "智能设备",
+  "product-b": "空间体验",
+  "hot-01": "热门精选",
+  "hot-02": "热门精选",
+  "hot-03": "热门精选",
+  "hot-04": "热门精选",
+  "hot-05": "热门精选",
+  "hot-06": "热门精选",
+};
 
 export const cases = [
   {
@@ -296,4 +308,16 @@ export const products = [
       ["专题", "热门精选"],
     ],
   },
+];
+
+export const productSearchTagOptions = [
+  "全部标签",
+  ...new Set(
+    products.flatMap((item) =>
+      item.tag
+        .split("/")
+        .map((part) => part.trim())
+        .filter(Boolean)
+    )
+  ),
 ];

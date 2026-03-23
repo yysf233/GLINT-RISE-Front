@@ -34,7 +34,7 @@ export function SearchBar({ value, setValue, category, setCategory, onSubmit, op
             onSubmit();
           }
         }}
-        placeholder="搜索案例、产品或行业标签"
+        placeholder="搜索产品名称、系列或功能标签"
         className="min-w-0 flex-1 border-none bg-transparent px-4 py-3 text-base text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)]"
         aria-label="输入搜索关键词"
       />

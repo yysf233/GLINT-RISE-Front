@@ -7,14 +7,13 @@ import { ProgressiveBar } from "../components/common/ProgressiveBar";
 import { SearchBar } from "../components/common/SearchBar";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
-import { cases, products, searchCategoryOptions } from "../data/siteContent";
+import { cases, productSearchCategoryOptions, products } from "../data/siteContent";
 
 function buildSearchUrl(keyword, category) {
   const params = new URLSearchParams({
     keyword,
     category,
-    industry: "全部行业",
-    tag: "全部标签",
+    tag: "all",
   });
 
   return `/search?${params.toString()}`;
@@ -23,7 +22,7 @@ function buildSearchUrl(keyword, category) {
 export function HomePage() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [searchCategory, setSearchCategory] = useState(searchCategoryOptions[0]);
+  const [searchCategory, setSearchCategory] = useState(productSearchCategoryOptions[0]);
   const [caseIndex, setCaseIndex] = useState(0);
   const [productIndex, setProductIndex] = useState(0);
 
@@ -76,7 +75,7 @@ export function HomePage() {
               category={searchCategory}
               setCategory={setSearchCategory}
               onSubmit={() => navigate(buildSearchUrl(searchValue, searchCategory))}
-              options={searchCategoryOptions}
+              options={productSearchCategoryOptions}
             />
           </div>
         </div>
