@@ -13,6 +13,8 @@ function isPersistableSession(session) {
     session.token.length > 0 &&
     session.user != null &&
     typeof session.user === "object" &&
+    typeof session.user.id === "string" &&
+    session.user.id.length > 0 &&
     isKnownRole(session.user.role)
   );
 }

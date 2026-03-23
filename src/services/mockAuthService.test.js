@@ -59,6 +59,17 @@ describe("mockAuthService", () => {
     });
   });
 
+  it("invalid getSession token returns INVALID_SESSION", async () => {
+    const result = await getSession({ token: "bad-token" });
+
+    expect(result).toEqual({
+      error: {
+        code: "INVALID_SESSION",
+        message: "登录状态已失效，请重新登录",
+      },
+    });
+  });
+
   it("logout() returns { success: true }", async () => {
     const result = await logout();
 

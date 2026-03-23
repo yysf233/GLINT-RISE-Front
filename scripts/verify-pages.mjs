@@ -4,6 +4,8 @@ import { chromium } from "playwright-core";
 
 const repoRoot = process.cwd();
 const baseUrl = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
+const SESSION_STORAGE_KEY = "auth-session";
+const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
   "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -137,35 +139,48 @@ const pushError = (type, detail) => {
   errors.push(message);
 };
 
-page.on("console", (message) => {
-  if (message.type() === "error") {
-    pushError("console", message.text());
-  }
-});
+const attachPageDiagnostics = (targetPage) => {
+  targetPage.on("console", (message) => {
+    if (message.type() === "error") {
+      pushError("console", message.text());
+    }
+  });
 
-page.on("pageerror", (error) => {
-  pushError("pageerror", error.stack || error.message);
-});
+  targetPage.on("pageerror", (error) => {
+    pushError("pageerror", error.stack || error.message);
+  });
 
-page.on("requestfailed", (request) => {
-  const failure = request.failure();
-  if (request.resourceType() === "image" && failure?.errorText === "net::ERR_ABORTED") {
-    return;
-  }
-  pushError("requestfailed", `${request.url()} ${failure?.errorText || ""}`.trim());
-});
+  targetPage.on("requestfailed", (request) => {
+    const failure = request.failure();
+    if (request.resourceType() === "image" && failure?.errorText === "net::ERR_ABORTED") {
+      return;
+    }
+    pushError("requestfailed", `${request.url()} ${failure?.errorText || ""}`.trim());
+  });
+};
 
-const waitForApp = async () => {
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForFunction(() => Boolean(document.body && document.body.innerText.trim().length > 0), null, {
+attachPageDiagnostics(page);
+
+const waitForPageApp = async (targetPage) => {
+  await targetPage.waitForLoadState("domcontentloaded");
+  await targetPage.waitForFunction(() => Boolean(document.body && document.body.innerText.trim().length > 0), null, {
     timeout: 15000,
   });
   await sleep(350);
 };
 
-const currentHash = () => new URL(page.url()).hash;
+const waitForApp = async () => waitForPageApp(page);
+const currentHashForPage = (targetPage) => new URL(targetPage.url()).hash;
+const currentHash = () => currentHashForPage(page);
 const hashForRoute = (route) => `#${route.startsWith("/") ? route : `/${route}`}`;
 const shareHashForRoute = (route) => `${baseUrl}/${hashForRoute(route)}`;
+const createPersistedSession = (role) => ({
+  token: `mock-session-token:${role}`,
+  user: {
+    id: `user-${role}`,
+    role,
+  },
+});
 
 const gotoHashRoute = async (route) => {
   activeRoute = route;
@@ -184,6 +199,22 @@ const setHashRoute = async (route) => {
     pushError("route", `hash mismatch for ${route}, got ${currentHash()}`);
   }
   await waitForApp();
+};
+
+const clearPersistedAuthSession = async () => {
+  await page.evaluate((storageKey) => {
+    window.localStorage.removeItem(storageKey);
+  }, SESSION_STORAGE_KEY);
+};
+
+const seedPersistedAuthSession = async (role) => {
+  const session = createPersistedSession(role);
+  await page.evaluate(
+    ({ storageKey, value }) => {
+      window.localStorage.setItem(storageKey, JSON.stringify(value));
+    },
+    { storageKey: SESSION_STORAGE_KEY, value: session },
+  );
 };
 
 const collectVisibleText = async () =>
@@ -544,6 +575,114 @@ const verifyDetailShareTargets = async () => {
   }
 };
 
+const verifyWorkspaceAuthFlows = async () => {
+  const runIsolatedAuthScenario = async ({ route, persistedRole, verify }) => {
+    const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+
+    if (persistedRole) {
+      const session = createPersistedSession(persistedRole);
+      await authContext.addInitScript(
+        ({ storageKey, value }) => {
+          window.localStorage.setItem(storageKey, JSON.stringify(value));
+        },
+        { storageKey: SESSION_STORAGE_KEY, value: session },
+      );
+    }
+
+    const authPage = await authContext.newPage();
+    attachPageDiagnostics(authPage);
+
+    try {
+      await authPage.goto(`${baseUrl}/${hashForRoute(route)}`, { waitUntil: "domcontentloaded" });
+      await waitForPageApp(authPage);
+      await verify(authPage);
+    } finally {
+      await authContext.close().catch(() => {});
+    }
+  };
+
+  activeRoute = "/workspace/dashboard";
+  await runIsolatedAuthScenario({
+    route: "/workspace/dashboard",
+    verify: async (authPage) => {
+      const hash = currentHashForPage(authPage);
+      if (hash !== hashForRoute("/login")) {
+        pushError(
+          "auth-workspace",
+          `missing workspace/auth flow assertion: unauthenticated /workspace/dashboard should redirect to /login, got ${hash}`,
+        );
+      }
+    },
+  });
+
+  const submitLogin = async (identifier, expectedRoute) => {
+    activeRoute = `/login:${identifier}`;
+
+    await runIsolatedAuthScenario({
+      route: "/login",
+      verify: async (authPage) => {
+        const loginForm = authPage.locator("form").filter({ has: authPage.locator('input[type="password"]') }).first();
+        const identifierInput = loginForm.locator("input").nth(0);
+        const passwordInput = loginForm.locator('input[type="password"]').first();
+        const submitButton = loginForm.locator('button[type="submit"]').first();
+        let hasLoginControls = true;
+
+        try {
+          await submitButton.waitFor({ state: "visible", timeout: 5000 });
+        } catch {
+          hasLoginControls = false;
+        }
+
+        if (
+          !hasLoginControls ||
+          (await loginForm.count()) === 0 ||
+          (await identifierInput.count()) === 0 ||
+          (await passwordInput.count()) === 0 ||
+          (await submitButton.count()) === 0
+        ) {
+          pushError(
+            "auth-workspace",
+            `missing workspace/auth flow assertion: login form controls for ${identifier} are not implemented`,
+          );
+          return;
+        }
+
+        await identifierInput.fill(identifier);
+        await passwordInput.fill(FIXED_PASSWORD);
+        await submitButton.click();
+        await waitForPageApp(authPage);
+
+        const hash = currentHashForPage(authPage);
+        if (hash !== hashForRoute(expectedRoute)) {
+          pushError(
+            "auth-workspace",
+            `missing workspace/auth flow assertion: ${identifier} login should land on ${hashForRoute(expectedRoute)}, got ${hash}`,
+          );
+        }
+      },
+    });
+  };
+
+  await submitLogin("employee", "/workspace/dashboard");
+  await submitLogin("director", "/workspace/dashboard");
+  await submitLogin("developer", "/workspace/content");
+
+  activeRoute = "/workspace/content";
+  await runIsolatedAuthScenario({
+    route: "/workspace/content",
+    persistedRole: "employee",
+    verify: async (authPage) => {
+      const hash = currentHashForPage(authPage);
+      if (hash !== hashForRoute("/workspace/forbidden")) {
+        pushError(
+          "auth-workspace",
+          `missing workspace/auth flow assertion: forbidden employee access should land on /workspace/forbidden, got ${hash}`,
+        );
+      }
+    },
+  });
+};
+
 const verifyRoute = async (route) => {
   activeRoute = route;
   const errorsBefore = errors.length;
@@ -658,6 +797,7 @@ try {
   await verifyShareLandingPages();
   await verifyDetailShareTargets();
   await verifyProductsOverviewFilterSection();
+  await verifyWorkspaceAuthFlows();
 
   await browser.close();
 

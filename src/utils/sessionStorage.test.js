@@ -29,7 +29,10 @@ describe("sessionStorage", () => {
     const storage = createStorageStub();
     const session = {
       token: "token-123",
-      user: { role: "employee" },
+      user: {
+        id: "user-employee",
+        role: "employee",
+      },
     };
 
     persistSession(session, storage);
@@ -41,7 +44,10 @@ describe("sessionStorage", () => {
     const storage = createStorageStub();
     const session = {
       token: "token-123",
-      user: { role: "director" },
+      user: {
+        id: "user-director",
+        role: "director",
+      },
     };
 
     storage.setItem("auth-session", JSON.stringify(session));
@@ -70,6 +76,20 @@ describe("sessionStorage", () => {
       JSON.stringify({
         token: "token-123",
         user: {},
+      }),
+    );
+
+    expect(loadPersistedSession(storage)).toBeNull();
+  });
+
+  it("returns null for missing user.id", () => {
+    const storage = createStorageStub();
+
+    storage.setItem(
+      "auth-session",
+      JSON.stringify({
+        token: "token-123",
+        user: { role: "employee" },
       }),
     );
 
@@ -106,7 +126,10 @@ describe("sessionStorage", () => {
       "auth-session",
       JSON.stringify({
         token: "token-123",
-        user: { role: "developer" },
+        user: {
+          id: "user-developer",
+          role: "developer",
+        },
       }),
     );
 
