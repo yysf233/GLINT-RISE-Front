@@ -7,6 +7,7 @@ import { products } from "../data/siteContent";
 import { useNotice } from "../context/useNotice";
 import { cn } from "../utils/cn";
 import { shareCurrentPage } from "../utils/shareCurrentPage";
+import { getProductShareRoute } from "../utils/shareRoutes";
 
 export function ProductDetailPage() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export function ProductDetailPage() {
           </button>
           <button
             type="button"
-            onClick={() => shareCurrentPage(item.name, showNotice)}
+            onClick={() => shareCurrentPage(item.name, showNotice, getProductShareRoute(item.id))}
             className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-text-primary)]"
             style={{ backgroundColor: "var(--color-surface-primary)" }}
           >

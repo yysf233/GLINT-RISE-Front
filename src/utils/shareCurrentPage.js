@@ -1,6 +1,8 @@
-export async function shareCurrentPage(title, showNotice) {
+import { getAbsoluteHashUrl } from "./shareRoutes";
+
+export async function shareCurrentPage(title, showNotice, route) {
   const shareTitle = `${title} | GLINT RISE`;
-  const url = window.location.href;
+  const url = route ? getAbsoluteHashUrl(route) : window.location.href;
 
   try {
     if (navigator.share) {

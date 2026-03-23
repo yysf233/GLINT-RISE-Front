@@ -104,6 +104,26 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const browser = await chromium.launch({ executablePath, headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+await context.addInitScript(() => {
+  window.__GLINT_LAST_SHARE__ = null;
+  window.__GLINT_LAST_CLIPBOARD__ = null;
+
+  Object.defineProperty(window.navigator, "share", {
+    configurable: true,
+    value: async (payload) => {
+      window.__GLINT_LAST_SHARE__ = payload;
+    },
+  });
+
+  Object.defineProperty(window.navigator, "clipboard", {
+    configurable: true,
+    value: {
+      writeText: async (value) => {
+        window.__GLINT_LAST_CLIPBOARD__ = value;
+      },
+    },
+  });
+});
 const page = await context.newPage();
 
 const errors = [];
@@ -145,6 +165,7 @@ const waitForApp = async () => {
 
 const currentHash = () => new URL(page.url()).hash;
 const hashForRoute = (route) => `#${route.startsWith("/") ? route : `/${route}`}`;
+const shareHashForRoute = (route) => `${baseUrl}/${hashForRoute(route)}`;
 
 const gotoHashRoute = async (route) => {
   activeRoute = route;
@@ -329,6 +350,115 @@ const verifyCaseTimelineExperience = async () => {
   }
 };
 
+const getShareButton = () => {
+  const textButton = page.locator("button").filter({ hasText: /分享/ }).first();
+  const ariaButton = page.locator('button[aria-label*="分享"]').first();
+  return {
+    textButton,
+    ariaButton,
+  };
+};
+
+const clickShareButton = async () => {
+  const { textButton, ariaButton } = getShareButton();
+  if ((await textButton.count()) > 0) {
+    await textButton.click();
+    return true;
+  }
+
+  if ((await ariaButton.count()) > 0) {
+    await ariaButton.click();
+    return true;
+  }
+
+  return false;
+};
+
+const readShareCapture = async () =>
+  page.evaluate(() => ({
+    share: window.__GLINT_LAST_SHARE__,
+    clipboard: window.__GLINT_LAST_CLIPBOARD__,
+  }));
+
+const resetShareCapture = async () => {
+  await page.evaluate(() => {
+    window.__GLINT_LAST_SHARE__ = null;
+    window.__GLINT_LAST_CLIPBOARD__ = null;
+  });
+};
+
+const verifyShareLandingPages = async () => {
+  activeRoute = "/share/product/lumina-arc";
+  await setHashRoute("/share/product/lumina-arc");
+
+  const productShareBody = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+  if (!productShareBody.includes("LUMINA ARC")) {
+    pushError("share-product", "expected product share page to render product content");
+  }
+
+  const productDetailCta = page.getByRole("button", { name: /进入官网详情/ });
+  if ((await productDetailCta.count()) === 0) {
+    pushError("share-product", "expected product share page to expose a detail CTA");
+  } else {
+    await productDetailCta.first().click();
+    await waitForApp();
+    if (!currentHash().includes("/product/lumina-arc")) {
+      pushError("share-product", `expected share CTA to navigate to product detail, got ${currentHash()}`);
+    }
+  }
+
+  activeRoute = "/share/case/quantum-security-protocol";
+  await setHashRoute("/share/case/quantum-security-protocol");
+
+  const caseShareBody = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+  if (!caseShareBody.includes("Quantum Security Protocol")) {
+    pushError("share-case", "expected case share page to render case content");
+  }
+
+  const caseDetailCta = page.getByRole("button", { name: /进入官网详情/ });
+  if ((await caseDetailCta.count()) === 0) {
+    pushError("share-case", "expected case share page to expose a detail CTA");
+  } else {
+    await caseDetailCta.first().click();
+    await waitForApp();
+    if (!currentHash().includes("/case/quantum-security-protocol")) {
+      pushError("share-case", `expected share CTA to navigate to case detail, got ${currentHash()}`);
+    }
+  }
+};
+
+const verifyDetailShareTargets = async () => {
+  activeRoute = "/product/lumina-arc";
+  await setHashRoute("/product/lumina-arc");
+  await resetShareCapture();
+
+  if (!(await clickShareButton())) {
+    pushError("share-detail", "expected product detail page to expose a share button");
+  } else {
+    await page.waitForTimeout(100);
+    const productShareCapture = await readShareCapture();
+    const expectedProductUrl = shareHashForRoute("/share/product/lumina-arc");
+    if (productShareCapture.share?.url !== expectedProductUrl && productShareCapture.clipboard !== expectedProductUrl) {
+      pushError("share-detail", `expected product detail share target ${expectedProductUrl}`);
+    }
+  }
+
+  activeRoute = "/case/quantum-security-protocol";
+  await setHashRoute("/case/quantum-security-protocol");
+  await resetShareCapture();
+
+  if (!(await clickShareButton())) {
+    pushError("share-detail", "expected case detail page to expose a share button");
+  } else {
+    await page.waitForTimeout(100);
+    const caseShareCapture = await readShareCapture();
+    const expectedCaseUrl = shareHashForRoute("/share/case/quantum-security-protocol");
+    if (caseShareCapture.share?.url !== expectedCaseUrl && caseShareCapture.clipboard !== expectedCaseUrl) {
+      pushError("share-detail", `expected case detail share target ${expectedCaseUrl}`);
+    }
+  }
+};
+
 const verifyRoute = async (route) => {
   activeRoute = route;
   const errorsBefore = errors.length;
@@ -383,6 +513,8 @@ try {
     "/cases",
     "/case-timeline",
     "/case-map",
+    "/share/product/lumina-arc",
+    "/share/case/quantum-security-protocol",
     ...caseIds.map((id) => `/case/${id}`),
     "/products",
     "/products/hot",
@@ -394,7 +526,7 @@ try {
     visited.push({ route, ok: await verifyRoute(route) });
   }
 
-  const refreshRoutes = ["/home", "/cases", "/case-timeline", "/products"];
+  const refreshRoutes = ["/home", "/cases", "/case-timeline", "/share/product/lumina-arc", "/products"];
   for (const route of refreshRoutes) {
     await setHashRoute(route);
     const before = currentHash();
@@ -437,6 +569,8 @@ try {
 
   await verifyProductSearchExperience();
   await verifyCaseTimelineExperience();
+  await verifyShareLandingPages();
+  await verifyDetailShareTargets();
   await verifyProductsOverviewFilterSection();
 
   await browser.close();

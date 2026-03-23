@@ -6,6 +6,7 @@ import { PageShell } from "../components/layout/PageShell";
 import { cases } from "../data/siteContent";
 import { useNotice } from "../context/useNotice";
 import { shareCurrentPage } from "../utils/shareCurrentPage";
+import { getCaseShareRoute } from "../utils/shareRoutes";
 
 export function CaseDetailPage() {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ export function CaseDetailPage() {
               </div>
               <button
                 type="button"
-                onClick={() => shareCurrentPage(item.title, showNotice)}
+                onClick={() => shareCurrentPage(item.title, showNotice, getCaseShareRoute(item.id))}
                 className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-3 text-[var(--color-text-primary)]"
                 aria-label="分享当前案例"
               >

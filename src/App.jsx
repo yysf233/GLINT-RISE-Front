@@ -2,6 +2,7 @@ import React from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { NoticeProvider } from "./context/NoticeContext";
 import { themeVars } from "./theme/tokens";
+import { CaseSharePage } from "./pages/CaseSharePage";
 import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { CaseMapPage } from "./pages/CaseMapPage";
 import { CaseTimelinePage } from "./pages/CaseTimelinePage";
@@ -11,6 +12,7 @@ import { HomePage } from "./pages/HomePage";
 import { HotProductsPage } from "./pages/HotProductsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { ProductSharePage } from "./pages/ProductSharePage";
 import { ProductsOverviewPage } from "./pages/ProductsOverviewPage";
 import { SearchPage } from "./pages/SearchPage";
 
@@ -28,9 +30,11 @@ export default function App() {
             <Route path="/case-timeline" element={<CaseTimelinePage />} />
             <Route path="/case-map" element={<CaseMapPage />} />
             <Route path="/case/:id" element={<CaseDetailPage />} />
+            <Route path="/share/case/:id" element={<CaseSharePage />} />
             <Route path="/products" element={<ProductsOverviewPage />} />
             <Route path="/products/hot" element={<HotProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/share/product/:id" element={<ProductSharePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </HashRouter>
