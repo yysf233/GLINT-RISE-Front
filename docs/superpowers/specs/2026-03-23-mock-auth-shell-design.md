@@ -56,6 +56,7 @@
 - `identifier` 为必填字符串
 - `password` 为必填字符串
 - 当前 mock 账号允许使用 `employee`、`director`、`developer`
+- 三个 mock 账号统一使用固定密码 `glintrise-123`
 
 ### Login Success Response
 
@@ -74,6 +75,8 @@
 
 ### Session Response
 
+`getSession` 本阶段不接收请求体。
+
 ```json
 {
   "session": {
@@ -88,6 +91,8 @@
 ```
 
 ### Logout Response
+
+`logout` 本阶段不接收请求体。
 
 ```json
 {
@@ -112,6 +117,22 @@
 - `USER_NOT_FOUND`
 - `INVALID_CREDENTIALS`
 - `INVALID_SESSION`
+
+### Mock Credential Matching Rule
+
+当前 mock 服务必须使用完全确定的凭证匹配规则：
+
+| identifier | password | role |
+| --- | --- | --- |
+| `employee` | `glintrise-123` | `employee` |
+| `director` | `glintrise-123` | `director` |
+| `developer` | `glintrise-123` | `developer` |
+
+匹配规则固定为：
+
+1. `identifier` 不在表中时返回 `USER_NOT_FOUND`
+2. `identifier` 存在但密码不匹配时返回 `INVALID_CREDENTIALS`
+3. 只有 identifier 与 password 同时匹配时才创建会话
 
 ### 2. 前端 mock 服务
 
