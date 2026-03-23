@@ -1,4 +1,4 @@
-const MOCK_SESSION_TOKEN = "mock-session-token";
+const TOKEN_PREFIX = "mock-session-token";
 const FIXED_PASSWORD = "glintrise-123";
 const ARTIFICIAL_DELAY_MS = 10;
 
@@ -20,8 +20,6 @@ const USERS = {
   },
 };
 
-let activeSession = null;
-
 function delay() {
   return new Promise((resolve) => {
     setTimeout(resolve, ARTIFICIAL_DELAY_MS);
@@ -30,7 +28,7 @@ function delay() {
 
 function createSession(user) {
   return {
-    token: MOCK_SESSION_TOKEN,
+    token: `${TOKEN_PREFIX}:${user.role}`,
     user,
   };
 }
@@ -52,6 +50,19 @@ function getUser(identifier) {
   return USERS[identifier] ?? null;
 }
 
+function getUserFromToken(token) {
+  if (!isNonEmptyString(token)) {
+    return null;
+  }
+
+  if (!token.startsWith(`${TOKEN_PREFIX}:`)) {
+    return null;
+  }
+
+  const role = token.slice(`${TOKEN_PREFIX}:`.length);
+  return USERS[role] ?? null;
+}
+
 export async function login(identifier, password) {
   await delay();
 
@@ -69,32 +80,27 @@ export async function login(identifier, password) {
     return createError("INVALID_CREDENTIALS", "账号或密码错误");
   }
 
-  activeSession = createSession(user);
-
   return {
-    session: activeSession,
+    session: createSession(user),
   };
 }
 
 export async function getSession({ token } = {}) {
   await delay();
 
-  if (!isNonEmptyString(token)) {
-    return createError("VALIDATION_ERROR", "登录状态无效");
-  }
+  const user = getUserFromToken(token);
 
-  if (!activeSession || token !== activeSession.token) {
+  if (!user) {
     return createError("INVALID_SESSION", "登录状态已失效，请重新登录");
   }
 
   return {
-    session: activeSession,
+    session: createSession(user),
   };
 }
 
 export async function logout() {
   await delay();
-  activeSession = null;
   return { success: true };
 }
 

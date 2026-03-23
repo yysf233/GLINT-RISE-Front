@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getSession, login, logout } from "./mockAuthService";
 
 describe("mockAuthService", () => {
@@ -7,10 +7,10 @@ describe("mockAuthService", () => {
 
     expect(result).toEqual({
       session: {
-        token: "mock-session-token",
+        token: "mock-session-token:employee",
         user: {
-          id: "user-employee",
           name: "内部员工",
+          id: "user-employee",
           role: "employee",
         },
       },
@@ -39,19 +39,15 @@ describe("mockAuthService", () => {
     });
   });
 
-  it("getSession(validSession) returns same session shape", async () => {
-    const result = await getSession({ token: "mock-session-token" });
+  it("getSession(restoredToken) returns same session shape", async () => {
+    const loginResult = await login("employee", "glintrise-123");
 
-    expect(result).toEqual({
-      session: {
-        token: "mock-session-token",
-        user: {
-          id: "user-employee",
-          name: "内部员工",
-          role: "employee",
-        },
-      },
-    });
+    vi.resetModules();
+
+    const { getSession: freshGetSession } = await import("./mockAuthService");
+    const result = await freshGetSession({ token: loginResult.session.token });
+
+    expect(result).toEqual(loginResult);
   });
 
   it("logout() returns { success: true }", async () => {
