@@ -16,6 +16,15 @@ export function CasesOverviewPage() {
           eyebrow="精选案例"
           title="案例总览"
           desc="保留总览页的首屏大图与多卡片矩阵结构，用于快速浏览案例分层与叙事方向。"
+          right={
+            <button
+              type="button"
+              onClick={() => navigate("/case-timeline")}
+              className="rounded-[var(--radius-pill)] bg-[var(--color-surface-primary)] px-5 py-3 text-sm tracking-[0.22em] text-[var(--color-text-primary)]"
+            >
+              进入时间轴
+            </button>
+          }
           action={
             <button
               type="button"

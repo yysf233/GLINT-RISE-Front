@@ -7,7 +7,8 @@ export const brand = {
 export const navItems = [
   { path: "/home", label: "首页" },
   { path: "/products", label: "产品" },
-  { path: "/cases", label: "案例" },
+  { path: "/cases", label: "案例总览" },
+  { path: "/case-timeline", label: "项目时间轴" },
   { path: "/search", label: "搜索" },
 ];
 
@@ -38,6 +39,8 @@ export const cases = [
     industry: "明星艺人",
     subTags: ["联名", "视觉", "活动"],
     year: "2024",
+    timelineLabel: "2024.Q4",
+    timelineOrder: 202404,
     summary:
       "以航天语义重构冬季机能视觉系统，从品牌故事、物料语言到空间展示形成完整传播闭环。",
     short: "围绕航天叙事完成高识别度的跨界联名展示。",
@@ -58,6 +61,8 @@ export const cases = [
     industry: "科技数码",
     subTags: ["全案策划", "私域流量"],
     year: "2024",
+    timelineLabel: "2024.Q3",
+    timelineOrder: 202403,
     summary:
       "通过 AI 驱动的数据中台，重构全球物流客户的云基础设施展示方式，建立实时决策叙事。",
     short: "把复杂的技术能力翻译成面向客户的清晰品牌表达。",
@@ -78,6 +83,8 @@ export const cases = [
     industry: "科技数码",
     subTags: ["品牌升级", "私域流量"],
     year: "2024",
+    timelineLabel: "2024.Q2",
+    timelineOrder: 202402,
     summary:
       "从品牌识别到结构化演示，为安全服务商建立可感知的技术可信度与视觉秩序。",
     short: "把网络安全产品包装成清晰、稳重且可信的品牌体验。",
@@ -97,6 +104,8 @@ export const cases = [
     industry: "奶茶饮品",
     subTags: ["联名", "包装", "视觉"],
     year: "2024.Q1",
+    timelineLabel: "2024.Q1",
+    timelineOrder: 202401,
     summary:
       "分析喜茶在联名过程中的视觉资产沉淀，以及如何通过包装设计提升产品溢价与社交传播效率。",
     short: "从包装、联名到零售触点，形成一体化品牌观察样本。",

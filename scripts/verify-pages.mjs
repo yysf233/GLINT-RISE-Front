@@ -305,6 +305,30 @@ const verifyProductsOverviewFilterSection = async () => {
   }
 };
 
+const verifyCaseTimelineExperience = async () => {
+  activeRoute = "/case-timeline";
+  await setHashRoute("/case-timeline");
+
+  const bodyText = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  if (!bodyText.includes("2024.Q4")) {
+    pushError("case-timeline", "expected case timeline page to render grouped timeline labels");
+  }
+
+  const timelineCard = page.getByRole("button", { name: /Quantum Security Protocol/ });
+  if ((await timelineCard.count()) === 0) {
+    pushError("case-timeline", "expected case timeline page to expose clickable case cards");
+    return;
+  }
+
+  await timelineCard.first().click();
+  await waitForApp();
+
+  if (!currentHash().includes("/case/quantum-security-protocol")) {
+    pushError("case-timeline", `expected timeline card to navigate to case detail, got ${currentHash()}`);
+  }
+};
+
 const verifyRoute = async (route) => {
   activeRoute = route;
   const errorsBefore = errors.length;
@@ -357,6 +381,7 @@ try {
     "/home",
     "/search",
     "/cases",
+    "/case-timeline",
     "/case-map",
     ...caseIds.map((id) => `/case/${id}`),
     "/products",
@@ -369,7 +394,7 @@ try {
     visited.push({ route, ok: await verifyRoute(route) });
   }
 
-  const refreshRoutes = ["/home", "/cases", "/products"];
+  const refreshRoutes = ["/home", "/cases", "/case-timeline", "/products"];
   for (const route of refreshRoutes) {
     await setHashRoute(route);
     const before = currentHash();
@@ -382,12 +407,13 @@ try {
 
   await setHashRoute("/home");
   await setHashRoute("/cases");
+  await setHashRoute("/case-timeline");
   await setHashRoute("/products");
 
   await page.goBack();
   await waitForApp();
-  if (!currentHash().includes("cases")) {
-    pushError("history", `expected back navigation to /cases, got ${currentHash()}`);
+  if (!currentHash().includes("case-timeline")) {
+    pushError("history", `expected back navigation to /case-timeline, got ${currentHash()}`);
   }
 
   await page.goForward();
@@ -410,6 +436,7 @@ try {
   }
 
   await verifyProductSearchExperience();
+  await verifyCaseTimelineExperience();
   await verifyProductsOverviewFilterSection();
 
   await browser.close();

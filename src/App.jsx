@@ -4,6 +4,7 @@ import { NoticeProvider } from "./context/NoticeContext";
 import { themeVars } from "./theme/tokens";
 import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { CaseMapPage } from "./pages/CaseMapPage";
+import { CaseTimelinePage } from "./pages/CaseTimelinePage";
 import { CasesOverviewPage } from "./pages/CasesOverviewPage";
 import { EntryPage } from "./pages/EntryPage";
 import { HomePage } from "./pages/HomePage";
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/home" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/cases" element={<CasesOverviewPage />} />
+            <Route path="/case-timeline" element={<CaseTimelinePage />} />
             <Route path="/case-map" element={<CaseMapPage />} />
             <Route path="/case/:id" element={<CaseDetailPage />} />
             <Route path="/products" element={<ProductsOverviewPage />} />

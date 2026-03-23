@@ -12,7 +12,9 @@ export function TopNav() {
   const isEntry = location.pathname === "/";
 
   const activePath = useMemo(() => {
-    if (location.pathname.startsWith("/case")) return "/cases";
+    if (location.pathname.startsWith("/case-timeline")) return "/case-timeline";
+    if (location.pathname.startsWith("/case-map")) return "/cases";
+    if (location.pathname.startsWith("/case/")) return "/cases";
     if (location.pathname.startsWith("/product")) return "/products";
     return location.pathname;
   }, [location.pathname]);
