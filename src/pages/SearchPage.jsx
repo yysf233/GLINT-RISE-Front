@@ -6,15 +6,12 @@ import { ProductTile } from "../components/common/ProductTile";
 import { SearchBar } from "../components/common/SearchBar";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
+import { productSearchCategoryOptions, productSearchTagOptions, products } from "../data/siteContent";
 import {
-  productSearchCategoryMap,
-  productSearchCategoryOptions,
-  productSearchTagOptions,
-  products,
-} from "../data/siteContent";
-
-const ALL_CATEGORY_VALUES = new Set(["", "all", "全部产品"]);
-const ALL_TAG_VALUES = new Set(["", "all", "全部标签"]);
+  filterProducts,
+  normalizeProductSearchCategory,
+  normalizeProductSearchTag,
+} from "../utils/productSearch";
 
 function buildSearchParams(nextState) {
   const params = new URLSearchParams();
@@ -24,36 +21,13 @@ function buildSearchParams(nextState) {
   return params;
 }
 
-function normalizeCategory(value) {
-  if (ALL_CATEGORY_VALUES.has(value ?? "")) {
-    return productSearchCategoryOptions[0];
-  }
-
-  return productSearchCategoryOptions.includes(value) ? value : productSearchCategoryOptions[0];
-}
-
-function normalizeTag(value) {
-  if (ALL_TAG_VALUES.has(value ?? "")) {
-    return productSearchTagOptions[0];
-  }
-
-  return productSearchTagOptions.includes(value) ? value : productSearchTagOptions[0];
-}
-
-function extractProductTags(item) {
-  return item.tag
-    .split("/")
-    .map((part) => part.trim())
-    .filter(Boolean);
-}
-
 export function SearchPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const keyword = searchParams.get("keyword") ?? "";
-  const category = normalizeCategory(searchParams.get("category"));
-  const tag = normalizeTag(searchParams.get("tag"));
+  const category = normalizeProductSearchCategory(searchParams.get("category"));
+  const tag = normalizeProductSearchTag(searchParams.get("tag"));
 
   const syncParams = (changes) => {
     const nextState = {
@@ -67,27 +41,7 @@ export function SearchPage() {
   };
 
   const results = useMemo(() => {
-    const lowerKeyword = keyword.trim().toLowerCase();
-    return products.filter((item) => {
-      const productTags = extractProductTags(item);
-      const searchableText = [
-        item.name,
-        item.shortName,
-        item.tag,
-        item.desc,
-        productSearchCategoryMap[item.id],
-        ...productTags,
-        ...item.meta.flat(),
-      ]
-        .join(" ")
-        .toLowerCase();
-      const keywordPass =
-        !lowerKeyword || searchableText.includes(lowerKeyword);
-      const categoryPass = category === "全部产品" || productSearchCategoryMap[item.id] === category;
-      const tagPass = tag === "全部标签" || productTags.includes(tag);
-
-      return keywordPass && categoryPass && tagPass;
-    });
+    return filterProducts(products, { keyword, category, tag });
   }, [category, keyword, tag]);
 
   return (

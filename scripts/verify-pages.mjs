@@ -255,6 +255,56 @@ const verifyProductSearchExperience = async () => {
   }
 };
 
+const verifyProductsOverviewFilterSection = async () => {
+  activeRoute = "/products";
+  await setHashRoute("/products");
+
+  const filterSection = page.getByLabel("产品筛选结果区");
+  if ((await filterSection.count()) === 0) {
+    pushError("products-filters", "expected products page to include a lower filter results section");
+    return;
+  }
+
+  const searchInput = filterSection.getByLabel("输入搜索关键词");
+  if ((await searchInput.count()) === 0) {
+    pushError("products-filters", "expected products filter section to include a search input");
+    return;
+  }
+
+  await searchInput.fill("Hub");
+  await page.waitForTimeout(150);
+
+  const filteredText = await filterSection.innerText();
+  if (!filteredText.includes("Smart Hub")) {
+    pushError("products-filters", "expected products filter search to include Smart Hub");
+  }
+
+  if (filteredText.includes("Chronos Shift")) {
+    pushError("products-filters", "expected products filter search to narrow the visible results");
+  }
+
+  await searchInput.fill("");
+  await page.waitForTimeout(150);
+
+  const tagButton = filterSection.getByRole("button", { name: "限量版", exact: true });
+  if ((await tagButton.count()) === 0) {
+    pushError("products-filters", "expected products filter section to expose tag badges");
+    return;
+  }
+
+  await tagButton.click();
+  await page.waitForTimeout(150);
+
+  const tagFilteredText = await filterSection.innerText();
+  if (!tagFilteredText.includes("Acoustic Void-01")) {
+    pushError("products-filters", "expected tag filter to include Acoustic Void-01");
+  }
+
+  if (tagFilteredText.includes("Smart Hub")) {
+    pushError("products-filters", "expected tag filter to narrow results away from Smart Hub");
+  }
+};
+
 const verifyRoute = async (route) => {
   activeRoute = route;
   const errorsBefore = errors.length;
@@ -360,6 +410,7 @@ try {
   }
 
   await verifyProductSearchExperience();
+  await verifyProductsOverviewFilterSection();
 
   await browser.close();
 

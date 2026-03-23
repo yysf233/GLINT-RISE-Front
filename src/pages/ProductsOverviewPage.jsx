@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "../components/common/Badge";
+import { ProductTile } from "../components/common/ProductTile";
+import { SearchBar } from "../components/common/SearchBar";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
-import { products } from "../data/siteContent";
+import { productSearchCategoryOptions, productSearchTagOptions, products } from "../data/siteContent";
+import { filterProducts } from "../utils/productSearch";
 import { cn } from "../utils/cn";
 
 export function ProductsOverviewPage() {
   const navigate = useNavigate();
+  const [keyword, setKeyword] = useState("");
+  const [category, setCategory] = useState(productSearchCategoryOptions[0]);
+  const [tag, setTag] = useState(productSearchTagOptions[0]);
+  const filteredProducts = useMemo(
+    () => filterProducts(products, { keyword, category, tag }),
+    [category, keyword, tag]
+  );
 
   return (
     <PageShell>
@@ -119,6 +130,113 @@ export function ProductsOverviewPage() {
             </button>
           </div>
         </div>
+      </section>
+
+      <section
+        aria-label="产品筛选结果区"
+        className="mt-[var(--space-section-gap)]"
+      >
+        <SectionHeading
+          eyebrow="筛选结果区"
+          title="可筛选产品列表"
+          desc="保留上半段策展结构，在下半段补充面向访问者的产品搜索、分类与标签筛选结果区。"
+          right={
+            <button
+              type="button"
+              onClick={() => {
+                setKeyword("");
+                setCategory(productSearchCategoryOptions[0]);
+                setTag(productSearchTagOptions[0]);
+              }}
+              className="rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-text-primary)]"
+              style={{ backgroundColor: "var(--color-surface-primary)" }}
+            >
+              清空条件
+            </button>
+          }
+        />
+
+        <SearchBar
+          value={keyword}
+          setValue={setKeyword}
+          category={category}
+          setCategory={setCategory}
+          onSubmit={() => {}}
+          options={productSearchCategoryOptions}
+        />
+
+        <div
+          className="mt-8 rounded-[var(--radius-card)] p-6"
+          style={{ backgroundColor: "var(--color-surface-primary)", boxShadow: "var(--shadow-panel)" }}
+        >
+          <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">标签筛选</div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            {productSearchTagOptions.map((item) => (
+              <Badge key={item} active={tag === item} onClick={() => setTag(item)}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 text-sm md:flex-row md:items-center md:justify-between">
+            <div className="text-[var(--color-text-secondary)]">
+              共找到 <span className="text-[var(--color-accent-primary)]">{filteredProducts.length}</span> 个产品结果
+            </div>
+            <div className="text-[var(--color-text-muted)]">
+              分类：{category} · 标签：{tag}
+            </div>
+          </div>
+        </div>
+
+        {filteredProducts.length > 0 ? (
+          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {filteredProducts.map((item) => (
+              <ProductTile key={item.id} item={item} onClick={() => navigate(`/product/${item.id}`)} />
+            ))}
+          </div>
+        ) : (
+          <div
+            className="mt-8 rounded-[var(--radius-card)] p-8"
+            style={{ backgroundColor: "var(--color-surface-primary)", boxShadow: "var(--shadow-panel)" }}
+          >
+            <div
+              className="text-[var(--color-text-primary)]"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "2rem",
+                fontWeight: 700,
+                letterSpacing: "-0.04em",
+              }}
+            >
+              暂无匹配产品
+            </div>
+            <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)]">
+              可以尝试放宽分类或标签条件，或直接切换到热门产品继续浏览。
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setKeyword("");
+                  setCategory(productSearchCategoryOptions[0]);
+                  setTag(productSearchTagOptions[0]);
+                }}
+                className="rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-text-primary)]"
+                style={{ backgroundColor: "var(--color-surface-secondary)" }}
+              >
+                重置筛选
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/products/hot")}
+                className="rounded-[var(--radius-pill)] px-5 py-3 text-sm font-bold tracking-[0.18em] text-[var(--color-text-on-accent)]"
+                style={{ background: "var(--gradient-accent)" }}
+              >
+                前往热门产品
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     </PageShell>
   );
