@@ -90,6 +90,15 @@ describe("sessionStorage", () => {
     expect(loadPersistedSession(storage)).toBeNull();
   });
 
+  it("returns null for malformed JSON", () => {
+    const storage = createStorageStub();
+
+    storage.setItem("auth-session", "{broken-json");
+
+    expect(() => loadPersistedSession(storage)).not.toThrow();
+    expect(loadPersistedSession(storage)).toBeNull();
+  });
+
   it("clears the persisted session", () => {
     const storage = createStorageStub();
 

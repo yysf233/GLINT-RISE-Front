@@ -1,6 +1,9 @@
-import { isKnownRole } from "./authRoutes";
-
 const SESSION_STORAGE_KEY = "auth-session";
+const KNOWN_ROLES = new Set(["employee", "director", "developer"]);
+
+function isKnownRole(role) {
+  return KNOWN_ROLES.has(role);
+}
 
 function isPersistableSession(session) {
   return (
