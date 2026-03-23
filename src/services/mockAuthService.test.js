@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { getSession, login, logout } from "./mockAuthService";
 
+const PERSISTED_EMPLOYEE_TOKEN = "mock-session-token:employee";
+
 describe("mockAuthService", () => {
   it('login("employee", "glintrise-123") returns employee session', async () => {
     const result = await login("employee", "glintrise-123");
@@ -39,15 +41,22 @@ describe("mockAuthService", () => {
     });
   });
 
-  it("getSession(restoredToken) returns same session shape", async () => {
-    const loginResult = await login("employee", "glintrise-123");
-
+  it("getSession(restored token fixture) restores the employee session after reload", async () => {
     vi.resetModules();
 
     const { getSession: freshGetSession } = await import("./mockAuthService");
-    const result = await freshGetSession({ token: loginResult.session.token });
+    const result = await freshGetSession({ token: PERSISTED_EMPLOYEE_TOKEN });
 
-    expect(result).toEqual(loginResult);
+    expect(result).toEqual({
+      session: {
+        token: PERSISTED_EMPLOYEE_TOKEN,
+        user: {
+          id: "user-employee",
+          name: "内部员工",
+          role: "employee",
+        },
+      },
+    });
   });
 
   it("logout() returns { success: true }", async () => {
