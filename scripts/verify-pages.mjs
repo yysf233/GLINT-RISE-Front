@@ -256,6 +256,91 @@ const checkCommonPageState = async (route) => {
   }
 };
 
+const verifyTopNavSearchExperience = async () => {
+  activeRoute = "/products";
+  await setHashRoute("/products");
+
+  const duplicateSearchButton = page.getByRole("button", { name: /^搜索$/ });
+  if ((await duplicateSearchButton.count()) > 0) {
+    pushError("top-nav-search", "expected desktop navigation to remove the duplicate search button");
+  }
+
+  const searchForm = page.getByTestId("top-nav-search-form");
+  const searchInput = page.getByTestId("top-nav-search-input");
+  const searchSubmit = page.getByTestId("top-nav-search-submit");
+
+  if ((await searchForm.count()) === 0 || (await searchInput.count()) === 0 || (await searchSubmit.count()) === 0) {
+    pushError("top-nav-search", "expected top navigation to expose search form, input, and submit controls");
+    return;
+  }
+
+  const beforeBox = await searchForm.boundingBox();
+  if (!beforeBox) {
+    pushError("top-nav-search", "expected top search form to have a measurable collapsed box");
+    return;
+  }
+
+  await searchForm.click();
+  await page.waitForTimeout(350);
+
+  const afterBox = await searchForm.boundingBox();
+  if (!afterBox) {
+    pushError("top-nav-search", "expected top search form to have a measurable expanded box");
+    return;
+  }
+
+  const beforeRight = beforeBox.x + beforeBox.width;
+  const afterRight = afterBox.x + afterBox.width;
+  if (afterBox.width <= beforeBox.width + 80) {
+    pushError("top-nav-search", "expected top search form to expand noticeably after click");
+  }
+
+  if (Math.abs(afterRight - beforeRight) > 4) {
+    pushError("top-nav-search", `expected right edge to stay anchored during expansion, got delta ${Math.abs(afterRight - beforeRight)}`);
+  }
+
+  if (afterBox.x >= beforeBox.x - 40) {
+    pushError("top-nav-search", "expected top search form to expand leftward");
+  }
+
+  await searchInput.fill("Hub");
+  await searchInput.press("Enter");
+  await waitForApp();
+
+  const firstHash = currentHash();
+  if (!firstHash.includes("/search?keyword=Hub") || !firstHash.includes("category=all") || !firstHash.includes("tag=all")) {
+    pushError("top-nav-search", `expected Enter to navigate to product search route, got ${firstHash}`);
+  }
+
+  const firstValue = await searchInput.inputValue();
+  if (firstValue !== "Hub") {
+    pushError("top-nav-search", `expected search page top input to preload Hub, got ${firstValue}`);
+  }
+
+  activeRoute = "/home";
+  await setHashRoute("/home");
+
+  const iconForm = page.getByTestId("top-nav-search-form");
+  const iconInput = page.getByTestId("top-nav-search-input");
+  const iconSubmit = page.getByTestId("top-nav-search-submit");
+
+  await iconSubmit.click();
+  await page.waitForTimeout(350);
+  await iconInput.fill("Core");
+  await iconSubmit.click();
+  await waitForApp();
+
+  const secondHash = currentHash();
+  if (!secondHash.includes("/search?keyword=Core") || !secondHash.includes("category=all") || !secondHash.includes("tag=all")) {
+    pushError("top-nav-search", `expected search icon to navigate to product search route, got ${secondHash}`);
+  }
+
+  const secondValue = await iconForm.getByTestId("top-nav-search-input").inputValue();
+  if (secondValue !== "Core") {
+    pushError("top-nav-search", `expected search page top input to preload Core, got ${secondValue}`);
+  }
+};
+
 const verifyProductSearchExperience = async () => {
   activeRoute = "/search";
   await setHashRoute("/search?keyword=Hub&category=all&tag=all");
@@ -568,6 +653,7 @@ try {
   }
 
   await verifyProductSearchExperience();
+  await verifyTopNavSearchExperience();
   await verifyCaseTimelineExperience();
   await verifyShareLandingPages();
   await verifyDetailShareTargets();

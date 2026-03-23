@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Menu, Search, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -7,9 +7,15 @@ import { cn } from "../../utils/cn";
 
 export function TopNav() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+  const searchFormRef = useRef(null);
+  const searchInputRef = useRef(null);
   const isEntry = location.pathname === "/";
+  const isSearchRoute = location.pathname === "/search";
+  const desktopNavItems = useMemo(() => navItems.filter((item) => item.path !== "/search"), []);
 
   const activePath = useMemo(() => {
     if (location.pathname.startsWith("/case-timeline")) return "/case-timeline";
@@ -18,6 +24,51 @@ export function TopNav() {
     if (location.pathname.startsWith("/product")) return "/products";
     return location.pathname;
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isSearchRoute) return;
+
+    const params = new URLSearchParams(location.search);
+    setSearchValue(params.get("keyword") ?? "");
+    setSearchOpen(true);
+  }, [isSearchRoute, location.search]);
+
+  useEffect(() => {
+    if (!isSearchRoute) {
+      setSearchOpen(false);
+    }
+  }, [isSearchRoute]);
+
+  const desktopSearchExpanded = searchOpen || isSearchRoute;
+
+  const buildDesktopSearchRoute = (keyword) => {
+    const currentParams = new URLSearchParams(location.search);
+    const params = new URLSearchParams({
+      keyword: keyword.trim(),
+      category: isSearchRoute ? currentParams.get("category") ?? "all" : "all",
+      tag: isSearchRoute ? currentParams.get("tag") ?? "all" : "all",
+    });
+
+    return `/search?${params.toString()}`;
+  };
+
+  const openDesktopSearch = () => {
+    setSearchOpen(true);
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+    });
+  };
+
+  const handleDesktopSearchSubmit = (event) => {
+    event.preventDefault();
+
+    if (!desktopSearchExpanded) {
+      openDesktopSearch();
+      return;
+    }
+
+    navigate(buildDesktopSearchRoute(searchValue));
+  };
 
   return (
     <>
@@ -50,9 +101,7 @@ export function TopNav() {
                 {brand.name}
               </div>
               {!isEntry ? (
-                <div className="text-[10px] tracking-[0.32em] text-[var(--color-text-muted)]">
-                  {brand.cnName}
-                </div>
+                <div className="text-[10px] tracking-[0.32em] text-[var(--color-text-muted)]">{brand.cnName}</div>
               ) : null}
             </button>
           </div>
@@ -60,7 +109,7 @@ export function TopNav() {
           {!isEntry ? (
             <>
               <div className="hidden items-center gap-10 md:flex">
-                {navItems.map((item) => {
+                {desktopNavItems.map((item) => {
                   const active = activePath === item.path;
                   return (
                     <button
@@ -79,15 +128,17 @@ export function TopNav() {
                   );
                 })}
               </div>
-              <div className="flex items-center gap-3 md:gap-5">
+
+              <div className="flex items-center gap-3 md:flex-row-reverse md:gap-5">
                 <button
                   type="button"
-                  onClick={() => navigate("/search")}
-                  className="hidden rounded-[var(--radius-pill)] bg-[var(--color-surface-primary)] px-4 py-2 text-sm text-[var(--color-text-secondary)] md:flex md:items-center md:gap-2"
+                  onClick={() => navigate("/")}
+                  className="rounded-[var(--radius-pill)] px-4 py-2.5 text-xs font-bold tracking-[0.18em] text-[#1C1B19] shadow-[var(--shadow-accent)] transition active:scale-95 md:px-5 md:text-sm"
+                  style={{ background: "var(--gradient-accent)" }}
                 >
-                  <Search className="h-4 w-4" />
-                  搜索
+                  回到入口
                 </button>
+
                 {location.pathname !== "/login" ? (
                   <button
                     type="button"
@@ -97,14 +148,70 @@ export function TopNav() {
                     登录占位
                   </button>
                 ) : null}
-                <button
-                  type="button"
-                  onClick={() => navigate("/")}
-                  className="rounded-[var(--radius-pill)] px-4 py-2.5 text-xs font-bold tracking-[0.18em] text-[#1C1B19] shadow-[var(--shadow-accent)] transition active:scale-95 md:px-5 md:text-sm"
-                  style={{ background: "var(--gradient-accent)" }}
+
+                <motion.form
+                  ref={searchFormRef}
+                  initial={false}
+                  animate={{ width: desktopSearchExpanded ? 320 : 144 }}
+                  transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                  onSubmit={handleDesktopSearchSubmit}
+                  onClick={() => {
+                    if (!desktopSearchExpanded) {
+                      openDesktopSearch();
+                    }
+                  }}
+                  onBlur={(event) => {
+                    if (searchFormRef.current?.contains(event.relatedTarget)) return;
+                    if (!isSearchRoute) {
+                      setSearchOpen(false);
+                    }
+                  }}
+                  className="hidden h-11 items-center overflow-hidden rounded-[var(--radius-pill)] md:flex"
+                  style={{ backgroundColor: "var(--color-surface-primary)" }}
+                  aria-label="顶部搜索框"
+                  data-testid="top-nav-search-form"
                 >
-                  回到入口
-                </button>
+                  <input
+                    ref={searchInputRef}
+                    value={searchValue}
+                    onChange={(event) => setSearchValue(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape" && !searchValue.trim() && !isSearchRoute) {
+                        setSearchOpen(false);
+                        searchInputRef.current?.blur();
+                      }
+                    }}
+                    placeholder="搜索产品名称"
+                    className={cn(
+                      "min-w-0 bg-transparent text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)] transition-all duration-200",
+                      desktopSearchExpanded ? "w-full px-4 opacity-100" : "w-0 px-0 opacity-0 pointer-events-none"
+                    )}
+                    aria-label="顶部搜索输入"
+                    data-testid="top-nav-search-input"
+                  />
+                  <span
+                    className={cn(
+                      "overflow-hidden whitespace-nowrap text-sm text-[var(--color-text-secondary)] transition-all duration-200",
+                      desktopSearchExpanded ? "w-0 opacity-0" : "w-auto px-3 opacity-100"
+                    )}
+                  >
+                    搜索
+                  </span>
+                  <button
+                    type={desktopSearchExpanded ? "submit" : "button"}
+                    onClick={(event) => {
+                      if (!desktopSearchExpanded) {
+                        event.preventDefault();
+                        openDesktopSearch();
+                      }
+                    }}
+                    className="grid h-11 w-11 shrink-0 place-items-center text-[var(--color-text-secondary)]"
+                    aria-label={desktopSearchExpanded ? "提交顶部搜索" : "展开顶部搜索"}
+                    data-testid="top-nav-search-submit"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                </motion.form>
               </div>
             </>
           ) : null}
@@ -182,7 +289,7 @@ export function TopNav() {
               >
                 <div className="text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]">风格说明</div>
                 <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">
-                  移动端导航保留抽屉层级，避免直接压缩桌面端栏目；视觉值统一来自主题 tokens。
+                  移动端导航保留抽屉层级，避免直接压缩桌面栏目；视觉值统一来自主题 tokens。
                 </p>
               </div>
             </motion.div>
