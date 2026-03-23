@@ -1,12 +1,13 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { PageShell } from "../components/layout/PageShell";
 import { useAuth } from "../context/useAuth";
 import { useNotice } from "../context/useNotice";
-import { getDefaultWorkspaceRoute } from "../utils/authRoutes";
+import { resolvePostLoginRoute } from "../utils/authRoutes";
 
 export function LoginPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isBootstrapping, login, user } = useAuth();
   const { showNotice } = useNotice();
@@ -14,14 +15,14 @@ export function LoginPage() {
   const [password, setPassword] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const defaultRoute = user ? getDefaultWorkspaceRoute(user.role) : undefined;
+  const postLoginRoute = user ? resolvePostLoginRoute(user.role, location.state?.from) : undefined;
 
   if (isBootstrapping) {
     return null;
   }
 
-  if (isAuthenticated && defaultRoute) {
-    return <Navigate to={defaultRoute} replace />;
+  if (isAuthenticated && postLoginRoute) {
+    return <Navigate to={postLoginRoute} replace />;
   }
 
   const handleSubmit = async (event) => {
@@ -37,7 +38,7 @@ export function LoginPage() {
       const result = await login(identifier, password);
 
       if (result?.session) {
-        navigate(getDefaultWorkspaceRoute(result.session.user.role), { replace: true });
+        navigate(resolvePostLoginRoute(result.session.user.role, location.state?.from), { replace: true });
         return;
       }
 
@@ -78,7 +79,7 @@ export function LoginPage() {
             账号登录
           </h1>
           <p className="mt-4 max-w-xl text-[var(--color-text-secondary)]">
-            使用模拟账号和固定密码登录，系统会按角色自动跳转到对应的工作台页面。
+            使用模拟账号和固定密码登录，系统会在角色允许时返回你刚才尝试进入的工作台页面，否则跳转到默认工作台。
           </p>
 
           <form className="mt-10 grid gap-4" onSubmit={handleSubmit}>

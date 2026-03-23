@@ -32,6 +32,40 @@ function hasPersistedSessionEntry(storage = window.localStorage) {
   return storage.getItem("auth-session") !== null;
 }
 
+export function resolveBootstrapAuthPlan({
+  hasPersistedSessionEntry,
+  persistedSession,
+  sessionResult,
+}) {
+  if (!persistedSession) {
+    return {
+      shouldClearStorage: hasPersistedSessionEntry,
+      shouldShowInvalidNotice: hasPersistedSessionEntry,
+      shouldPersistSession: false,
+      status: "unauthenticated",
+      session: null,
+    };
+  }
+
+  if (sessionResult?.session) {
+    return {
+      shouldClearStorage: false,
+      shouldShowInvalidNotice: false,
+      shouldPersistSession: true,
+      status: "authenticated",
+      session: sessionResult.session,
+    };
+  }
+
+  return {
+    shouldClearStorage: true,
+    shouldShowInvalidNotice: true,
+    shouldPersistSession: false,
+    status: "unauthenticated",
+    session: null,
+  };
+}
+
 export function AuthProvider({ children }) {
   const { showNotice } = useNotice();
   const [authState, setAuthState] = useState(() => createBootstrappingState());
@@ -42,40 +76,42 @@ export function AuthProvider({ children }) {
     const bootstrapAuth = async () => {
       const hadPersistedSession = hasPersistedSessionEntry();
       const persistedSession = loadPersistedSession();
+      let sessionResult = null;
 
-      if (!persistedSession) {
-        if (hadPersistedSession) {
-          clearPersistedSession();
-          showNotice(INVALID_SESSION_NOTICE);
+      if (persistedSession) {
+        try {
+          sessionResult = await authApi.getSession({ token: persistedSession.token });
+        } catch {
+          if (!isActive) {
+            return;
+          }
         }
+      }
 
-        if (isActive) {
-          setAuthState(createUnauthenticatedState());
-        }
+      const plan = resolveBootstrapAuthPlan({
+        hasPersistedSessionEntry: hadPersistedSession,
+        persistedSession,
+        sessionResult,
+      });
 
+      if (!isActive) {
         return;
       }
 
-      try {
-        const result = await authApi.getSession({ token: persistedSession.token });
-
-        if (!isActive) {
-          return;
-        }
-
-        if (result?.session) {
-          persistSession(result.session);
-          setAuthState(createAuthenticatedState(result.session));
-          return;
-        }
-      } catch {
-        if (!isActive) {
-          return;
-        }
+      if (plan.shouldClearStorage) {
+        clearPersistedSession();
       }
 
-      clearPersistedSession();
-      showNotice(INVALID_SESSION_NOTICE);
+      if (plan.shouldShowInvalidNotice) {
+        showNotice(INVALID_SESSION_NOTICE);
+      }
+
+      if (plan.shouldPersistSession) {
+        persistSession(plan.session);
+        setAuthState(createAuthenticatedState(plan.session));
+        return;
+      }
+
       setAuthState(createUnauthenticatedState());
     };
 

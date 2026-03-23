@@ -3,6 +3,7 @@ import {
   canAccessWorkspaceRoute,
   getDefaultWorkspaceRoute,
   isKnownRole,
+  resolvePostLoginRoute,
 } from "./authRoutes";
 
 describe("authRoutes", () => {
@@ -64,5 +65,20 @@ describe("authRoutes", () => {
 
   it("allows developer forbidden access", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/forbidden")).toBe(true);
+  });
+
+  it("returns requested route when state.from is allowed for the role", () => {
+    expect(resolvePostLoginRoute("employee", "/workspace/forbidden")).toBe("/workspace/forbidden");
+    expect(resolvePostLoginRoute("developer", "/workspace/content")).toBe("/workspace/content");
+  });
+
+  it("falls back to default route when state.from is absent", () => {
+    expect(resolvePostLoginRoute("employee")).toBe("/workspace/dashboard");
+    expect(resolvePostLoginRoute("developer", null)).toBe("/workspace/content");
+  });
+
+  it("falls back to default route when state.from is not allowed for the role", () => {
+    expect(resolvePostLoginRoute("employee", "/workspace/content")).toBe("/workspace/dashboard");
+    expect(resolvePostLoginRoute("director", "/workspace/content")).toBe("/workspace/dashboard");
   });
 });

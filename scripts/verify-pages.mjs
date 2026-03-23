@@ -664,9 +664,48 @@ const verifyWorkspaceAuthFlows = async () => {
     });
   };
 
+  const submitLoginFromProtectedRoute = async (route, identifier, expectedRoute) => {
+    activeRoute = `${route}:${identifier}`;
+
+    await runIsolatedAuthScenario({
+      route,
+      verify: async (authPage) => {
+        const loginForm = authPage.locator("form").filter({ has: authPage.locator('input[type="password"]') }).first();
+        const identifierInput = loginForm.locator("input").nth(0);
+        const passwordInput = loginForm.locator('input[type="password"]').first();
+        const submitButton = loginForm.locator('button[type="submit"]').first();
+        const redirectedHash = currentHashForPage(authPage);
+
+        if (redirectedHash !== hashForRoute("/login")) {
+          pushError(
+            "auth-workspace",
+            `expected protected route ${route} to redirect to /login before submit, got ${redirectedHash}`,
+          );
+          return;
+        }
+
+        await submitButton.waitFor({ state: "visible", timeout: 5000 });
+        await identifierInput.fill(identifier);
+        await passwordInput.fill(FIXED_PASSWORD);
+        await submitButton.click();
+        await waitForPageApp(authPage);
+
+        const finalHash = currentHashForPage(authPage);
+        if (finalHash !== hashForRoute(expectedRoute)) {
+          pushError(
+            "auth-workspace",
+            `expected ${identifier} login from ${route} to land on ${hashForRoute(expectedRoute)}, got ${finalHash}`,
+          );
+        }
+      },
+    });
+  };
+
   await submitLogin("employee", "/workspace/dashboard");
   await submitLogin("director", "/workspace/dashboard");
   await submitLogin("developer", "/workspace/content");
+  await submitLoginFromProtectedRoute("/workspace/forbidden", "employee", "/workspace/forbidden");
+  await submitLoginFromProtectedRoute("/workspace/content", "employee", "/workspace/dashboard");
 
   activeRoute = "/workspace/content";
   await runIsolatedAuthScenario({

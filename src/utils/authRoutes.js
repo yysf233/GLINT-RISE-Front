@@ -35,3 +35,17 @@ export function canAccessWorkspaceRoute(role, pathname) {
 
   return false;
 }
+
+export function resolvePostLoginRoute(role, fromPathname) {
+  const defaultRoute = getDefaultWorkspaceRoute(role);
+
+  if (!defaultRoute) {
+    return undefined;
+  }
+
+  if (typeof fromPathname !== "string" || !canAccessWorkspaceRoute(role, fromPathname)) {
+    return defaultRoute;
+  }
+
+  return fromPathname;
+}
