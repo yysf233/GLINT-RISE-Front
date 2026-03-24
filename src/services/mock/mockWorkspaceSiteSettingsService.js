@@ -41,7 +41,12 @@ function createError(code, message) {
 }
 
 function isAllowed(viewer = {}) {
-  return ALLOWED_ROLES.has(text(viewer.role));
+  const role = text(viewer.role);
+  if (ALLOWED_ROLES.has(role)) {
+    return true;
+  }
+
+  return role === "developer" && viewer?.permissions?.contentMaintenance === true;
 }
 
 function normalizeNavItems(items = []) {

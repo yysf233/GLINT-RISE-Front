@@ -2163,6 +2163,84 @@ const verifyWorkspaceUsersModule = async () => {
   }
 };
 
+const verifyWorkspaceContentModule = async () => {
+  const moduleContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await moduleContext.addInitScript(
+    ({ sessionKey, sessionValue, settingsKey, bannersKey, productsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(settingsKey);
+      window.localStorage.removeItem(bannersKey);
+      window.localStorage.removeItem(productsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("developer"),
+      settingsKey: WORKSPACE_SITE_SETTINGS_STORAGE_KEY,
+      bannersKey: WORKSPACE_BANNERS_STORAGE_KEY,
+      productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY,
+    },
+  );
+
+  const modulePage = await moduleContext.newPage();
+  attachPageDiagnostics(modulePage);
+  const readBody = async () => modulePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/content:developer-module";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/content")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+
+    const initialBody = await readBody();
+    if (!initialBody.includes("内容管理")) {
+      pushError("workspace-content", "expected developer content page to render title");
+    }
+
+    await modulePage.getByTestId("workspace-content-settings-brand-name").fill("GLINT ENGINE");
+    await modulePage.getByTestId("workspace-content-settings-home-eyebrow").fill("开发维护主视觉");
+    await modulePage.getByTestId("workspace-content-settings-search-placeholder").fill("搜索开发维护版产品");
+    await modulePage.getByTestId("workspace-content-settings-save").click();
+    await modulePage.waitForTimeout(450);
+
+    await modulePage.getByTestId("workspace-content-banner-toggle-wb-002").click();
+    await modulePage.waitForTimeout(350);
+    await modulePage.getByTestId("workspace-content-banner-move-up-wb-002").click();
+    await modulePage.waitForTimeout(450);
+
+    await modulePage.getByTestId("workspace-content-tag-input-wp-lumina-arc").fill("开发维护 / 首页实验");
+    await modulePage.getByTestId("workspace-content-tag-save-wp-lumina-arc").click();
+    await modulePage.waitForTimeout(450);
+
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/home")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const homeBody = await readBody();
+    if (!homeBody.includes("GLINT ENGINE")) {
+      pushError("workspace-content", "expected developer content update to sync brand name to public home page");
+    }
+    if (!homeBody.includes("开发维护主视觉")) {
+      pushError("workspace-content", "expected developer content update to sync home eyebrow to public home page");
+    }
+
+    const bannerTitle = modulePage.getByTestId("home-hero-banner-title");
+    if ((await bannerTitle.count()) === 0) {
+      pushError("workspace-content", "expected home page to expose hero banner title after developer content update");
+    } else {
+      const titleText = await bannerTitle.textContent();
+      if (!titleText?.includes("案例推荐")) {
+        pushError("workspace-content", `expected reordered banner to lead with 案例推荐, got ${titleText}`);
+      }
+    }
+
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/product/lumina-arc")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const productBody = await readBody();
+    if (!productBody.includes("开发维护 / 首页实验")) {
+      pushError("workspace-content", "expected public product detail to reflect updated content tag");
+    }
+  } finally {
+    await moduleContext.close().catch(() => {});
+  }
+};
+
 const verifyWorkspaceLogsModule = async () => {
   const employeeContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await employeeContext.addInitScript(
@@ -2563,6 +2641,7 @@ try {
   await verifyProductsOverviewFilterSection();
   await verifyPublicProductWorkspaceSync();
   await verifyWorkspaceAuthFlows();
+  await verifyWorkspaceContentModule();
   await verifyWorkspaceProductsModule();
   await verifyWorkspaceProjectsModule();
   await verifyWorkspaceBannersModule();

@@ -21,6 +21,15 @@ const DEVELOPER_VIEWER = {
   id: "user-developer",
   name: "开发维护",
   role: "developer",
+  permissions: {
+    contentMaintenance: true,
+  },
+};
+
+const OUTSIDER_VIEWER = {
+  id: "user-outsider",
+  name: "访客",
+  role: "guest",
 };
 
 const createLocalStorage = () => {
@@ -47,15 +56,17 @@ describe("mockWorkspaceSiteSettingsService", () => {
     resetWorkspaceSiteSettingsStore();
   });
 
-  it("returns default site settings for employee and director", async () => {
+  it("returns default site settings for employee, director, and developer content maintainer", async () => {
     const employeeResult = await getWorkspaceSiteSettings(EMPLOYEE_VIEWER);
     const directorResult = await getWorkspaceSiteSettings(DIRECTOR_VIEWER);
+    const developerResult = await getWorkspaceSiteSettings(DEVELOPER_VIEWER);
 
     expect(employeeResult.settings.brand).toMatchObject({
       name: "GLINT RISE",
     });
     expect(employeeResult.settings.navigation.items.length).toBeGreaterThan(0);
     expect(directorResult.settings.footer.links.length).toBeGreaterThan(0);
+    expect(developerResult.settings.homeHero.eyebrow).toBeTruthy();
   });
 
   it("persists updates and normalizes duplicated navigation/footer items", async () => {
@@ -100,13 +111,26 @@ describe("mockWorkspaceSiteSettingsService", () => {
     expect(readBack.settings.homeHero.description).toBe("新的首页主视觉说明");
   });
 
-  it("rejects developer access", async () => {
-    const readResult = await getWorkspaceSiteSettings(DEVELOPER_VIEWER);
+  it("allows developer content maintainer to update public site settings", async () => {
+    const updateResult = await updateWorkspaceSiteSettings(
+      {
+        brand: { name: "GLINT OPS" },
+        homeHero: { eyebrow: "开发维护主视觉" },
+      },
+      DEVELOPER_VIEWER,
+    );
+
+    expect(updateResult.settings.brand.name).toBe("GLINT OPS");
+    expect(updateResult.settings.homeHero.eyebrow).toBe("开发维护主视觉");
+  });
+
+  it("rejects unauthorized viewers", async () => {
+    const readResult = await getWorkspaceSiteSettings(OUTSIDER_VIEWER);
     const updateResult = await updateWorkspaceSiteSettings(
       {
         brand: { name: "forbidden" },
       },
-      DEVELOPER_VIEWER,
+      OUTSIDER_VIEWER,
     );
 
     expect(readResult).toMatchObject({
