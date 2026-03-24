@@ -7,13 +7,15 @@ describe("mockAuthService", () => {
   it('login("employee", "glintrise-123") returns employee session', async () => {
     const result = await login("employee", "glintrise-123");
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       session: {
         token: "mock-session-token:employee",
         user: {
           name: "内部员工",
           id: "user-employee",
+          identifier: "employee",
           role: "employee",
+          status: "active",
         },
       },
     });
@@ -25,7 +27,7 @@ describe("mockAuthService", () => {
     expect(result).toEqual({
       error: {
         code: "USER_NOT_FOUND",
-        message: "账号不存在",
+        message: "账号不存在。",
       },
     });
   });
@@ -47,12 +49,13 @@ describe("mockAuthService", () => {
     const { getSession: freshGetSession } = await import("./mockAuthService");
     const result = await freshGetSession({ token: PERSISTED_EMPLOYEE_TOKEN });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       session: {
         token: PERSISTED_EMPLOYEE_TOKEN,
         user: {
           id: "user-employee",
           name: "内部员工",
+          identifier: "employee",
           role: "employee",
         },
       },

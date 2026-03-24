@@ -12,6 +12,7 @@ const WORKSPACE_SUPPLIERS_STORAGE_KEY = "glint-rise.workspace-suppliers.v1";
 const WORKSPACE_EXPORTS_STORAGE_KEY = "glint-rise.workspace-exports.v1";
 const WORKSPACE_QUOTES_STORAGE_KEY = "glint-rise.workspace-quotes.v1";
 const WORKSPACE_SITE_SETTINGS_STORAGE_KEY = "glint-rise.workspace-site-settings.v1";
+const WORKSPACE_USERS_STORAGE_KEY = "glint-rise.workspace-users.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -972,6 +973,10 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/ws-public-001/edit",
     "/workspace/quotes",
     "/workspace/settings/content",
+    "/workspace/settings/users",
+    "/workspace/settings/users/new",
+    "/workspace/settings/users/user-employee",
+    "/workspace/settings/users/user-employee/edit",
     "/workspace/exports",
   ];
 
@@ -1017,6 +1022,10 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/ws-public-001/edit",
     "/workspace/quotes",
     "/workspace/settings/content",
+    "/workspace/settings/users",
+    "/workspace/settings/users/new",
+    "/workspace/settings/users/user-employee",
+    "/workspace/settings/users/user-employee/edit",
     "/workspace/exports",
   ];
 
@@ -1976,6 +1985,105 @@ const verifyWorkspaceSiteSettingsModule = async () => {
   }
 };
 
+const verifyWorkspaceUsersModule = async () => {
+  const employeeContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await employeeContext.addInitScript(
+    ({ sessionKey, sessionValue, usersKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(usersKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      usersKey: WORKSPACE_USERS_STORAGE_KEY,
+    },
+  );
+
+  const employeePage = await employeeContext.newPage();
+  attachPageDiagnostics(employeePage);
+  const readEmployeeBody = async () => employeePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/settings/users:employee-module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/settings/users")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+
+    const employeeBody = await readEmployeeBody();
+    if (!employeeBody.includes("权限与用户")) {
+      pushError("workspace-users", "expected users page to render title for employee");
+    }
+
+    await selectAntdOption(employeePage, "workspace-users-request-permission", "带价导出权限");
+    await employeePage.getByTestId("workspace-users-request-reason").fill("员工浏览器回归申请");
+    await employeePage.getByTestId("workspace-users-request-submit").click();
+    await employeePage.waitForTimeout(350);
+
+    if (!(await readEmployeeBody()).includes("员工浏览器回归申请")) {
+      pushError("workspace-users", "expected employee request submission to appear in approval list");
+    }
+  } finally {
+    await employeeContext.close().catch(() => {});
+  }
+
+  const directorContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await directorContext.addInitScript(
+    ({ sessionKey, sessionValue, usersKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(usersKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("director"),
+      usersKey: WORKSPACE_USERS_STORAGE_KEY,
+    },
+  );
+
+  const directorPage = await directorContext.newPage();
+  attachPageDiagnostics(directorPage);
+  const readDirectorBody = async () => directorPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/settings/users/new:director-module";
+    await directorPage.goto(`${baseUrl}/${hashForRoute("/workspace/settings/users/new")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(directorPage);
+
+    await directorPage.getByTestId("workspace-user-form-identifier").fill("qa-reviewer");
+    await directorPage.getByTestId("workspace-user-form-name").fill("回归审核员");
+    await directorPage.getByTestId("workspace-user-form-email").fill("qa-reviewer@glintrise.test");
+    await selectAntdOption(directorPage, "workspace-user-form-role", "员工");
+    await selectAntdOption(directorPage, "workspace-user-form-status", "启用中");
+    await directorPage.getByTestId("workspace-user-form-submit").click();
+    await directorPage.waitForTimeout(450);
+
+    if (!currentHashForPage(directorPage).includes("/workspace/settings/users/workspace-user-")) {
+      pushError("workspace-users", `expected create user to redirect to detail route, got ${currentHashForPage(directorPage)}`);
+    }
+
+    const detailBody = await readDirectorBody();
+    if (!detailBody.includes("回归审核员")) {
+      pushError("workspace-users", "expected created user detail page to render the new user");
+    }
+
+    activeRoute = "/workspace/settings/users:director-approve";
+    await directorPage.goto(`${baseUrl}/${hashForRoute("/workspace/settings/users")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(directorPage);
+
+    const approveButton = directorPage.getByTestId("workspace-users-approve-permission-request-002");
+    if ((await approveButton.count()) === 0) {
+      pushError("workspace-users", "expected seeded pending request to expose approve button");
+    } else {
+      await approveButton.click();
+      await directorPage.waitForTimeout(350);
+      const approvalBody = await readDirectorBody();
+      if (!approvalBody.includes("approved")) {
+        pushError("workspace-users", "expected approval list to reflect approved status");
+      }
+    }
+  } finally {
+    await directorContext.close().catch(() => {});
+  }
+};
+
 const verifyLoginPageFlow = async () => {
   const runLoginScenario = async ({ route = "/login", persistedRole, verify }) => {
     const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -2264,6 +2372,7 @@ try {
   await verifyWorkspaceBannersModule();
   await verifyWorkspaceQuotesModule();
   await verifyWorkspaceSiteSettingsModule();
+  await verifyWorkspaceUsersModule();
   await verifyWorkspaceExportsModule();
   await verifyWorkspaceSuppliersModule();
   await verifyLoginPageFlow();

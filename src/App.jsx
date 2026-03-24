@@ -33,6 +33,9 @@ import { WorkspaceSupplierDetailPage } from "./pages/WorkspaceSupplierDetailPage
 import { WorkspaceSupplierFormPage } from "./pages/WorkspaceSupplierFormPage";
 import { WorkspaceSupplierImportPage } from "./pages/WorkspaceSupplierImportPage";
 import { WorkspaceSuppliersPage } from "./pages/WorkspaceSuppliersPage";
+import { WorkspaceUserDetailPage } from "./pages/WorkspaceUserDetailPage";
+import { WorkspaceUserFormPage } from "./pages/WorkspaceUserFormPage";
+import { WorkspaceUsersPage } from "./pages/WorkspaceUsersPage";
 
 export default function App() {
   return (
@@ -73,6 +76,10 @@ export default function App() {
             <Route path="/workspace/quotes" element={<WorkspaceQuotesPage />} />
             <Route path="/workspace/exports" element={<WorkspaceExportsPage />} />
             <Route path="/workspace/settings/content" element={<WorkspaceSiteSettingsPage />} />
+            <Route path="/workspace/settings/users" element={<WorkspaceUsersPage />} />
+            <Route path="/workspace/settings/users/new" element={<WorkspaceUserFormPage />} />
+            <Route path="/workspace/settings/users/:userId" element={<WorkspaceUserDetailPage />} />
+            <Route path="/workspace/settings/users/:userId/edit" element={<WorkspaceUserFormPage />} />
             <Route path="/workspace/forbidden" element={<WorkspaceForbiddenPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

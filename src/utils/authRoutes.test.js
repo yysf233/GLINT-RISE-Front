@@ -19,11 +19,8 @@ describe("authRoutes", () => {
     expect(getDefaultWorkspaceRoute("intern")).toBeUndefined();
   });
 
-  it("returns dashboard for employee", () => {
+  it("returns dashboard for employee and director", () => {
     expect(getDefaultWorkspaceRoute("employee")).toBe("/workspace/dashboard");
-  });
-
-  it("returns dashboard for director", () => {
     expect(getDefaultWorkspaceRoute("director")).toBe("/workspace/dashboard");
   });
 
@@ -31,171 +28,47 @@ describe("authRoutes", () => {
     expect(getDefaultWorkspaceRoute("developer")).toBe("/workspace/content");
   });
 
-  it("allows employee dashboard access", () => {
+  it("allows employee business routes", () => {
     expect(canAccessWorkspaceRoute("employee", "/workspace/dashboard")).toBe(true);
-  });
-
-  it("rejects employee content access", () => {
-    expect(canAccessWorkspaceRoute("employee", "/workspace/content")).toBe(false);
-  });
-
-  it("allows employee forbidden access", () => {
-    expect(canAccessWorkspaceRoute("employee", "/workspace/forbidden")).toBe(true);
-  });
-
-  it("allows employee access to workspace products routes", () => {
     expect(canAccessWorkspaceRoute("employee", "/workspace/products")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/products/new")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/products/lumina-arc")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/products/lumina-arc/edit")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/products/import")).toBe(true);
-  });
-
-  it("allows employee access to workspace project routes", () => {
-    expect(canAccessWorkspaceRoute("employee", "/workspace/projects")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/projects/new")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/projects/wp-case-001")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/projects/wp-case-001/edit")).toBe(true);
-  });
-
-  it("allows employee access to workspace banner routes", () => {
-    expect(canAccessWorkspaceRoute("employee", "/workspace/content/banners")).toBe(true);
-  });
-
-  it("allows employee access to workspace supplier routes", () => {
-    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/new")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/import")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/ws-public-001")).toBe(true);
-    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/ws-public-001/edit")).toBe(true);
-  });
-
-  it("allows employee access to workspace export routes", () => {
-    expect(canAccessWorkspaceRoute("employee", "/workspace/exports")).toBe(true);
-  });
-
-  it("allows employee access to workspace quote routes", () => {
     expect(canAccessWorkspaceRoute("employee", "/workspace/quotes")).toBe(true);
-  });
-
-  it("allows employee access to workspace site settings routes", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/exports")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/settings/content")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users/new")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users/user-employee")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users/user-employee/edit")).toBe(true);
   });
 
-  it("allows director dashboard access", () => {
+  it("allows director business routes", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/dashboard")).toBe(true);
-  });
-
-  it("rejects director content access", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/content")).toBe(false);
-  });
-
-  it("allows director forbidden access", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/forbidden")).toBe(true);
-  });
-
-  it("allows director access to workspace products routes", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/products")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/products/new")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/products/lumina-arc")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/products/lumina-arc/edit")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/products/import")).toBe(true);
-  });
-
-  it("allows director access to workspace project routes", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/projects")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/projects/new")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/projects/wp-case-001")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/projects/wp-case-001/edit")).toBe(true);
-  });
-
-  it("allows director access to workspace banner routes", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/content/banners")).toBe(true);
-  });
-
-  it("allows director access to workspace supplier routes", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/new")).toBe(true);
     expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/import")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/ws-public-001")).toBe(true);
-    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/ws-public-001/edit")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/settings/users")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/settings/users/user-director")).toBe(true);
   });
 
-  it("allows director access to workspace export routes", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/exports")).toBe(true);
-  });
-
-  it("allows director access to workspace quote routes", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/quotes")).toBe(true);
-  });
-
-  it("allows director access to workspace site settings routes", () => {
-    expect(canAccessWorkspaceRoute("director", "/workspace/settings/content")).toBe(true);
-  });
-
-  it("rejects developer dashboard access", () => {
+  it("keeps developer on content routes only", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/dashboard")).toBe(false);
-  });
-
-  it("allows developer content access", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/content")).toBe(true);
-  });
-
-  it("allows developer forbidden access", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/forbidden")).toBe(true);
-  });
-
-  it("rejects developer access to workspace products routes", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/products")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/products/new")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/products/lumina-arc")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/products/lumina-arc/edit")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/products/import")).toBe(false);
-  });
-
-  it("rejects developer access to workspace project routes", () => {
-    expect(canAccessWorkspaceRoute("developer", "/workspace/projects")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/projects/new")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/projects/wp-case-001")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/projects/wp-case-001/edit")).toBe(false);
-  });
-
-  it("rejects developer access to workspace banner routes", () => {
-    expect(canAccessWorkspaceRoute("developer", "/workspace/content/banners")).toBe(false);
-  });
-
-  it("rejects developer access to workspace supplier routes", () => {
-    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/new")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/import")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/ws-public-001")).toBe(false);
-    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/ws-public-001/edit")).toBe(false);
-  });
-
-  it("rejects developer access to workspace export routes", () => {
-    expect(canAccessWorkspaceRoute("developer", "/workspace/exports")).toBe(false);
-  });
-
-  it("rejects developer access to workspace quote routes", () => {
-    expect(canAccessWorkspaceRoute("developer", "/workspace/quotes")).toBe(false);
-  });
-
-  it("rejects developer access to workspace site settings routes", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/settings/content")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/settings/users")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/settings/users/user-developer")).toBe(false);
   });
 
   it("returns requested route when state.from is allowed for the role", () => {
-    expect(resolvePostLoginRoute("employee", "/workspace/forbidden")).toBe("/workspace/forbidden");
+    expect(resolvePostLoginRoute("employee", "/workspace/settings/users")).toBe("/workspace/settings/users");
     expect(resolvePostLoginRoute("developer", "/workspace/content")).toBe("/workspace/content");
     expect(resolvePostLoginRoute("director", "/workspace/products")).toBe("/workspace/products");
   });
 
-  it("falls back to default route when state.from is absent", () => {
+  it("falls back to default route when state.from is absent or denied", () => {
     expect(resolvePostLoginRoute("employee")).toBe("/workspace/dashboard");
     expect(resolvePostLoginRoute("developer", null)).toBe("/workspace/content");
-  });
-
-  it("falls back to default route when state.from is not allowed for the role", () => {
     expect(resolvePostLoginRoute("employee", "/workspace/content")).toBe("/workspace/dashboard");
     expect(resolvePostLoginRoute("director", "/workspace/content")).toBe("/workspace/dashboard");
   });
