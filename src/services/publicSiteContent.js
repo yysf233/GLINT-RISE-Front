@@ -1,9 +1,13 @@
-import { products as publicProductSeeds } from "../data/siteContent";
-import workspaceProjectSeeds from "../data/workspace/workspaceProjectSeeds";
+import { products as legacyPublicProductSeeds } from "../data/siteContent";
 import workspaceBannerSeeds from "../data/workspace/workspaceBannerSeeds";
+import workspaceProductSeeds from "../data/workspace/workspaceProductSeeds";
+import workspaceProjectSeeds from "../data/workspace/workspaceProjectSeeds";
 import { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
 
 const PUBLISHED_STATUSES = new Set(["published", "active", "online"]);
+const LEGACY_PUBLIC_PRODUCTS_BY_ID = new Map(
+  legacyPublicProductSeeds.map((item) => [String(item.id ?? "").trim(), clone(item)]),
+);
 
 function clone(value) {
   return typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value));
@@ -22,6 +26,48 @@ function toArray(value) {
   return Array.isArray(value) ? value.map((item) => clone(item)) : [];
 }
 
+function text(value) {
+  return String(value ?? "").trim();
+}
+
+function normalizeMetaEntry(entry) {
+  if (!entry) return null;
+
+  if (Array.isArray(entry)) {
+    const [label, value] = entry;
+    const normalizedLabel = text(label);
+    const normalizedValue = text(value);
+    return normalizedLabel && normalizedValue ? [normalizedLabel, normalizedValue] : null;
+  }
+
+  if (typeof entry === "object") {
+    const normalizedLabel = text(entry.label);
+    const normalizedValue = text(entry.value);
+    return normalizedLabel && normalizedValue ? [normalizedLabel, normalizedValue] : null;
+  }
+
+  return null;
+}
+
+function normalizePublicMeta(value, fallback) {
+  const source = Array.isArray(value) ? value : Array.isArray(fallback) ? fallback : [];
+  return source.map(normalizeMetaEntry).filter(Boolean);
+}
+
+function getLegacyPublicProduct(...candidates) {
+  for (const candidate of candidates) {
+    const key = text(candidate);
+    if (!key) continue;
+
+    const matched = LEGACY_PUBLIC_PRODUCTS_BY_ID.get(key);
+    if (matched) {
+      return matched;
+    }
+  }
+
+  return null;
+}
+
 function toPublicProduct(item) {
   if (!item || typeof item !== "object") {
     return null;
@@ -31,22 +77,23 @@ function toPublicProduct(item) {
     return clone(item);
   }
 
-  const publicId = String(item.publicProductId ?? item.id ?? "").trim();
-  const priceText = String(item.price ?? item.priceLabel ?? item.retailPrice ?? "").trim();
+  const publicId = text(item.publicProductId ?? item.id);
+  const legacy = getLegacyPublicProduct(publicId, item.id);
+  const priceText = text(item.price ?? item.priceLabel ?? item.retailPrice ?? legacy?.price);
   const mediaList = toArray(item.media);
-  const mediaUrls = mediaList.map((entry) => String(entry?.url ?? "").trim()).filter(Boolean);
+  const mediaUrls = mediaList.map((entry) => text(entry?.url)).filter(Boolean);
   const coverUrl = mediaList.find((entry) => entry?.isCover)?.url;
 
   return {
     id: publicId,
-    name: String(item.name ?? item.title ?? "").trim(),
-    shortName: String(item.shortName ?? item.name ?? item.title ?? "").trim(),
-    tag: String(item.tag ?? item.category ?? "").trim(),
+    name: text(item.name ?? item.title ?? legacy?.name),
+    shortName: text(item.shortName ?? legacy?.shortName ?? item.name ?? item.title),
+    tag: text(item.displayTag ?? item.tag ?? legacy?.tag ?? item.category),
     price: priceText,
-    desc: String(item.desc ?? item.summary ?? "").trim(),
-    hero: String(coverUrl ?? item.hero ?? item.cover ?? item.heroImage ?? "").trim(),
-    thumbs: mediaUrls.length > 0 ? mediaUrls : toArray(item.thumbs ?? item.images),
-    meta: toArray(item.meta),
+    desc: text(item.desc ?? item.summary ?? legacy?.desc),
+    hero: text(coverUrl ?? item.hero ?? item.cover ?? item.heroImage ?? legacy?.hero),
+    thumbs: mediaUrls.length > 0 ? mediaUrls : toArray(item.thumbs ?? item.images ?? legacy?.thumbs),
+    meta: normalizePublicMeta(item.publicMeta ?? item.meta, legacy?.meta),
   };
 }
 
@@ -59,21 +106,21 @@ function toPublicCase(item) {
     return clone(item);
   }
 
-  const publicId = String(item.publicCaseId ?? item.id ?? "").trim();
+  const publicId = text(item.publicCaseId ?? item.id);
 
   return {
     id: publicId,
-    title: String(item.title ?? item.name ?? "").trim(),
-    eyebrow: String(item.eyebrow ?? "").trim(),
-    category: String(item.category ?? "").trim(),
-    industry: String(item.industry ?? "").trim(),
+    title: text(item.title ?? item.name),
+    eyebrow: text(item.eyebrow),
+    category: text(item.category),
+    industry: text(item.industry),
     subTags: toArray(item.subTags),
-    year: String(item.year ?? "").trim(),
-    timelineLabel: String(item.timelineLabel ?? "").trim(),
+    year: text(item.year),
+    timelineLabel: text(item.timelineLabel),
     timelineOrder: Number(item.timelineOrder ?? 0),
-    summary: String(item.summary ?? "").trim(),
-    short: String(item.short ?? item.desc ?? "").trim(),
-    hero: String(item.hero ?? item.cover ?? "").trim(),
+    summary: text(item.summary),
+    short: text(item.short ?? item.desc),
+    hero: text(item.hero ?? item.cover),
     images: toArray(item.images ?? item.thumbs),
   };
 }
@@ -88,9 +135,9 @@ function toPublicBanner(item) {
   }
 
   return {
-    id: String(item.id ?? "").trim(),
-    title: String(item.title ?? item.name ?? "").trim(),
-    hero: String(item.hero ?? item.cover ?? "").trim(),
+    id: text(item.id),
+    title: text(item.title ?? item.name),
+    hero: text(item.hero ?? item.cover),
     images: toArray(item.images ?? item.thumbs),
   };
 }
@@ -99,10 +146,7 @@ const productStorage = createWorkspaceStorage({
   key: WORKSPACE_STORAGE_KEYS.products,
   seed: {
     version: 1,
-    items: clone(publicProductSeeds).map((item) => ({
-      ...item,
-      status: "published",
-    })),
+    items: clone(workspaceProductSeeds),
   },
 });
 
@@ -153,4 +197,3 @@ export const publicSiteContent = {
 };
 
 export default publicSiteContent;
-

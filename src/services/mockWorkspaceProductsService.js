@@ -1,10 +1,18 @@
+import { products as legacyPublicProductSeeds } from "../data/siteContent";
 import workspaceProductSeeds, { workspaceProductSeedState } from "../data/workspaceProductSeeds";
-import { invalidateWorkspaceStorageCache, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
-import { filterWorkspaceProducts, getWorkspaceProductSummary, normalizeWorkspaceProductQuery } from "../utils/workspaceProductFilters";
 import { previewWorkspaceProductImport as previewWorkspaceProductImportText } from "../utils/workspaceProductImport";
+import {
+  filterWorkspaceProducts,
+  getWorkspaceProductSummary,
+  normalizeWorkspaceProductQuery,
+} from "../utils/workspaceProductFilters";
+import { invalidateWorkspaceStorageCache, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
 
 const STORAGE_KEY = WORKSPACE_STORAGE_KEYS.products;
 const FIXED_DELAY_MS = 5;
+const LEGACY_PUBLIC_PRODUCTS_BY_ID = new Map(
+  legacyPublicProductSeeds.map((item) => [String(item.id ?? "").trim(), clone(item)]),
+);
 
 let cachedStore = null;
 
@@ -45,57 +53,6 @@ function getStorage() {
       memory.delete(String(key));
     },
   };
-}
-
-function createInitialStore() {
-  return {
-    version: workspaceProductSeedState.version,
-    nextSequence: workspaceProductSeedState.nextSequence,
-    items: clone(workspaceProductSeeds),
-  };
-}
-
-function readStoreFromStorage() {
-  const storage = getStorage();
-  const raw = storage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return createInitialStore();
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.items)) {
-      return createInitialStore();
-    }
-
-    return {
-      version: Number(parsed.version) || workspaceProductSeedState.version,
-      nextSequence: Number(parsed.nextSequence) || workspaceProductSeedState.nextSequence,
-      items: clone(parsed.items),
-    };
-  } catch {
-    return createInitialStore();
-  }
-}
-
-function persistStore(store) {
-  const storage = getStorage();
-  storage.setItem(STORAGE_KEY, JSON.stringify(store));
-  invalidateWorkspaceStorageCache(STORAGE_KEY);
-}
-
-function getStore() {
-  if (!cachedStore) {
-    cachedStore = readStoreFromStorage();
-    persistStore(cachedStore);
-  }
-
-  return cachedStore;
-}
-
-function saveStore(store) {
-  cachedStore = store;
-  persistStore(store);
 }
 
 function nowIso() {
@@ -148,6 +105,30 @@ function normalizeLogs(logs, fallbackAction, actor, message) {
   ];
 }
 
+function normalizeMetaEntry(entry) {
+  if (!entry) return null;
+
+  if (Array.isArray(entry)) {
+    const [label, value] = entry;
+    const normalizedLabel = text(label);
+    const normalizedValue = text(value);
+    return normalizedLabel && normalizedValue ? { label: normalizedLabel, value: normalizedValue } : null;
+  }
+
+  if (typeof entry === "object") {
+    const normalizedLabel = text(entry.label);
+    const normalizedValue = text(entry.value);
+    return normalizedLabel && normalizedValue ? { label: normalizedLabel, value: normalizedValue } : null;
+  }
+
+  return null;
+}
+
+function normalizePublicMeta(value, fallback = []) {
+  const source = Array.isArray(value) ? value : Array.isArray(fallback) ? fallback : [];
+  return source.map(normalizeMetaEntry).filter(Boolean);
+}
+
 function normalizeMedia(media, coverId, existingMedia) {
   const source = Array.isArray(media) ? media : Array.isArray(existingMedia) ? existingMedia : [];
   const normalized = source
@@ -181,6 +162,82 @@ function normalizeMedia(media, coverId, existingMedia) {
   }));
 }
 
+function getLegacyPublicProduct(...candidates) {
+  for (const candidate of candidates) {
+    const key = text(candidate);
+    if (!key) continue;
+    const matched = LEGACY_PUBLIC_PRODUCTS_BY_ID.get(key);
+    if (matched) {
+      return matched;
+    }
+  }
+
+  return null;
+}
+
+function enrichWorkspaceProduct(item) {
+  const product = clone(item);
+  const legacy = getLegacyPublicProduct(product.publicProductId, product.id);
+
+  return {
+    ...product,
+    shortName: text(product.shortName ?? legacy?.shortName ?? product.name),
+    displayTag: text(product.displayTag ?? product.tag ?? legacy?.tag),
+    publicMeta: normalizePublicMeta(product.publicMeta ?? product.meta, legacy?.meta),
+  };
+}
+
+function createInitialStore() {
+  return {
+    version: workspaceProductSeedState.version,
+    nextSequence: workspaceProductSeedState.nextSequence,
+    items: clone(workspaceProductSeeds).map(enrichWorkspaceProduct),
+  };
+}
+
+function readStoreFromStorage() {
+  const storage = getStorage();
+  const raw = storage.getItem(STORAGE_KEY);
+  if (!raw) {
+    return createInitialStore();
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.items)) {
+      return createInitialStore();
+    }
+
+    return {
+      version: Number(parsed.version) || workspaceProductSeedState.version,
+      nextSequence: Number(parsed.nextSequence) || workspaceProductSeedState.nextSequence,
+      items: clone(parsed.items).map(enrichWorkspaceProduct),
+    };
+  } catch {
+    return createInitialStore();
+  }
+}
+
+function persistStore(store) {
+  const storage = getStorage();
+  storage.setItem(STORAGE_KEY, JSON.stringify(store));
+  invalidateWorkspaceStorageCache(STORAGE_KEY);
+}
+
+function getStore() {
+  if (!cachedStore) {
+    cachedStore = readStoreFromStorage();
+    persistStore(cachedStore);
+  }
+
+  return cachedStore;
+}
+
+function saveStore(store) {
+  cachedStore = store;
+  persistStore(store);
+}
+
 function generateUniqueId(store, base = "workspace-product") {
   let sequence = Number(store.nextSequence) || 1;
   let candidate = `${base}-${String(sequence).padStart(3, "0")}`;
@@ -205,6 +262,7 @@ function getProductById(store, id) {
 function normalizeProductPayload(input, existingProduct = null) {
   const payload = input ?? {};
   const base = existingProduct ?? {};
+  const legacy = getLegacyPublicProduct(payload.publicProductId, base.publicProductId, payload.id, base.id);
   const mergedName = text(payload.name ?? base.name);
   const mergedCategory = text(payload.category ?? base.category);
   const mergedStatus = text(payload.status ?? base.status);
@@ -216,21 +274,30 @@ function normalizeProductPayload(input, existingProduct = null) {
   return {
     id: text(payload.id ?? base.id),
     name: mergedName,
+    shortName: text(payload.shortName ?? base.shortName ?? legacy?.shortName ?? mergedName),
     category: mergedCategory,
     status: mergedStatus,
     needsUpdate: normalizeBoolean(payload.needsUpdate, Boolean(base.needsUpdate)),
     owner: mergedOwner,
+    ownerTeam: text(payload.ownerTeam ?? base.ownerTeam),
     updatedAt: text(payload.updatedAt ?? base.updatedAt) || nowIso(),
     tags: normalizeTags(payload.tags ?? base.tags ?? []),
+    displayTag: text(payload.displayTag ?? base.displayTag ?? base.tag ?? legacy?.tag),
     retailPrice: normalizeNumber(payload.retailPrice, normalizeNumber(base.retailPrice, 0)),
     internalCost: normalizeNumber(payload.internalCost, normalizeNumber(base.internalCost, 0)),
     summary: text(payload.summary ?? base.summary),
     publicProductId: text(payload.publicProductId ?? base.publicProductId),
     hero: nextHero,
     media: normalizedMedia,
+    publicMeta: normalizePublicMeta(payload.publicMeta, base.publicMeta ?? legacy?.meta),
     progressSummary: text(payload.progressSummary ?? base.progressSummary),
     supplierSummary: text(payload.supplierSummary ?? base.supplierSummary),
-    logs: normalizeLogs(payload.logs ?? base.logs, existingProduct ? "update" : "create", mergedOwner || "system", existingProduct ? "Updated workspace product." : "Created workspace product."),
+    logs: normalizeLogs(
+      payload.logs ?? base.logs,
+      existingProduct ? "update" : "create",
+      mergedOwner || "system",
+      existingProduct ? "Updated workspace product." : "Created workspace product.",
+    ),
   };
 }
 
@@ -274,18 +341,22 @@ function materializeImportedProduct(store, imported, index) {
   return {
     id: finalId,
     name: payload.name,
+    shortName: payload.shortName,
     category: payload.category,
     status: payload.status,
     needsUpdate: payload.needsUpdate,
     owner: payload.owner,
+    ownerTeam: payload.ownerTeam,
     updatedAt: payload.updatedAt,
     tags: payload.tags,
+    displayTag: payload.displayTag,
     retailPrice: payload.retailPrice,
     internalCost: payload.internalCost,
     summary: payload.summary,
     publicProductId: payload.publicProductId,
     hero: payload.hero,
     media: payload.media,
+    publicMeta: payload.publicMeta,
     progressSummary: payload.progressSummary,
     supplierSummary: payload.supplierSummary,
     logs: normalizeLogs(payload.logs, "import", payload.owner || "import", `Imported record ${index}.`),

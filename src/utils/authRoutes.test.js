@@ -51,6 +51,29 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("employee", "/workspace/products/import")).toBe(true);
   });
 
+  it("allows employee access to workspace project routes", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/projects")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/projects/new")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/projects/wp-case-001")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/projects/wp-case-001/edit")).toBe(true);
+  });
+
+  it("allows employee access to workspace banner routes", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/content/banners")).toBe(true);
+  });
+
+  it("allows employee access to workspace supplier routes", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/new")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/import")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/ws-public-001")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/suppliers/ws-public-001/edit")).toBe(true);
+  });
+
+  it("allows employee access to workspace export routes", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/exports")).toBe(true);
+  });
+
   it("allows director dashboard access", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/dashboard")).toBe(true);
   });
@@ -71,6 +94,29 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/products/import")).toBe(true);
   });
 
+  it("allows director access to workspace project routes", () => {
+    expect(canAccessWorkspaceRoute("director", "/workspace/projects")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/projects/new")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/projects/wp-case-001")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/projects/wp-case-001/edit")).toBe(true);
+  });
+
+  it("allows director access to workspace banner routes", () => {
+    expect(canAccessWorkspaceRoute("director", "/workspace/content/banners")).toBe(true);
+  });
+
+  it("allows director access to workspace supplier routes", () => {
+    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/new")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/import")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/ws-public-001")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/ws-public-001/edit")).toBe(true);
+  });
+
+  it("allows director access to workspace export routes", () => {
+    expect(canAccessWorkspaceRoute("director", "/workspace/exports")).toBe(true);
+  });
+
   it("rejects developer dashboard access", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/dashboard")).toBe(false);
   });
@@ -89,6 +135,29 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/products/lumina-arc")).toBe(false);
     expect(canAccessWorkspaceRoute("developer", "/workspace/products/lumina-arc/edit")).toBe(false);
     expect(canAccessWorkspaceRoute("developer", "/workspace/products/import")).toBe(false);
+  });
+
+  it("rejects developer access to workspace project routes", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/projects")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/projects/new")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/projects/wp-case-001")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/projects/wp-case-001/edit")).toBe(false);
+  });
+
+  it("rejects developer access to workspace banner routes", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/content/banners")).toBe(false);
+  });
+
+  it("rejects developer access to workspace supplier routes", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/new")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/import")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/ws-public-001")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/suppliers/ws-public-001/edit")).toBe(false);
+  });
+
+  it("rejects developer access to workspace export routes", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/exports")).toBe(false);
   });
 
   it("returns requested route when state.from is allowed for the role", () => {

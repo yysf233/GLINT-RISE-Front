@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ImageCard } from "../components/common/ImageCard";
@@ -7,7 +7,9 @@ import { ProgressiveBar } from "../components/common/ProgressiveBar";
 import { SearchBar } from "../components/common/SearchBar";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
-import { cases, productSearchCategoryOptions, products } from "../data/siteContent";
+import { cases } from "../data/siteContent";
+import { getPublicProductFilters, listPublicProducts } from "../services/publicProductsCatalog";
+import { ALL_PRODUCT_CATEGORY_LABEL } from "../utils/productSearch";
 
 function buildSearchUrl(keyword, category) {
   const params = new URLSearchParams({
@@ -21,18 +23,28 @@ function buildSearchUrl(keyword, category) {
 
 export function HomePage() {
   const navigate = useNavigate();
+  const publicProducts = listPublicProducts();
+  const { categoryOptions } = getPublicProductFilters(publicProducts);
+  const searchOptions = categoryOptions.length > 0 ? categoryOptions : [ALL_PRODUCT_CATEGORY_LABEL];
   const [searchValue, setSearchValue] = useState("");
-  const [searchCategory, setSearchCategory] = useState(productSearchCategoryOptions[0]);
+  const [searchCategory, setSearchCategory] = useState(searchOptions[0]);
   const [caseIndex, setCaseIndex] = useState(0);
   const [productIndex, setProductIndex] = useState(0);
 
   const featuredCases = cases.slice(0, 3);
-  const featuredProducts = products.slice(0, 6);
+  const featuredProducts = publicProducts.slice(0, 6);
+  const heroProduct = featuredProducts[0] ?? publicProducts[0] ?? null;
   const maxProductIndex = Math.max(featuredProducts.length - 3, 0);
   const visibleProducts = useMemo(
     () => featuredProducts.slice(productIndex, productIndex + 3),
-    [featuredProducts, productIndex]
+    [featuredProducts, productIndex],
   );
+
+  useEffect(() => {
+    if (!searchOptions.includes(searchCategory)) {
+      setSearchCategory(searchOptions[0]);
+    }
+  }, [searchCategory, searchOptions]);
 
   return (
     <PageShell>
@@ -41,11 +53,13 @@ export function HomePage() {
         style={{ backgroundColor: "var(--color-background-canvas)" }}
       >
         <div className="absolute inset-0 overflow-hidden rounded-[var(--radius-hero)]">
-          <img
-            src={products[0].hero}
-            alt="光速上升首页主视觉"
-            className="h-full w-full object-cover opacity-35"
-          />
+          {heroProduct ? (
+            <img
+              src={heroProduct.hero}
+              alt="光速上升首页主视觉"
+              className="h-full w-full object-cover opacity-35"
+            />
+          ) : null}
           <div className="absolute inset-0" style={{ background: "var(--gradient-hero-fade)" }} />
         </div>
 
@@ -66,7 +80,7 @@ export function HomePage() {
             <span className="text-[var(--color-accent-primary)]">光速上升</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--color-text-secondary)]">
-            保留品牌优先、搜索在前、案例与热门产品并行展示的首页结构，同时把路由、内容和设计规范整理成可长期演进的 SPA 体系。
+            保留品牌优先、搜索在前、案例与热门产品并行展示的首页结构，同时让后台已发布产品可以直接驱动首页推荐与搜索入口。
           </p>
           <div className="mt-10">
             <SearchBar
@@ -75,7 +89,7 @@ export function HomePage() {
               category={searchCategory}
               setCategory={setSearchCategory}
               onSubmit={() => navigate(buildSearchUrl(searchValue, searchCategory))}
-              options={productSearchCategoryOptions}
+              options={searchOptions}
             />
           </div>
         </div>
@@ -85,7 +99,7 @@ export function HomePage() {
         <SectionHeading
           eyebrow="精选案例"
           title="案例轮播大图"
-          desc="保留首页双核心内容区：主视觉大图负责展示代表性案例，右侧与下方维持节奏更快的卡片浏览。"
+          desc="保留首页案例主图与右侧卡片列表的浏览节奏。"
           action={
             <button
               type="button"
@@ -117,7 +131,8 @@ export function HomePage() {
                   onClick={() => setCaseIndex(index)}
                   className="overflow-hidden rounded-[var(--radius-tile)] p-5 text-left transition"
                   style={{
-                    backgroundColor: index === caseIndex ? "var(--color-surface-secondary)" : "var(--color-surface-primary)",
+                    backgroundColor:
+                      index === caseIndex ? "var(--color-surface-secondary)" : "var(--color-surface-primary)",
                     boxShadow: "var(--shadow-panel)",
                   }}
                 >
@@ -167,7 +182,7 @@ export function HomePage() {
         <SectionHeading
           eyebrow="热门产品"
           title="产品策展矩阵"
-          desc="保留产品概览与热门产品两层浏览路径，首页先展示策展样本，再引导进入更完整的产品路由。"
+          desc="首页产品区直接读取后台已发布产品，保持推荐卡片与后续产品总览一致。"
           action={
             <button
               type="button"

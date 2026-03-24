@@ -6,6 +6,8 @@ export const WORKSPACE_STORAGE_KEYS = {
   products: `${STORAGE_PREFIX}-products.v1`,
   projects: `${STORAGE_PREFIX}-projects.v1`,
   banners: `${STORAGE_PREFIX}-banners.v1`,
+  suppliers: `${STORAGE_PREFIX}-suppliers.v1`,
+  exports: `${STORAGE_PREFIX}-exports.v1`,
 };
 
 function clone(value) {

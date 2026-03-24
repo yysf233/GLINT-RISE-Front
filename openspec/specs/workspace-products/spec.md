@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This spec defines the mock workspace products contract used by the internal backend product module.
+This spec defines the mock workspace products contract used by the internal backend product module and the source-of-truth fields that can be synchronized to the public catalog.
 
 ## Normative Requirements
 
@@ -14,6 +14,8 @@ Each workspace product record MUST use this shape:
 {
   "id": "wp-lumina-arc",
   "name": "Lumina Arc",
+  "shortName": "LUMINA ARC",
+  "displayTag": "可持续科技 / 旗舰系列",
   "category": "flagship",
   "status": "active",
   "needsUpdate": false,
@@ -25,6 +27,10 @@ Each workspace product record MUST use this shape:
   "internalCost": 1320,
   "summary": "Flagship product aligned to the public showcase product.",
   "publicProductId": "lumina-arc",
+  "publicMeta": [
+    { "label": "材质", "value": "阳极黑钛" },
+    { "label": "版本", "value": "V2.0" }
+  ],
   "hero": "data:image/svg+xml;utf8,...",
   "progressSummary": "Launch ready and mirrored to the public site.",
   "supplierSummary": "Primary supplier confirmed with stable lead times.",
@@ -49,6 +55,8 @@ Required fields:
 Editable fields:
 
 - `name`
+- `shortName`
+- `displayTag`
 - `category`
 - `status`
 - `needsUpdate`
@@ -59,6 +67,7 @@ Editable fields:
 - `tags`
 - `summary`
 - `publicProductId`
+- `publicMeta`
 - `hero`
 - `progressSummary`
 - `supplierSummary`
@@ -68,6 +77,15 @@ Read-only or system-managed fields:
 - `id` after create
 - `updatedAt`
 - `logs`
+
+Business meaning:
+
+- `name` is the internal canonical name used by workspace operators.
+- `shortName` is the short public-facing title that should be shown in the public catalog.
+- `displayTag` is the public badge or tagline shown under the title in the public catalog.
+- `publicMeta` is the structured public detail metadata that should appear on the public detail page.
+- `publicProductId` is the stable public identifier and must be preserved once a product is published.
+- `ownerTeam` identifies the internal team currently responsible for the record and is not part of the public contract.
 
 ### 2. Enumerations
 
@@ -111,11 +129,14 @@ Keyword matching MUST search at least:
 
 - `id`
 - `name`
+- `shortName`
+- `displayTag`
 - `owner`
 - `summary`
 - `progressSummary`
 - `supplierSummary`
 - `publicProductId`
+- `publicMeta`
 - `tags`
 
 ### 4. List Success Payload
@@ -163,7 +184,43 @@ If the record does not exist, the operation MUST fail with:
 }
 ```
 
-### 6. Create and Update Contract
+### 6. Public Sync Rules
+
+Workspace products MUST be the source of truth for public product publishing.
+
+Only workspace products that satisfy all of the following MAY be synchronized to the public catalog:
+
+- `status` is `active`
+- `publicProductId` is non-empty
+- the record is not archived or otherwise suppressed by the publishing flow
+
+When a workspace product is synchronized, the public read model MUST derive from these workspace fields:
+
+- public `id` from `publicProductId`
+- public `workspaceProductId` from workspace `id`
+- public `name` from workspace `name`
+- public `shortName` from workspace `shortName`, falling back to `name`
+- public `displayTag` from workspace `displayTag`, falling back to the workspace `tag` when present
+- public `desc` from workspace `summary`
+- public `hero` from workspace `hero`
+- public `thumbs` from workspace `media` or other image sources if present
+- public `meta` from workspace `publicMeta`
+- public `price` from workspace `retailPrice` when present
+- public `sourceUpdatedAt` from workspace `updatedAt`
+
+The `shortName`, `displayTag`, and `publicMeta` fields MUST be treated as public presentation fields, not internal inventory fields.
+
+Business notes:
+
+- Workspace product CRUD is the only editorial entry point for public product content in the current project stage.
+- A product can be fully valid for workspace management while still being private if it remains `draft` or has no `publicProductId`.
+- Archiving or clearing `publicProductId` is the business action used to remove a product from all public pages, search results, and share links.
+
+If a workspace product changes from publishable to unpublished, the public catalog MUST stop exposing it.
+
+If `publicProductId` changes, the previous public identifier MUST be treated as retired and the new identifier MUST be used for subsequent public reads.
+
+### 7. Create and Update Contract
 
 `createWorkspaceProduct(input)` MUST:
 
@@ -191,7 +248,7 @@ Create and update validation failures MUST use:
 }
 ```
 
-### 7. Bulk Tag Contract
+### 8. Bulk Tag Contract
 
 `bulkAddWorkspaceProductTags({ ids, tags })` MUST:
 
@@ -223,7 +280,7 @@ On invalid input it MUST return:
 }
 ```
 
-### 8. Import Preview and Import Contract
+### 9. Import Preview and Import Contract
 
 The canonical mock import format MUST be one pipe-delimited row per product using this field order:
 
@@ -267,7 +324,7 @@ The success payload MUST be:
 }
 ```
 
-### 9. Persistence Rules
+### 10. Persistence Rules
 
 The workspace products store MUST persist in local storage.
 
@@ -279,4 +336,3 @@ The service MUST persist changes for:
 - update
 - bulk tag
 - import
-

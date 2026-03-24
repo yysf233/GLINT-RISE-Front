@@ -6,8 +6,13 @@ import { ProductTile } from "../components/common/ProductTile";
 import { SearchBar } from "../components/common/SearchBar";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
-import { productSearchCategoryOptions, productSearchTagOptions, products } from "../data/siteContent";
 import {
+  getPublicProductFilters,
+  listPublicProducts,
+} from "../services/publicProductsCatalog";
+import {
+  ALL_PRODUCT_CATEGORY_LABEL,
+  ALL_PRODUCT_TAG_LABEL,
   filterProducts,
   normalizeProductSearchCategory,
   normalizeProductSearchTag,
@@ -24,10 +29,14 @@ function buildSearchParams(nextState) {
 export function SearchPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const products = listPublicProducts();
+  const { categoryOptions, tagOptions } = getPublicProductFilters(products);
+  const safeCategoryOptions = categoryOptions.length > 0 ? categoryOptions : [ALL_PRODUCT_CATEGORY_LABEL];
+  const safeTagOptions = tagOptions.length > 0 ? tagOptions : [ALL_PRODUCT_TAG_LABEL];
 
   const keyword = searchParams.get("keyword") ?? "";
-  const category = normalizeProductSearchCategory(searchParams.get("category"));
-  const tag = normalizeProductSearchTag(searchParams.get("tag"));
+  const category = normalizeProductSearchCategory(searchParams.get("category"), safeCategoryOptions);
+  const tag = normalizeProductSearchTag(searchParams.get("tag"), safeTagOptions);
 
   const syncParams = (changes) => {
     const nextState = {
@@ -41,8 +50,8 @@ export function SearchPage() {
   };
 
   const results = useMemo(() => {
-    return filterProducts(products, { keyword, category, tag });
-  }, [category, keyword, tag]);
+    return filterProducts(products, { keyword, category, tag }, { categoryOptions: safeCategoryOptions, tagOptions: safeTagOptions });
+  }, [category, keyword, products, safeCategoryOptions, safeTagOptions, tag]);
 
   return (
     <PageShell>
@@ -50,7 +59,7 @@ export function SearchPage() {
         <SectionHeading
           eyebrow="产品检索"
           title="搜索结果"
-          desc="主搜索页已统一聚焦产品检索，搜索状态同步到 URL 查询参数，支持刷新恢复、直接访问与分享筛选结果。"
+          desc="主搜索页统一聚焦产品检索，搜索状态同步到 URL 查询参数，支持刷新恢复、直接访问与分享筛选结果。"
         />
 
         <SearchBar
@@ -59,7 +68,7 @@ export function SearchPage() {
           category={category}
           setCategory={(nextCategory) => syncParams({ category: nextCategory })}
           onSubmit={() => syncParams({ keyword })}
-          options={productSearchCategoryOptions}
+          options={safeCategoryOptions}
         />
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[260px_1fr]">
@@ -69,7 +78,7 @@ export function SearchPage() {
           >
             <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">品类筛选</div>
             <div className="mt-5 flex flex-wrap gap-3">
-              {productSearchCategoryOptions.map((item) => (
+              {safeCategoryOptions.map((item) => (
                 <Badge key={item} active={category === item} onClick={() => syncParams({ category: item })}>
                   {item}
                 </Badge>
@@ -78,7 +87,7 @@ export function SearchPage() {
 
             <div className="mt-8 text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">标签筛选</div>
             <div className="mt-5 flex flex-wrap gap-3">
-              {productSearchTagOptions.map((item) => (
+              {safeTagOptions.map((item) => (
                 <Badge key={item} active={tag === item} onClick={() => syncParams({ tag: item })}>
                   {item}
                 </Badge>
@@ -119,14 +128,14 @@ export function SearchPage() {
                   暂无匹配结果
                 </div>
                 <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)]">
-                  可以尝试放宽分类或标签条件，或者直接回到产品概览浏览完整产品内容。
+                  可以尝试放宽分类或标签条件，或者直接回到产品总览浏览完整产品内容。
                 </p>
                 <button
                   type="button"
                   onClick={() => navigate("/products")}
                   className="mt-6 inline-flex items-center gap-2 text-sm tracking-[0.22em] text-[var(--color-accent-primary)]"
                 >
-                  前往产品概览
+                  前往产品总览
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>

@@ -1,49 +1,46 @@
 import React from "react";
-import {
-  ArrowRight,
-  Boxes,
-  CircleAlert,
-  LoaderCircle,
-  PenSquare,
-  Plus,
-  Search,
-  Sparkles,
-  Tags,
-  Upload,
-} from "lucide-react";
+import { PlusOutlined, ReloadOutlined, TagsOutlined, UploadOutlined } from "@ant-design/icons";
+import { Button, Input, Select, Space, Tag, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
+import { AdminFilterBar } from "../components/workspace/admin/AdminFilterBar";
+import { AdminPageHeader } from "../components/workspace/admin/AdminPageHeader";
+import { AdminResultState } from "../components/workspace/admin/AdminResultState";
+import { AdminStatsRow } from "../components/workspace/admin/AdminStatsRow";
+import { AdminTableCard } from "../components/workspace/admin/AdminTableCard";
 import { WorkspaceShell } from "../components/workspace/WorkspaceShell";
-import workspaceProductsApi from "../services/workspaceProductsApi";
 import { useNotice } from "../context/useNotice";
+import workspaceProductsApi from "../services/workspaceProductsApi";
+
+const { Text } = Typography;
 
 const CATEGORY_OPTIONS = [
-  { value: "all", label: "All categories" },
-  { value: "flagship", label: "Flagship" },
-  { value: "device", label: "Device" },
-  { value: "space", label: "Space" },
-  { value: "hot", label: "Hot pick" },
+  { value: "all", label: "全部品类" },
+  { value: "flagship", label: "旗舰产品" },
+  { value: "device", label: "智能设备" },
+  { value: "space", label: "空间体验" },
+  { value: "hot", label: "热门精选" },
 ];
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "All status" },
-  { value: "active", label: "Active" },
-  { value: "draft", label: "Draft" },
-  { value: "archived", label: "Archived" },
+  { value: "all", label: "全部状态" },
+  { value: "active", label: "已上架" },
+  { value: "draft", label: "草稿" },
+  { value: "archived", label: "已下架" },
 ];
 
 const UPDATE_OPTIONS = [
-  { value: "all", label: "All sync states" },
-  { value: "yes", label: "Needs update" },
-  { value: "no", label: "Synced" },
+  { value: "all", label: "全部同步状态" },
+  { value: "yes", label: "待同步" },
+  { value: "no", label: "已同步" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "updated-desc", label: "Updated: newest first" },
-  { value: "updated-asc", label: "Updated: oldest first" },
-  { value: "name-asc", label: "Name: A to Z" },
-  { value: "name-desc", label: "Name: Z to A" },
-  { value: "price-desc", label: "Retail price: high to low" },
-  { value: "price-asc", label: "Retail price: low to high" },
+  { value: "updated-desc", label: "更新时间：最新" },
+  { value: "updated-asc", label: "更新时间：最早" },
+  { value: "name-asc", label: "名称：A-Z" },
+  { value: "name-desc", label: "名称：Z-A" },
+  { value: "price-desc", label: "零售价：高到低" },
+  { value: "price-asc", label: "零售价：低到高" },
 ];
 
 const EMPTY_SUMMARY = {
@@ -54,77 +51,27 @@ const EMPTY_SUMMARY = {
   needsUpdateCount: 0,
 };
 
-const BADGE_STYLES = {
-  active: {
-    label: "Active",
-    backgroundColor: "rgba(95, 189, 113, 0.14)",
-    borderColor: "rgba(95, 189, 113, 0.4)",
-    color: "#d8f3dd",
-  },
-  draft: {
-    label: "Draft",
-    backgroundColor: "rgba(214, 163, 76, 0.14)",
-    borderColor: "rgba(214, 163, 76, 0.38)",
-    color: "#f5d9aa",
-  },
-  archived: {
-    label: "Archived",
-    backgroundColor: "rgba(126, 126, 126, 0.16)",
-    borderColor: "rgba(126, 126, 126, 0.38)",
-    color: "#d7d7d7",
-  },
+const statusLabelMap = {
+  active: "已上架",
+  draft: "草稿",
+  archived: "已下架",
 };
 
-function MetricCard({ label, value, hint, icon: Icon }) {
-  return (
-    <article
-      className="rounded-[var(--radius-card)] border p-5"
-      style={{ background: "var(--gradient-card)", borderColor: "var(--color-border-subtle)" }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-xs tracking-[0.24em] text-[var(--color-text-muted)]">{label}</div>
-          <div className="mt-3 text-3xl font-semibold text-[var(--color-text-primary)]">{value}</div>
-        </div>
-        <div
-          className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-control)]"
-          style={{ backgroundColor: "var(--color-accent-soft)" }}
-        >
-          <Icon className="h-5 w-5 text-[var(--color-accent-primary)]" />
-        </div>
-      </div>
-      <p className="mt-4 text-sm leading-6 text-[var(--color-text-secondary)]">{hint}</p>
-    </article>
-  );
-}
-
-function StatusBadge({ status }) {
-  const config = BADGE_STYLES[status] ?? BADGE_STYLES.draft;
-
-  return (
-    <span
-      className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-[0.16em]"
-      style={{
-        backgroundColor: config.backgroundColor,
-        borderColor: config.borderColor,
-        color: config.color,
-      }}
-    >
-      {config.label}
-    </span>
-  );
-}
+const statusColorMap = {
+  active: "green",
+  draft: "orange",
+  archived: "default",
+};
 
 function formatCurrency(value) {
   const amount = Number(value);
-
   if (!Number.isFinite(amount)) {
     return "--";
   }
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("zh-CN", {
     style: "currency",
-    currency: "USD",
+    currency: "CNY",
     maximumFractionDigits: 0,
   }).format(amount);
 }
@@ -139,7 +86,7 @@ function formatDate(value) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -185,17 +132,14 @@ export function WorkspaceProductsPage() {
         sort,
       })
       .then((result) => {
-        if (!isActive) {
-          return;
-        }
-
+        if (!isActive) return;
         if (result?.error) {
           setListState({
             status: "error",
             items: [],
             total: 0,
             summary: EMPTY_SUMMARY,
-            error: result.error.message || "Unable to load products.",
+            error: result.error.message || "无法加载产品列表。",
           });
           return;
         }
@@ -209,16 +153,13 @@ export function WorkspaceProductsPage() {
         });
       })
       .catch(() => {
-        if (!isActive) {
-          return;
-        }
-
+        if (!isActive) return;
         setListState({
           status: "error",
           items: [],
           total: 0,
           summary: EMPTY_SUMMARY,
-          error: "Unable to load products.",
+          error: "无法加载产品列表。",
         });
       });
 
@@ -231,22 +172,6 @@ export function WorkspaceProductsPage() {
     setSelectedIds((current) => current.filter((id) => listState.items.some((item) => item.id === id)));
   }, [listState.items]);
 
-  const allVisibleSelected = listState.items.length > 0 && selectedIds.length === listState.items.length;
-  const selectedCount = selectedIds.length;
-
-  const handleToggleAll = () => {
-    if (allVisibleSelected) {
-      setSelectedIds([]);
-      return;
-    }
-
-    setSelectedIds(listState.items.map((item) => item.id));
-  };
-
-  const handleToggleOne = (id) => {
-    setSelectedIds((current) => (current.includes(id) ? current.filter((itemId) => itemId !== id) : [...current, id]));
-  };
-
   const handleApplyBulkTags = async () => {
     if (selectedIds.length === 0 || isApplyingTags) {
       return;
@@ -258,12 +183,11 @@ export function WorkspaceProductsPage() {
       .filter(Boolean);
 
     if (tags.length === 0) {
-      showNotice("Enter at least one tag before applying.");
+      showNotice("请先输入至少一个标签。");
       return;
     }
 
     setIsApplyingTags(true);
-
     try {
       const result = await workspaceProductsApi.bulkAddWorkspaceProductTags({
         ids: selectedIds,
@@ -271,11 +195,11 @@ export function WorkspaceProductsPage() {
       });
 
       if (result?.error) {
-        showNotice(result.error.message || "Bulk tag update failed.");
+        showNotice(result.error.message || "批量打标失败。");
         return;
       }
 
-      showNotice(`Applied ${tags.length} tag(s) to ${result.updatedCount ?? selectedIds.length} product(s).`);
+      showNotice(`已为 ${selectedIds.length} 条记录更新标签。`);
       setBulkTagsInput("");
       setSelectedIds([]);
       setRefreshToken((value) => value + 1);
@@ -284,328 +208,216 @@ export function WorkspaceProductsPage() {
     }
   };
 
+  const columns = [
+    {
+      title: "产品",
+      dataIndex: "name",
+      key: "name",
+      render: (_, record) => (
+        <Space direction="vertical" size={4}>
+          <Text strong>{record.name}</Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {record.id}
+          </Text>
+          <Text type="secondary">{record.summary}</Text>
+          <Space size={6} wrap>
+            {(record.tags ?? []).map((tag) => (
+              <Tag key={`${record.id}-${tag}`}>{tag}</Tag>
+            ))}
+          </Space>
+        </Space>
+      ),
+    },
+    {
+      title: "品类",
+      dataIndex: "category",
+      key: "category",
+      render: (value, record) => record.categoryLabel || value,
+    },
+    {
+      title: "状态",
+      dataIndex: "status",
+      key: "status",
+      render: (value) => <Tag color={statusColorMap[value] || "default"}>{statusLabelMap[value] || value}</Tag>,
+    },
+    {
+      title: "负责人",
+      dataIndex: "owner",
+      key: "owner",
+    },
+    {
+      title: "零售价",
+      dataIndex: "retailPrice",
+      key: "retailPrice",
+      render: (value) => formatCurrency(value),
+    },
+    {
+      title: "更新时间",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (value) => formatDate(value),
+    },
+    {
+      title: "操作",
+      key: "actions",
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="link"
+            data-testid={`workspace-products-view-${record.id}`}
+            onClick={() => navigate(`/workspace/products/${record.id}`)}
+          >
+            查看
+          </Button>
+          <Button
+            type="link"
+            data-testid={`workspace-products-edit-${record.id}`}
+            onClick={() => navigate(`/workspace/products/${record.id}/edit`)}
+          >
+            编辑
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const rowSelection = {
+    selectedRowKeys: selectedIds,
+    onChange: (keys) => setSelectedIds(keys),
+    getCheckboxProps: (record) => ({
+      "data-testid": `workspace-products-select-${record.id}`,
+    }),
+  };
+
   return (
-    <WorkspaceShell
-      eyebrow="Products Console"
-      title="Product Operations"
-      description="Employees and directors manage the mock product catalog here. Search, filter, batch tag, create, edit, and import all run on the shared mock service contract."
-    >
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Catalog total"
-          value={listState.summary.total}
-          hint="Total records available to the current filterable mock catalog."
-          icon={Boxes}
+    <WorkspaceShell>
+      <Space direction="vertical" size={24} style={{ width: "100%" }}>
+        <AdminPageHeader
+          eyebrow="产品管理"
+          title="产品后台列表"
+          description="统一管理产品的状态、价格、标签与对外发布信息。所有动作都会落在本地 mock 服务并可回溯。"
+          extra={
+            <Space wrap>
+              <Button icon={<ReloadOutlined />} onClick={() => setRefreshToken((value) => value + 1)}>
+                刷新列表
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate("/workspace/products/new")}>
+                新建产品
+              </Button>
+              <Button icon={<UploadOutlined />} onClick={() => navigate("/workspace/products/import")}>
+                批量导入
+              </Button>
+            </Space>
+          }
         />
-        <MetricCard
-          label="Active records"
-          value={listState.summary.activeCount}
-          hint="Currently visible items ready for public or internal use."
-          icon={Sparkles}
-        />
-        <MetricCard
-          label="Draft records"
-          value={listState.summary.draftCount}
-          hint="Items still under editing or waiting for a release decision."
-          icon={CircleAlert}
-        />
-        <MetricCard
-          label="Needs update"
-          value={listState.summary.needsUpdateCount}
-          hint="Records flagged for content refresh or public-site sync."
-          icon={Tags}
-        />
-      </section>
 
-      <section
-        className="mt-6 rounded-[var(--radius-panel)] border p-5 md:p-6"
-        style={{ backgroundColor: "var(--color-surface-primary)", borderColor: "var(--color-border-subtle)" }}
-      >
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div>
-            <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">Manage Catalog</div>
-            <h3 className="mt-3 text-2xl font-semibold text-[var(--color-text-primary)]">Mock product table with full management actions</h3>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--color-text-secondary)]">
-              This backend slice keeps the full management loop usable before a real API exists. The module persists local changes, so create, edit,
-              import, and bulk tag updates survive refresh.
-            </p>
-          </div>
+        <AdminStatsRow
+          items={[
+            {
+              key: "total",
+              label: "产品总数",
+              value: listState.summary.total,
+              description: "当前可检索的产品记录总量。",
+            },
+            {
+              key: "active",
+              label: "已上架",
+              value: listState.summary.activeCount,
+              description: "可在公开站点展示的产品。",
+            },
+            {
+              key: "draft",
+              label: "草稿",
+              value: listState.summary.draftCount,
+              description: "尚未上架的草稿产品。",
+            },
+            {
+              key: "needs-update",
+              label: "待同步",
+              value: listState.summary.needsUpdateCount,
+              description: "需要同步到公开站的记录。",
+            },
+          ]}
+        />
 
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/workspace/products/new")}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.14em] text-[var(--color-text-on-accent)]"
-              style={{ background: "var(--gradient-accent)" }}
-            >
-              <Plus className="h-4 w-4" />
-              Add Product
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/workspace/products/import")}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.14em] text-[var(--color-text-primary)]"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              <Upload className="h-4 w-4" />
-              Batch Import
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.4fr),repeat(4,minmax(0,0.7fr))]">
-          <label className="block">
-            <span className="text-xs tracking-[0.22em] text-[var(--color-text-muted)]">Search</span>
-            <div
-              className="mt-2 flex items-center gap-3 rounded-[var(--radius-pill)] border px-4"
-              style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              <Search className="h-4 w-4 text-[var(--color-text-muted)]" />
-              <input
-                data-testid="workspace-products-search"
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                placeholder="Search name, owner, tag, or summary"
-                className="h-12 w-full bg-transparent text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)]"
+        <AdminFilterBar
+          title="筛选与批量操作"
+          description="支持关键词检索、状态筛选与批量打标。"
+          extra={
+            <Space>
+              <Input
+                data-testid="workspace-products-bulk-tags"
+                value={bulkTagsInput}
+                onChange={(event) => setBulkTagsInput(event.target.value)}
+                placeholder="批量标签（逗号分隔）"
               />
-            </div>
-          </label>
-
-          <label className="block">
-            <span className="text-xs tracking-[0.22em] text-[var(--color-text-muted)]">Category</span>
-            <select
-              data-testid="workspace-products-category"
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[var(--radius-pill)] border px-4 text-sm text-[var(--color-text-primary)] outline-none"
-              style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              {CATEGORY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-xs tracking-[0.22em] text-[var(--color-text-muted)]">Status</span>
-            <select
-              data-testid="workspace-products-status"
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[var(--radius-pill)] border px-4 text-sm text-[var(--color-text-primary)] outline-none"
-              style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-xs tracking-[0.22em] text-[var(--color-text-muted)]">Sync state</span>
-            <select
-              data-testid="workspace-products-needs-update"
-              value={needsUpdate}
-              onChange={(event) => setNeedsUpdate(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[var(--radius-pill)] border px-4 text-sm text-[var(--color-text-primary)] outline-none"
-              style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              {UPDATE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-xs tracking-[0.22em] text-[var(--color-text-muted)]">Sort</span>
-            <select
-              data-testid="workspace-products-sort"
-              value={sort}
-              onChange={(event) => setSort(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[var(--radius-pill)] border px-4 text-sm text-[var(--color-text-primary)] outline-none"
-              style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div
-          className="mt-6 flex flex-col gap-4 rounded-[var(--radius-card)] border p-4 md:flex-row md:items-center md:justify-between"
-          style={{ borderColor: "var(--color-border-subtle)" }}
+              <Button
+                type="primary"
+                icon={<TagsOutlined />}
+                data-testid="workspace-products-apply-tags"
+                onClick={handleApplyBulkTags}
+                loading={isApplyingTags}
+                disabled={selectedIds.length === 0}
+              >
+                批量打标
+              </Button>
+            </Space>
+          }
         >
-          <div>
-            <div className="text-sm font-semibold text-[var(--color-text-primary)]">
-              {listState.total} matching record{listState.total === 1 ? "" : "s"}
-            </div>
-            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-              {selectedCount} selected. Use bulk tag to patch multiple records without leaving the table.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 md:min-w-[420px] md:flex-row">
-            <input
-              data-testid="workspace-products-bulk-tags"
-              value={bulkTagsInput}
-              onChange={(event) => setBulkTagsInput(event.target.value)}
-              placeholder="Enter tags, separated by commas"
-              className="h-12 flex-1 rounded-[var(--radius-pill)] border px-4 text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)]"
-              style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "var(--color-surface-secondary)" }}
-            />
-            <button
-              type="button"
-              data-testid="workspace-products-apply-tags"
-              onClick={handleApplyBulkTags}
-              disabled={selectedCount === 0 || isApplyingTags}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-pill)] px-5 text-sm font-semibold tracking-[0.14em] text-[var(--color-text-primary)] disabled:cursor-not-allowed disabled:opacity-60"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              {isApplyingTags ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Tags className="h-4 w-4" />}
-              Apply Tags
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section
-        className="mt-6 overflow-hidden rounded-[var(--radius-panel)] border"
-        style={{ backgroundColor: "var(--color-surface-primary)", borderColor: "var(--color-border-subtle)" }}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse">
-            <thead>
-              <tr className="border-b" style={{ borderColor: "var(--color-border-subtle)" }}>
-                <th className="px-5 py-4 text-left">
-                  <label className="inline-flex items-center gap-3 text-xs tracking-[0.24em] text-[var(--color-text-muted)]">
-                    <input
-                      type="checkbox"
-                      data-testid="workspace-products-select-all"
-                      checked={allVisibleSelected}
-                      onChange={handleToggleAll}
-                      className="h-4 w-4 rounded border"
-                    />
-                    All
-                  </label>
-                </th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Product</th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Category</th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Status</th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Owner</th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Retail Price</th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Updated</th>
-                <th className="px-5 py-4 text-left text-xs tracking-[0.24em] text-[var(--color-text-muted)]">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {listState.items.map((item) => (
-                <tr key={item.id} className="border-b align-top" style={{ borderColor: "rgba(255, 255, 255, 0.05)" }}>
-                  <td className="px-5 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(item.id)}
-                      onChange={() => handleToggleOne(item.id)}
-                      data-testid={`workspace-products-select-${item.id}`}
-                      className="mt-1 h-4 w-4 rounded border"
-                    />
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="text-sm font-semibold text-[var(--color-text-primary)]">{item.name}</div>
-                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">{item.id}</div>
-                    <div className="mt-3 max-w-[22rem] text-sm leading-6 text-[var(--color-text-secondary)]">{item.summary}</div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {(item.tags ?? []).map((tag) => (
-                        <span
-                          key={`${item.id}-${tag}`}
-                          className="rounded-full border px-3 py-1 text-xs text-[var(--color-text-secondary)]"
-                          style={{ borderColor: "var(--color-border-subtle)", backgroundColor: "rgba(255, 255, 255, 0.03)" }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-[var(--color-text-secondary)]">{item.categoryLabel || item.category}</td>
-                  <td className="px-5 py-4">
-                    <div className="flex flex-col items-start gap-3">
-                      <StatusBadge status={item.status} />
-                      {item.needsUpdate ? (
-                        <span
-                          className="rounded-full border px-3 py-1 text-xs font-semibold tracking-[0.14em]"
-                          style={{
-                            backgroundColor: "rgba(214, 163, 76, 0.12)",
-                            borderColor: "rgba(214, 163, 76, 0.34)",
-                            color: "var(--color-accent-primary)",
-                          }}
-                        >
-                          Needs update
-                        </span>
-                      ) : (
-                        <span className="text-xs text-[var(--color-text-muted)]">Synced</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-[var(--color-text-secondary)]">{item.owner}</td>
-                  <td className="px-5 py-4 text-sm text-[var(--color-text-secondary)]">{formatCurrency(item.retailPrice)}</td>
-                  <td className="px-5 py-4 text-sm text-[var(--color-text-secondary)]">{formatDate(item.updatedAt)}</td>
-                  <td className="px-5 py-4">
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        data-testid={`workspace-products-view-${item.id}`}
-                        onClick={() => navigate(`/workspace/products/${item.id}`)}
-                        className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)]"
-                        style={{ backgroundColor: "var(--color-surface-secondary)" }}
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                        View
-                      </button>
-                      <button
-                        type="button"
-                        data-testid={`workspace-products-edit-${item.id}`}
-                        onClick={() => navigate(`/workspace/products/${item.id}/edit`)}
-                        className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)]"
-                        style={{ backgroundColor: "var(--color-surface-secondary)" }}
-                      >
-                        <PenSquare className="h-4 w-4" />
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {listState.status === "loading" || listState.status === "refreshing" ? (
-          <div className="flex items-center gap-3 border-t px-5 py-5 text-sm text-[var(--color-text-secondary)]" style={{ borderColor: "var(--color-border-subtle)" }}>
-            <LoaderCircle className="h-4 w-4 animate-spin" />
-            Refreshing the mock catalog.
-          </div>
-        ) : null}
+          <Input
+            data-testid="workspace-products-search"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="搜索产品名称、负责人或标签"
+            allowClear
+          />
+          <Select
+            data-testid="workspace-products-category"
+            value={category}
+            onChange={setCategory}
+            options={CATEGORY_OPTIONS}
+            style={{ minWidth: 160 }}
+          />
+          <Select
+            data-testid="workspace-products-status"
+            value={status}
+            onChange={setStatus}
+            options={STATUS_OPTIONS}
+            style={{ minWidth: 140 }}
+          />
+          <Select
+            data-testid="workspace-products-needs-update"
+            value={needsUpdate}
+            onChange={setNeedsUpdate}
+            options={UPDATE_OPTIONS}
+            style={{ minWidth: 160 }}
+          />
+          <Select
+            data-testid="workspace-products-sort"
+            value={sort}
+            onChange={setSort}
+            options={SORT_OPTIONS}
+            style={{ minWidth: 180 }}
+          />
+        </AdminFilterBar>
 
         {listState.status === "error" ? (
-          <div className="border-t px-5 py-5 text-sm text-[#f5d9aa]" style={{ borderColor: "var(--color-border-subtle)" }}>
-            {listState.error}
-          </div>
-        ) : null}
-
-        {listState.status === "ready" && listState.items.length === 0 ? (
-          <div className="border-t px-5 py-8 text-sm text-[var(--color-text-secondary)]" style={{ borderColor: "var(--color-border-subtle)" }}>
-            No records match the current filters. Clear the search or import new records to continue.
-          </div>
-        ) : null}
-      </section>
+          <AdminResultState status="error" title="无法加载产品列表" subTitle={listState.error} />
+        ) : (
+          <AdminTableCard
+            title="产品列表"
+            description={`${listState.total} 条记录已同步。`}
+            tableProps={{
+              rowKey: "id",
+              columns,
+              dataSource: listState.items,
+              pagination: false,
+              loading: listState.status === "loading" || listState.status === "refreshing",
+              rowSelection,
+            }}
+          />
+        )}
+      </Space>
     </WorkspaceShell>
   );
 }

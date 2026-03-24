@@ -4,7 +4,9 @@
 
 ### Requirement: Canonical Workspace Product Record
 
-The workspace products module MUST use a stable backend-facing product record shape with required fields for `name`, `category`, `status`, and `owner`, plus system-managed `updatedAt` and `logs`.
+The workspace products module MUST use a stable backend-facing product record shape with required fields for `name`, `category`, `status`, and `owner`, plus the public sync fields `shortName`, `displayTag`, `publicMeta`, and `publicProductId`, and system-managed `updatedAt` and `logs`.
+
+These public sync fields are editorial workspace data. They are what the public catalog should render, while the rest of the workspace record remains the internal operational source of truth.
 
 #### Scenario: Create product with required fields
 
@@ -12,6 +14,26 @@ The workspace products module MUST use a stable backend-facing product record sh
 - **THEN** the service returns `{ "product": { ... } }`
 - **AND** the returned record contains a unique id
 - **AND** the record is persisted to the local mock store
+
+### Requirement: Public Presentation Fields
+
+The workspace products module MUST preserve the public presentation fields that feed the public catalog.
+
+#### Scenario: Save public sync fields on update
+
+- **WHEN** the client updates `shortName`, `displayTag`, or `publicMeta`
+- **THEN** the workspace record persists the new values
+- **AND** the values remain available for the public sync read model
+
+### Requirement: Public Sync Eligibility
+
+The workspace products module MUST treat active records with `publicProductId` as the only records eligible for public publication.
+
+#### Scenario: Keep draft product private
+
+- **WHEN** the client stores a product with `status` set to `draft`
+- **THEN** the product remains a workspace-only record
+- **AND** it is not eligible for public catalog exposure
 
 ### Requirement: Filterable Product List
 
@@ -42,4 +64,3 @@ Product import MUST create new records only and MUST NOT overwrite an existing r
 - **WHEN** an imported row uses an existing id
 - **THEN** the service generates a new unique id
 - **AND** the original stored record remains unchanged
-

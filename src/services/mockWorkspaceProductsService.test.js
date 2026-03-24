@@ -64,15 +64,18 @@ describe("mockWorkspaceProductsService", () => {
   it("creates updates and reads back a workspace product", async () => {
     const created = await createWorkspaceProduct({
       name: "Nova Shelf",
+      shortName: "Shelf",
       category: "device",
       status: "active",
       needsUpdate: false,
       owner: "Maya",
+      displayTag: "空间模块 / 陈列系列",
       retailPrice: 1800,
       internalCost: 900,
       summary: "Shelving unit for rollout",
       publicProductId: "product-a",
       hero: "/nova.jpg",
+      publicMeta: [{ label: "材质", value: "碳钢" }],
       progressSummary: "Ready",
       supplierSummary: "Supplier confirmed",
       tags: ["shelf"],
@@ -89,10 +92,14 @@ describe("mockWorkspaceProductsService", () => {
     expect(updated.product.status).toBe("archived");
     expect(updated.product.needsUpdate).toBe(true);
     expect(updated.product.tags).toEqual(["shelf", "archive"]);
+    expect(updated.product.shortName).toBe("Shelf");
+    expect(updated.product.displayTag).toBe("空间模块 / 陈列系列");
+    expect(updated.product.publicMeta).toEqual([{ label: "材质", value: "碳钢" }]);
 
     const loaded = await getWorkspaceProduct(created.product.id);
     expect(loaded.product.id).toBe(created.product.id);
     expect(loaded.product.status).toBe("archived");
+    expect(loaded.product.publicMeta).toEqual([{ label: "材质", value: "碳钢" }]);
   });
 
   it("persists media ordering and cover selection when saving a product", async () => {

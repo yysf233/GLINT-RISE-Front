@@ -3,8 +3,8 @@ import { ArrowLeft, Share2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { MetaTile } from "../components/common/MetaTile";
 import { PageShell } from "../components/layout/PageShell";
-import { products } from "../data/siteContent";
 import { useNotice } from "../context/useNotice";
+import { getPublicProductById } from "../services/publicProductsCatalog";
 import { cn } from "../utils/cn";
 import { shareCurrentPage } from "../utils/shareCurrentPage";
 import { getProductShareRoute } from "../utils/shareRoutes";
@@ -13,7 +13,7 @@ export function ProductDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { showNotice } = useNotice();
-  const item = products.find((product) => product.id === id);
+  const item = getPublicProductById(id);
   const [activeImage, setActiveImage] = useState(item?.thumbs[0] ?? "");
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export function ProductDetailPage() {
                   onClick={() => setActiveImage(thumb)}
                   className={cn(
                     "overflow-hidden rounded-[var(--radius-control)] bg-[var(--color-background-canvas)] p-1 transition",
-                    activeImage === thumb ? "ring-1 ring-[var(--color-border-accent)]" : ""
+                    activeImage === thumb ? "ring-1 ring-[var(--color-border-accent)]" : "",
                   )}
                   aria-label={`查看第 ${index + 1} 张产品图`}
                 >
@@ -84,7 +84,7 @@ export function ProductDetailPage() {
               ))}
             </div>
 
-            <div className="mt-8 text-xs tracking-[0.3em] text-[var(--color-accent-primary)]">策展产品 04</div>
+            <div className="mt-8 text-xs tracking-[0.3em] text-[var(--color-accent-primary)]">策展产品详情</div>
             <h1
               className="mt-3 text-[var(--color-text-primary)]"
               style={{
@@ -110,3 +110,5 @@ export function ProductDetailPage() {
     </PageShell>
   );
 }
+
+export default ProductDetailPage;

@@ -253,6 +253,57 @@ describe("publicSiteContent", () => {
     expect(after.some((item) => item.id === "public-sync")).toBe(true);
   });
 
+  it("maps workspace public display fields for the public site", async () => {
+    const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
+
+    createWorkspaceStorage({
+      key: WORKSPACE_STORAGE_KEYS.products,
+      seed: { version: 1, items: [] },
+    }).write({
+      version: 1,
+      items: [
+        {
+          id: "wp-public-display",
+          publicProductId: "public-display",
+          status: "active",
+          name: "Public Display Product",
+          shortName: "Display",
+          category: "flagship",
+          displayTag: "可持续科技 / 旗舰系列",
+          retailPrice: 5200,
+          summary: "Mapped from workspace public fields",
+          media: [
+            { id: "cover", url: "/cover.jpg", isCover: true },
+            { id: "detail", url: "/detail.jpg", isCover: false },
+          ],
+          publicMeta: [
+            { label: "材质", value: "阳极铝" },
+            { label: "连接", value: "统一空间控制" },
+          ],
+        },
+      ],
+    });
+
+    const { readPublishedProducts } = await import("./publicSiteContent");
+
+    expect(readPublishedProducts()).toEqual([
+      {
+        id: "public-display",
+        name: "Public Display Product",
+        shortName: "Display",
+        tag: "可持续科技 / 旗舰系列",
+        price: "5200",
+        desc: "Mapped from workspace public fields",
+        hero: "/cover.jpg",
+        thumbs: ["/cover.jpg", "/detail.jpg"],
+        meta: [
+          ["材质", "阳极铝"],
+          ["连接", "统一空间控制"],
+        ],
+      },
+    ]);
+  });
+
   it("keeps online banners and their images in backend order", async () => {
     const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
 

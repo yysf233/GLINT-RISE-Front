@@ -8,6 +8,8 @@ const SESSION_STORAGE_KEY = "auth-session";
 const WORKSPACE_PRODUCTS_STORAGE_KEY = "glint-rise.workspace-products.v1";
 const WORKSPACE_PROJECTS_STORAGE_KEY = "glint-rise.workspace-projects.v1";
 const WORKSPACE_BANNERS_STORAGE_KEY = "glint-rise.workspace-banners.v1";
+const WORKSPACE_SUPPLIERS_STORAGE_KEY = "glint-rise.workspace-suppliers.v1";
+const WORKSPACE_EXPORTS_STORAGE_KEY = "glint-rise.workspace-exports.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -108,6 +110,24 @@ const disallowedUiPhrases = [
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const ROLE_NAMES = {
+  employee: "内部员工",
+  director: "部门总监",
+  developer: "开发人员",
+};
+
+const readDownloadContent = async (download) => {
+  const downloadPath = await download.path();
+  return downloadPath ? fs.readFileSync(downloadPath, "utf8") : "";
+};
+
+const selectAntdOption = async (targetPage, testId, optionLabel) => {
+  await targetPage.locator(`[data-testid="${testId}"]`).click();
+  const dropdown = targetPage.locator(".ant-select-dropdown:visible").last();
+  await dropdown.getByText(optionLabel, { exact: true }).click();
+  await targetPage.keyboard.press("Escape").catch(() => {});
+  await targetPage.waitForTimeout(120);
+};
 
 const browser = await chromium.launch({ executablePath, headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -157,7 +177,10 @@ const attachPageDiagnostics = (targetPage) => {
 
   targetPage.on("requestfailed", (request) => {
     const failure = request.failure();
-    if (request.resourceType() === "image" && failure?.errorText === "net::ERR_ABORTED") {
+    if (
+      request.resourceType() === "image" &&
+      ["net::ERR_ABORTED", "net::ERR_CONNECTION_CLOSED"].includes(failure?.errorText)
+    ) {
       return;
     }
     pushError("requestfailed", `${request.url()} ${failure?.errorText || ""}`.trim());
@@ -183,6 +206,7 @@ const createPersistedSession = (role) => ({
   token: `mock-session-token:${role}`,
   user: {
     id: `user-${role}`,
+    name: ROLE_NAMES[role],
     role,
   },
 });
@@ -462,6 +486,119 @@ const verifyProductsOverviewFilterSection = async () => {
 
   if (tagFilteredText.includes("Smart Hub")) {
     pushError("products-filters", "expected tag filter to narrow results away from Smart Hub");
+  }
+};
+
+const verifyPublicProductWorkspaceSync = async () => {
+  const syncedName = "光速上升 LUMINA ARC 同步版";
+  const syncedTag = "同步标签 / 旗舰系列";
+  const syncedSummary = "后台修改后同步到前台的产品摘要。";
+  const createSyncContext = async (status) => {
+    const syncContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    await syncContext.addInitScript(
+      ({ productsKey, syncedName, syncedTag, syncedSummary, status }) => {
+        const raw = window.localStorage.getItem(productsKey);
+        const parsed = raw ? JSON.parse(raw) : { version: 1, nextSequence: 1, items: [] };
+        const items = Array.isArray(parsed.items) ? [...parsed.items] : [];
+        const targetIndex = items.findIndex((item) => item.id === "wp-lumina-arc");
+        const nextRecord = {
+          ...(items[targetIndex] ?? {}),
+          id: "wp-lumina-arc",
+          publicProductId: "lumina-arc",
+          status,
+          name: syncedName,
+          shortName: "同步版",
+          category: "flagship",
+          displayTag: syncedTag,
+          summary: syncedSummary,
+          publicMeta: [
+            { label: "材质", value: "阳极黑钛" },
+            { label: "连接", value: "统一空间控制" },
+          ],
+          media: [
+            { id: "sync-cover", url: "/sync-cover.jpg", isCover: true },
+            { id: "sync-detail", url: "/sync-detail.jpg", isCover: false },
+          ],
+          updatedAt: status === "active" ? "2026-03-24T16:30:00.000Z" : "2026-03-24T16:45:00.000Z",
+        };
+
+        if (targetIndex === -1) {
+          items.unshift(nextRecord);
+        } else {
+          items[targetIndex] = nextRecord;
+        }
+
+        window.localStorage.setItem(
+          productsKey,
+          JSON.stringify({
+            version: Number(parsed.version) || 1,
+            nextSequence: Number(parsed.nextSequence) || 1,
+            items,
+          }),
+        );
+      },
+      { productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY, syncedName, syncedTag, syncedSummary, status },
+    );
+
+    const syncPage = await syncContext.newPage();
+    attachPageDiagnostics(syncPage);
+
+    const goto = async (route) => {
+      activeRoute = `${route}:public-sync:${status}`;
+      await syncPage.goto(`${baseUrl}/${hashForRoute(route)}`, { waitUntil: "domcontentloaded" });
+      await waitForPageApp(syncPage);
+    };
+
+    const readBody = async () => syncPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+    return { syncContext, syncPage, goto, readBody };
+  };
+
+  const live = await createSyncContext("active");
+
+  try {
+    await live.goto("/products");
+    if (!(await live.readBody()).includes(syncedName)) {
+      pushError("public-products-sync", "expected products overview to render the synced workspace product name");
+    }
+
+    await live.goto("/search?keyword=同步版&category=all&tag=all");
+    if (!(await live.readBody()).includes(syncedName)) {
+      pushError("public-products-sync", "expected search page to find the synced workspace product");
+    }
+
+    await live.goto("/product/lumina-arc");
+    const detailText = await live.readBody();
+    if (!detailText.includes(syncedName) || !detailText.includes(syncedTag) || !detailText.includes("阳极黑钛")) {
+      pushError("public-products-sync", "expected product detail page to render synced name, tag, and meta fields");
+    }
+
+    await live.goto("/share/product/lumina-arc");
+    const shareText = await live.readBody();
+    if (!shareText.includes(syncedName) || !shareText.includes(syncedTag)) {
+      pushError("public-products-sync", "expected share page to render synced product fields");
+    }
+  } finally {
+    await live.syncContext.close().catch(() => {});
+  }
+
+  const archived = await createSyncContext("archived");
+
+  try {
+    await archived.goto("/product/lumina-arc");
+    if (currentHashForPage(archived.syncPage) !== hashForRoute("/products")) {
+      pushError(
+        "public-products-sync",
+        `expected archived public product to redirect to /products, got ${currentHashForPage(archived.syncPage)}`,
+      );
+    }
+
+    await archived.goto("/search?keyword=同步版&category=all&tag=all");
+    if ((await archived.readBody()).includes(syncedName)) {
+      pushError("public-products-sync", "expected archived product to disappear from public search results");
+    }
+  } finally {
+    await archived.syncContext.close().catch(() => {});
   }
 };
 
@@ -823,7 +960,15 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/products/wp-lumina-arc/edit",
     "/workspace/projects",
     "/workspace/projects/new",
+    "/workspace/projects/wp-case-001",
+    "/workspace/projects/wp-case-001/edit",
     "/workspace/content/banners",
+    "/workspace/suppliers",
+    "/workspace/suppliers/new",
+    "/workspace/suppliers/import",
+    "/workspace/suppliers/ws-public-001",
+    "/workspace/suppliers/ws-public-001/edit",
+    "/workspace/exports",
   ];
 
   for (const route of allowedProductRoutes) {
@@ -858,7 +1003,15 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/products/wp-lumina-arc/edit",
     "/workspace/projects",
     "/workspace/projects/new",
+    "/workspace/projects/wp-case-001",
+    "/workspace/projects/wp-case-001/edit",
     "/workspace/content/banners",
+    "/workspace/suppliers",
+    "/workspace/suppliers/new",
+    "/workspace/suppliers/import",
+    "/workspace/suppliers/ws-public-001",
+    "/workspace/suppliers/ws-public-001/edit",
+    "/workspace/exports",
   ];
 
   for (const route of deniedProductRoutes) {
@@ -1078,6 +1231,64 @@ const verifyWorkspaceProjectsModule = async () => {
     if (!bodyText.includes("北极星项目")) {
       pushError("workspace-projects", "expected seeded project to render in the list");
     }
+
+    await modulePage.getByTestId("workspace-projects-search").fill("北极星");
+    await modulePage.waitForTimeout(250);
+    if (!(await readModuleBody()).includes("北极星项目")) {
+      pushError("workspace-projects", "expected search to keep matching seeded project visible");
+    }
+
+    await modulePage.getByTestId("workspace-projects-view-wp-case-001").click();
+    await waitForPageApp(modulePage);
+    if (modulePage.url().includes("/workspace/projects/wp-case-001") === false) {
+      pushError("workspace-projects", `expected view action to open detail route, got ${modulePage.url()}`);
+    }
+    if (!(await readModuleBody()).includes("项目时间轴")) {
+      pushError("workspace-projects", "expected detail page to render timeline section");
+    }
+
+    await modulePage.getByTestId("workspace-project-detail-edit").click();
+    await waitForPageApp(modulePage);
+    await modulePage.getByTestId("workspace-project-form-title").fill("");
+    await modulePage.getByTestId("workspace-project-form-submit").click();
+    await waitForPageApp(modulePage);
+    if (!(await readModuleBody()).includes("名称为必填项")) {
+      pushError("workspace-projects", "expected invalid edit submit to show validation");
+    }
+
+    await modulePage.getByTestId("workspace-project-form-title").fill("北极星项目 Alpha");
+    await modulePage.getByTestId("workspace-project-form-submit").click();
+    await waitForPageApp(modulePage);
+    if (!(await readModuleBody()).includes("北极星项目 Alpha")) {
+      pushError("workspace-projects", "expected edited project title to render on detail page");
+    }
+
+    activeRoute = "/workspace/projects/new:module";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/projects/new")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    await modulePage.getByTestId("workspace-project-form-submit").click();
+    await waitForPageApp(modulePage);
+    if (!(await readModuleBody()).includes("名称为必填项")) {
+      pushError("workspace-projects", "expected invalid create submit to show validation");
+    }
+
+    await modulePage.getByTestId("workspace-project-form-title").fill("星港体验计划");
+    await modulePage.getByTestId("workspace-project-form-owner").fill("Lydia");
+    await modulePage.getByTestId("workspace-project-form-public-case-id").fill("star-harbor");
+    await modulePage.getByTestId("workspace-project-form-submit").click();
+    await waitForPageApp(modulePage);
+    if (!(await readModuleBody()).includes("星港体验计划")) {
+      pushError("workspace-projects", "expected created project to render on detail page");
+    }
+
+    activeRoute = "/workspace/projects:return-list";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/projects")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    await modulePage.getByTestId("workspace-projects-search").fill("星港体验计划");
+    await modulePage.waitForTimeout(250);
+    if (!(await readModuleBody()).includes("星港体验计划")) {
+      pushError("workspace-projects", "expected created project to be searchable in the projects list");
+    }
   } finally {
     await moduleContext.close().catch(() => {});
   }
@@ -1122,6 +1333,338 @@ const verifyWorkspaceBannersModule = async () => {
     }
   } finally {
     await moduleContext.close().catch(() => {});
+  }
+};
+
+const verifyWorkspaceSuppliersModule = async () => {
+  const employeeContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    acceptDownloads: true,
+  });
+  await employeeContext.addInitScript(
+    ({ sessionKey, sessionValue, suppliersKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(suppliersKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      suppliersKey: WORKSPACE_SUPPLIERS_STORAGE_KEY,
+    },
+  );
+
+  const employeePage = await employeeContext.newPage();
+  attachPageDiagnostics(employeePage);
+  const readEmployeeBody = async () => employeePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/suppliers:employee-module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/suppliers")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+
+    const listBody = await readEmployeeBody();
+    if (!listBody.includes("供应商管理")) {
+      pushError("workspace-suppliers", "expected suppliers page to render supplier management header");
+    }
+    if (!listBody.includes("Mika Lighting")) {
+      pushError("workspace-suppliers", "expected public supplier seed to render in the list");
+    }
+    if (!listBody.includes("私有供应商（受限）")) {
+      pushError("workspace-suppliers", "expected employee list to render masked private supplier name");
+    }
+    if (listBody.includes("Lydia Precision Works")) {
+      pushError("workspace-suppliers", "expected employee list to hide full foreign private supplier name");
+    }
+
+    await employeePage.getByTestId("workspace-suppliers-search").fill("Mika");
+    await employeePage.waitForTimeout(250);
+    const filteredBody = await readEmployeeBody();
+    if (!filteredBody.includes("Mika Lighting")) {
+      pushError("workspace-suppliers", "expected supplier search to keep matching record visible");
+    }
+
+    await employeePage.getByTestId("workspace-suppliers-search").fill("");
+    await employeePage.waitForTimeout(250);
+    await employeePage.getByTestId("workspace-suppliers-view-ws-private-foreign").click();
+    await waitForPageApp(employeePage);
+
+    const maskedDetailBody = await readEmployeeBody();
+    if (!maskedDetailBody.includes("已脱敏")) {
+      pushError("workspace-suppliers", "expected employee detail page to surface masked contact copy");
+    }
+    if (maskedDetailBody.includes("13800000002") || maskedDetailBody.includes("lydia@supplier.test")) {
+      pushError("workspace-suppliers", "expected employee detail page to keep foreign private contacts masked");
+    }
+
+    const employeeEditButton = employeePage.getByTestId("workspace-supplier-detail-edit");
+    if ((await employeeEditButton.count()) === 0 || !(await employeeEditButton.isDisabled())) {
+      pushError("workspace-suppliers", "expected employee detail page to disable editing for foreign private suppliers");
+    }
+
+    const [maskedDownload] = await Promise.all([
+      employeePage.waitForEvent("download"),
+      employeePage.getByRole("button", { name: "导出详情" }).click(),
+    ]);
+    const maskedDownloadContent = await readDownloadContent(maskedDownload);
+    if (!maskedDownloadContent.includes("私有供应商（受限）") || maskedDownloadContent.includes("13800000002")) {
+      pushError("workspace-suppliers", "expected employee export to keep foreign private supplier masked");
+    }
+
+    activeRoute = "/workspace/suppliers/ws-public-001/edit:module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/suppliers/ws-public-001/edit")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+    await employeePage.getByTestId("workspace-supplier-form-name").fill("");
+    await employeePage.getByTestId("workspace-supplier-form-submit").click();
+    await waitForPageApp(employeePage);
+    if (!(await readEmployeeBody()).includes("名称为必填项")) {
+      pushError("workspace-suppliers", "expected invalid supplier edit submit to show validation");
+    }
+
+    await employeePage.getByTestId("workspace-supplier-form-name").fill("Mika Lighting Prime");
+    await employeePage.getByTestId("workspace-supplier-form-submit").click();
+    await waitForPageApp(employeePage);
+    if (!(await readEmployeeBody()).includes("Mika Lighting Prime")) {
+      pushError("workspace-suppliers", "expected edited supplier name to render on detail page");
+    }
+
+    activeRoute = "/workspace/suppliers/new:module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/suppliers/new")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+    await employeePage.getByTestId("workspace-supplier-form-submit").click();
+    await waitForPageApp(employeePage);
+    if (!(await readEmployeeBody()).includes("名称为必填项")) {
+      pushError("workspace-suppliers", "expected invalid supplier create submit to show validation");
+    }
+
+    await employeePage.getByTestId("workspace-supplier-form-name").fill("Atlas Vendor");
+    await employeePage.getByLabel("联系人").fill("Nina");
+    await employeePage.getByTestId("workspace-supplier-form-phone").fill("13800000031");
+    await employeePage.getByLabel("交期区间").fill("8-12天");
+    await employeePage.getByLabel("价格带").fill("中");
+    await employeePage.getByTestId("workspace-supplier-form-submit").click();
+    await waitForPageApp(employeePage);
+    if (!(await readEmployeeBody()).includes("Atlas Vendor")) {
+      pushError("workspace-suppliers", "expected created supplier to render on detail page");
+    }
+
+    activeRoute = "/workspace/suppliers/import:module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/suppliers/import")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+    await employeePage.getByTestId("workspace-supplier-import-preview").click();
+    await employeePage.waitForTimeout(250);
+    if (!(await readEmployeeBody()).includes("Nova Factory")) {
+      pushError("workspace-suppliers", "expected supplier import preview to render sample rows");
+    }
+
+    await employeePage.getByTestId("workspace-supplier-import-submit").click();
+    await waitForPageApp(employeePage);
+    if (currentHashForPage(employeePage) !== hashForRoute("/workspace/suppliers")) {
+      pushError("workspace-suppliers", `expected supplier import submit to return to list, got ${currentHashForPage(employeePage)}`);
+    }
+
+    await employeePage.getByTestId("workspace-suppliers-search").fill("Nova Factory");
+    await employeePage.waitForTimeout(250);
+    if (!(await readEmployeeBody()).includes("Nova Factory")) {
+      pushError("workspace-suppliers", "expected imported supplier to be searchable in the list");
+    }
+  } finally {
+    await employeeContext.close().catch(() => {});
+  }
+
+  const directorContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    acceptDownloads: true,
+  });
+  await directorContext.addInitScript(
+    ({ sessionKey, sessionValue, suppliersKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(suppliersKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("director"),
+      suppliersKey: WORKSPACE_SUPPLIERS_STORAGE_KEY,
+    },
+  );
+
+  const directorPage = await directorContext.newPage();
+  attachPageDiagnostics(directorPage);
+  const readDirectorBody = async () => directorPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/suppliers/ws-private-foreign:director-module";
+    await directorPage.goto(`${baseUrl}/${hashForRoute("/workspace/suppliers/ws-private-foreign")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(directorPage);
+
+    const directorBody = await readDirectorBody();
+    if (!directorBody.includes("Lydia Precision Works") || !directorBody.includes("13800000002")) {
+      pushError("workspace-suppliers", "expected director detail page to render full private supplier data");
+    }
+
+    const [directorDownload] = await Promise.all([
+      directorPage.waitForEvent("download"),
+      directorPage.getByRole("button", { name: "导出详情" }).click(),
+    ]);
+    const directorDownloadContent = await readDownloadContent(directorDownload);
+    if (!directorDownloadContent.includes("Lydia Precision Works") || !directorDownloadContent.includes("13800000002")) {
+      pushError("workspace-suppliers", "expected director export to include full private supplier data");
+    }
+  } finally {
+    await directorContext.close().catch(() => {});
+  }
+};
+
+const verifyWorkspaceExportsModule = async () => {
+  const employeeContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    acceptDownloads: true,
+  });
+  await employeeContext.addInitScript(
+    ({ sessionKey, sessionValue, productsKey, suppliersKey, exportsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(productsKey);
+      window.localStorage.removeItem(suppliersKey);
+      window.localStorage.removeItem(exportsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY,
+      suppliersKey: WORKSPACE_SUPPLIERS_STORAGE_KEY,
+      exportsKey: WORKSPACE_EXPORTS_STORAGE_KEY,
+    },
+  );
+
+  const employeePage = await employeeContext.newPage();
+  attachPageDiagnostics(employeePage);
+  const readEmployeeBody = async () => employeePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/exports:employee-module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/exports")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+
+    const listBody = await readEmployeeBody();
+    if (!listBody.includes("导出中心")) {
+      pushError("workspace-exports", "expected exports page to render export center header");
+    }
+    if (!listBody.includes("当前账号可见的导出任务历史")) {
+      pushError("workspace-exports", "expected exports page to render history description");
+    }
+
+    await employeePage.getByTestId("workspace-exports-title").fill("员工对外导出包");
+    await selectAntdOption(employeePage, "workspace-exports-products", "Lumina Arc (wp-lumina-arc)");
+    await selectAntdOption(employeePage, "workspace-exports-suppliers", "私有供应商（受限） (ws-private-foreign)");
+
+    const [employeeDownload] = await Promise.all([
+      employeePage.waitForEvent("download"),
+      employeePage.getByTestId("workspace-exports-submit").click(),
+    ]);
+    const employeeDownloadContent = await readDownloadContent(employeeDownload);
+    await employeePage.waitForTimeout(300);
+
+    if (!employeeDownloadContent.includes("私有供应商（受限）")) {
+      pushError("workspace-exports", "expected employee export to keep private supplier masked");
+    }
+    if (employeeDownloadContent.includes("13800000002")) {
+      pushError("workspace-exports", "expected employee export to hide private supplier phone");
+    }
+    if (employeeDownloadContent.includes("内部成本")) {
+      pushError("workspace-exports", "expected employee public export to exclude internal cost");
+    }
+    if (!(await readEmployeeBody()).includes("员工对外导出包")) {
+      pushError("workspace-exports", "expected employee export history to render created job");
+    }
+
+    const [employeeRedownload] = await Promise.all([
+      employeePage.waitForEvent("download"),
+      employeePage.getByTestId("workspace-exports-download-workspace-export-001").click(),
+    ]);
+    const employeeRedownloadContent = await readDownloadContent(employeeRedownload);
+    if (!employeeRedownloadContent.includes("员工对外导出包")) {
+      pushError("workspace-exports", "expected export history redownload to return created artifact");
+    }
+
+    await employeePage.getByTestId("workspace-exports-title").fill("员工带报价导出包");
+    await selectAntdOption(employeePage, "workspace-exports-version", "带报价版");
+    await employeePage.waitForTimeout(200);
+    const blockedBody = await readEmployeeBody();
+    if (!blockedBody.includes("当前账号无权导出带报价版资料")) {
+      pushError("workspace-exports", "expected employee priced export preview to show permission warning");
+    }
+    if (!(await employeePage.getByTestId("workspace-exports-submit").isDisabled())) {
+      pushError("workspace-exports", "expected employee priced export submit button to stay disabled");
+    }
+  } finally {
+    await employeeContext.close().catch(() => {});
+  }
+
+  const directorContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    acceptDownloads: true,
+  });
+  await directorContext.addInitScript(
+    ({ sessionKey, sessionValue, productsKey, suppliersKey, exportsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(productsKey);
+      window.localStorage.removeItem(suppliersKey);
+      window.localStorage.removeItem(exportsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("director"),
+      productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY,
+      suppliersKey: WORKSPACE_SUPPLIERS_STORAGE_KEY,
+      exportsKey: WORKSPACE_EXPORTS_STORAGE_KEY,
+    },
+  );
+
+  const directorPage = await directorContext.newPage();
+  attachPageDiagnostics(directorPage);
+  const readDirectorBody = async () => directorPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/exports:director-module";
+    await directorPage.goto(`${baseUrl}/${hashForRoute("/workspace/exports")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(directorPage);
+
+    await directorPage.getByTestId("workspace-exports-title").fill("总监带报价导出包");
+    await selectAntdOption(directorPage, "workspace-exports-version", "带报价版");
+    await selectAntdOption(directorPage, "workspace-exports-format", "XLSX");
+    await selectAntdOption(directorPage, "workspace-exports-products", "Smart Hub (wp-smart-hub)");
+    await selectAntdOption(directorPage, "workspace-exports-suppliers", "Lydia Precision Works (ws-private-foreign)");
+    await directorPage.getByTestId("workspace-exports-risk").check();
+
+    const [directorDownload] = await Promise.all([
+      directorPage.waitForEvent("download"),
+      directorPage.getByTestId("workspace-exports-submit").click(),
+    ]);
+    const directorDownloadContent = await readDownloadContent(directorDownload);
+    await directorPage.waitForTimeout(300);
+
+    if (!directorDownloadContent.includes("Lydia Precision Works")) {
+      pushError("workspace-exports", "expected director priced export to include full private supplier name");
+    }
+    if (!directorDownloadContent.includes("13800000002")) {
+      pushError("workspace-exports", "expected director priced export to include supplier phone");
+    }
+    if (!directorDownloadContent.includes("内部成本")) {
+      pushError("workspace-exports", "expected director priced export to include internal cost");
+    }
+    if (!(await readDirectorBody()).includes("总监带报价导出包")) {
+      pushError("workspace-exports", "expected director export history to render priced export job");
+    }
+
+    const [directorRedownload] = await Promise.all([
+      directorPage.waitForEvent("download"),
+      directorPage.getByTestId("workspace-exports-download-workspace-export-001").click(),
+    ]);
+    const directorRedownloadContent = await readDownloadContent(directorRedownload);
+    if (!directorRedownloadContent.includes("总监带报价导出包")) {
+      pushError("workspace-exports", "expected director export history redownload to return priced artifact");
+    }
+  } finally {
+    await directorContext.close().catch(() => {});
   }
 };
 
@@ -1406,10 +1949,13 @@ try {
   await verifyShareLandingPages();
   await verifyDetailShareTargets();
   await verifyProductsOverviewFilterSection();
+  await verifyPublicProductWorkspaceSync();
   await verifyWorkspaceAuthFlows();
   await verifyWorkspaceProductsModule();
   await verifyWorkspaceProjectsModule();
   await verifyWorkspaceBannersModule();
+  await verifyWorkspaceExportsModule();
+  await verifyWorkspaceSuppliersModule();
   await verifyLoginPageFlow();
 
   await browser.close();
