@@ -1,4 +1,5 @@
-﻿import { cases as publicCaseSeeds, products as publicProductSeeds } from "../data/siteContent";
+import { products as publicProductSeeds } from "../data/siteContent";
+import workspaceProjectSeeds from "../data/workspace/workspaceProjectSeeds";
 import { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
 
 const PUBLISHED_STATUSES = new Set(["published", "active", "online"]);
@@ -57,8 +58,10 @@ function toPublicCase(item) {
     return clone(item);
   }
 
+  const publicId = String(item.publicCaseId ?? item.id ?? "").trim();
+
   return {
-    id: String(item.id ?? "").trim(),
+    id: publicId,
     title: String(item.title ?? item.name ?? "").trim(),
     eyebrow: String(item.eyebrow ?? "").trim(),
     category: String(item.category ?? "").trim(),
@@ -106,10 +109,7 @@ const caseStorage = createWorkspaceStorage({
   key: WORKSPACE_STORAGE_KEYS.projects,
   seed: {
     version: 1,
-    items: clone(publicCaseSeeds).map((item) => ({
-      ...item,
-      status: "published",
-    })),
+    items: clone(workspaceProjectSeeds),
   },
 });
 
@@ -152,3 +152,4 @@ export const publicSiteContent = {
 };
 
 export default publicSiteContent;
+

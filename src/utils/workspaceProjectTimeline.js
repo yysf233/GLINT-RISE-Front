@@ -1,23 +1,20 @@
-export function moveWorkspaceProjectTimelineItem(items, itemId, direction) {
-  const list = Array.isArray(items) ? [...items] : [];
-  const index = list.findIndex((item) => item?.id === itemId);
-
-  if (index < 0) {
+export function reorderWorkspaceProjectTimeline(nodes, fromIndex, toIndex) {
+  const list = Array.isArray(nodes) ? [...nodes] : [];
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= list.length ||
+    toIndex >= list.length ||
+    fromIndex === toIndex
+  ) {
     return list;
   }
 
-  const targetIndex = direction === "up" ? index - 1 : direction === "down" ? index + 1 : index;
-
-  if (targetIndex < 0 || targetIndex >= list.length || targetIndex === index) {
-    return list;
-  }
-
-  const next = [...list];
-  const [item] = next.splice(index, 1);
-  next.splice(targetIndex, 0, item);
-  return next;
+  const [moved] = list.splice(fromIndex, 1);
+  list.splice(toIndex, 0, moved);
+  return list;
 }
 
 export default {
-  moveWorkspaceProjectTimelineItem,
+  reorderWorkspaceProjectTimeline,
 };

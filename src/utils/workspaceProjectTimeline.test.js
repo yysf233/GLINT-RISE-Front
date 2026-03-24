@@ -1,23 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { moveWorkspaceProjectTimelineItem } from "./workspaceProjectTimeline";
-
-const sampleItems = [
-  { id: "cover", label: "封面" },
-  { id: "detail-a", label: "细节 A" },
-  { id: "detail-b", label: "细节 B" },
-  { id: "detail-c", label: "细节 C" },
-];
+import { reorderWorkspaceProjectTimeline } from "./workspaceProjectTimeline";
 
 describe("workspaceProjectTimeline", () => {
-  it("moves an image up without changing the relative order of the other items", () => {
-    const result = moveWorkspaceProjectTimelineItem(sampleItems, "detail-b", "up");
+  it("moves a node and keeps stable order for others", () => {
+    const nodes = [
+      { id: "n1", label: "start" },
+      { id: "n2", label: "mid" },
+      { id: "n3", label: "end" },
+    ];
 
-    expect(result.map((item) => item.id)).toEqual(["cover", "detail-b", "detail-a", "detail-c"]);
+    const result = reorderWorkspaceProjectTimeline(nodes, 0, 2);
+
+    expect(result.map((node) => node.id)).toEqual(["n2", "n3", "n1"]);
   });
 
-  it("moves an image down without changing the relative order of the other items", () => {
-    const result = moveWorkspaceProjectTimelineItem(sampleItems, "detail-a", "down");
+  it("ignores invalid indices and returns original order", () => {
+    const nodes = [
+      { id: "n1", label: "start" },
+      { id: "n2", label: "mid" },
+    ];
 
-    expect(result.map((item) => item.id)).toEqual(["cover", "detail-b", "detail-a", "detail-c"]);
+    const result = reorderWorkspaceProjectTimeline(nodes, -1, 9);
+
+    expect(result.map((node) => node.id)).toEqual(["n1", "n2"]);
   });
 });
