@@ -95,6 +95,70 @@ describe("mockWorkspaceProductsService", () => {
     expect(loaded.product.status).toBe("archived");
   });
 
+  it("persists media ordering and cover selection when saving a product", async () => {
+    const created = await createWorkspaceProduct({
+      name: "Atlas Light",
+      category: "device",
+      status: "draft",
+      needsUpdate: false,
+      owner: "Maya",
+      retailPrice: 1200,
+      publicProductId: "product-a",
+      media: [
+        { id: "m-1", url: "/media-1.jpg" },
+        { id: "m-2", url: "/media-2.jpg" },
+        { id: "m-3", url: "/media-3.jpg" },
+      ],
+      coverId: "m-2",
+    });
+
+    const updated = await updateWorkspaceProduct(created.product.id, {
+      media: [
+        { id: "m-3", url: "/media-3.jpg" },
+        { id: "m-2", url: "/media-2.jpg" },
+        { id: "m-1", url: "/media-1.jpg" },
+      ],
+      coverId: "m-3",
+    });
+
+    expect(updated.product.media.map((item) => item.id)).toEqual(["m-3", "m-2", "m-1"]);
+    expect(updated.product.media.find((item) => item.isCover)?.id).toBe("m-3");
+    expect(updated.product.hero).toBe("/media-3.jpg");
+
+    const loaded = await getWorkspaceProduct(created.product.id);
+    expect(loaded.product.media.map((item) => item.id)).toEqual(["m-3", "m-2", "m-1"]);
+    expect(loaded.product.media.find((item) => item.isCover)?.id).toBe("m-3");
+  });
+
+  it("tracks status transitions in logs and switches visibility", async () => {
+    const created = await createWorkspaceProduct({
+      name: "Nova Beam",
+      category: "flagship",
+      status: "draft",
+      needsUpdate: false,
+      owner: "Maya",
+      retailPrice: 2000,
+      publicProductId: "lumina-arc",
+    });
+
+    const published = await updateWorkspaceProduct(created.product.id, {
+      status: "active",
+      owner: "Maya",
+    });
+
+    const archived = await updateWorkspaceProduct(created.product.id, {
+      status: "archived",
+      owner: "Maya",
+    });
+
+    const lastLog = archived.product.logs[archived.product.logs.length - 1];
+    expect(lastLog.action).toBe("status");
+    expect(lastLog.message).toContain("archived");
+
+    expect(published.product.status).toBe("active");
+    expect(archived.product.status).toBe("archived");
+  });
+
   it("bulk adds tags to multiple products and deduplicates them", async () => {
     const result = await bulkAddWorkspaceProductTags({
       ids: ["wp-lumina-arc", "wp-smart-hub"],

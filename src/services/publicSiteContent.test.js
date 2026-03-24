@@ -189,6 +189,49 @@ describe("publicSiteContent", () => {
     ]);
   });
 
+  it("uses workspace media ordering and cover image for public products", async () => {
+    const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
+
+    createWorkspaceStorage({
+      key: WORKSPACE_STORAGE_KEYS.products,
+      seed: { version: 1, items: [] },
+    }).write({
+      version: 1,
+      items: [
+        {
+          id: "wp-media",
+          publicProductId: "product-media",
+          status: "active",
+          name: "Media Product",
+          category: "device",
+          retailPrice: 1200,
+          summary: "Media summary",
+          media: [
+            { id: "m-1", url: "/media-1.jpg", isCover: false },
+            { id: "m-2", url: "/media-2.jpg", isCover: true },
+            { id: "m-3", url: "/media-3.jpg", isCover: false },
+          ],
+        },
+      ],
+    });
+
+    const { readPublishedProducts } = await import("./publicSiteContent");
+
+    expect(readPublishedProducts()).toEqual([
+      {
+        id: "product-media",
+        name: "Media Product",
+        shortName: "Media Product",
+        tag: "device",
+        price: "1200",
+        desc: "Media summary",
+        hero: "/media-2.jpg",
+        thumbs: ["/media-1.jpg", "/media-2.jpg", "/media-3.jpg"],
+        meta: [],
+      },
+    ]);
+  });
+
   it("keeps online banners and their images in backend order", async () => {
     const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
 

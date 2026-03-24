@@ -31,6 +31,9 @@ function toPublicProduct(item) {
 
   const publicId = String(item.publicProductId ?? item.id ?? "").trim();
   const priceText = String(item.price ?? item.priceLabel ?? item.retailPrice ?? "").trim();
+  const mediaList = toArray(item.media);
+  const mediaUrls = mediaList.map((entry) => String(entry?.url ?? "").trim()).filter(Boolean);
+  const coverUrl = mediaList.find((entry) => entry?.isCover)?.url;
 
   return {
     id: publicId,
@@ -39,8 +42,8 @@ function toPublicProduct(item) {
     tag: String(item.tag ?? item.category ?? "").trim(),
     price: priceText,
     desc: String(item.desc ?? item.summary ?? "").trim(),
-    hero: String(item.hero ?? item.cover ?? item.heroImage ?? "").trim(),
-    thumbs: toArray(item.thumbs ?? item.images),
+    hero: String(coverUrl ?? item.hero ?? item.cover ?? item.heroImage ?? "").trim(),
+    thumbs: mediaUrls.length > 0 ? mediaUrls : toArray(item.thumbs ?? item.images),
     meta: toArray(item.meta),
   };
 }

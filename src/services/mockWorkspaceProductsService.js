@@ -146,6 +146,38 @@ function normalizeLogs(logs, fallbackAction, actor, message) {
   ];
 }
 
+function normalizeMedia(media, coverId, existingMedia) {
+  const source = Array.isArray(media) ? media : Array.isArray(existingMedia) ? existingMedia : [];
+  const normalized = source
+    .map((item, index) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const id = text(item.id) || `media-${index + 1}`;
+      return {
+        id,
+        url: text(item.url ?? item.src ?? item.image ?? item.hero),
+        title: text(item.title ?? item.name),
+        isCover: Boolean(item.isCover),
+      };
+    })
+    .filter(Boolean);
+
+  if (normalized.length === 0) {
+    return [];
+  }
+
+  const requestedCoverId = text(coverId);
+  const existingCoverId = normalized.find((item) => item.isCover)?.id;
+  const finalCoverId = requestedCoverId || existingCoverId || normalized[0]?.id;
+
+  return normalized.map((item) => ({
+    ...item,
+    isCover: item.id === finalCoverId,
+  }));
+}
+
 function generateUniqueId(store, base = "workspace-product") {
   let sequence = Number(store.nextSequence) || 1;
   let candidate = `${base}-${String(sequence).padStart(3, "0")}`;
@@ -174,6 +206,9 @@ function normalizeProductPayload(input, existingProduct = null) {
   const mergedCategory = text(payload.category ?? base.category);
   const mergedStatus = text(payload.status ?? base.status);
   const mergedOwner = text(payload.owner ?? base.owner);
+  const normalizedMedia = normalizeMedia(payload.media, payload.coverId, base.media);
+  const coverMedia = normalizedMedia.find((item) => item.isCover);
+  const nextHero = text(payload.hero ?? coverMedia?.url ?? base.hero);
 
   return {
     id: text(payload.id ?? base.id),
@@ -188,7 +223,8 @@ function normalizeProductPayload(input, existingProduct = null) {
     internalCost: normalizeNumber(payload.internalCost, normalizeNumber(base.internalCost, 0)),
     summary: text(payload.summary ?? base.summary),
     publicProductId: text(payload.publicProductId ?? base.publicProductId),
-    hero: text(payload.hero ?? base.hero),
+    hero: nextHero,
+    media: normalizedMedia,
     progressSummary: text(payload.progressSummary ?? base.progressSummary),
     supplierSummary: text(payload.supplierSummary ?? base.supplierSummary),
     logs: normalizeLogs(payload.logs ?? base.logs, existingProduct ? "update" : "create", mergedOwner || "system", existingProduct ? "Updated workspace product." : "Created workspace product."),
@@ -312,20 +348,32 @@ export async function updateWorkspaceProduct(id, input) {
     return validationError;
   }
 
+  const statusChanged = text(input?.status) && text(input?.status) !== text(currentProduct.status);
+  const nextLogs = [
+    ...normalizeLogs(currentProduct.logs, "seed", currentProduct.owner || "system", "Existing product."),
+    {
+      timestamp: nowIso(),
+      action: "update",
+      actor: text(input?.owner ?? currentProduct.owner) || "system",
+      message: "Updated workspace product.",
+    },
+  ];
+
+  if (statusChanged) {
+    nextLogs.push({
+      timestamp: nowIso(),
+      action: "status",
+      actor: text(input?.owner ?? currentProduct.owner) || "system",
+      message: `Status changed to ${text(input?.status)}.`,
+    });
+  }
+
   const updatedProduct = {
     ...currentProduct,
     ...normalizeProductPayload(input, currentProduct),
     id: currentProduct.id,
     updatedAt: nowIso(),
-    logs: [
-      ...normalizeLogs(currentProduct.logs, "seed", currentProduct.owner || "system", "Existing product."),
-      {
-        timestamp: nowIso(),
-        action: "update",
-        actor: text(input?.owner ?? currentProduct.owner) || "system",
-        message: "Updated workspace product.",
-      },
-    ],
+    logs: nextLogs,
   };
 
   store.items[index] = updatedProduct;
