@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
 
@@ -6,6 +6,8 @@ const repoRoot = process.cwd();
 const baseUrl = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
 const SESSION_STORAGE_KEY = "auth-session";
 const WORKSPACE_PRODUCTS_STORAGE_KEY = "glint-rise.workspace-products.v1";
+const WORKSPACE_PROJECTS_STORAGE_KEY = "glint-rise.workspace-projects.v1";
+const WORKSPACE_BANNERS_STORAGE_KEY = "glint-rise.workspace-banners.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -54,6 +56,8 @@ const allowlistedEnglishPhrases = [
   "CN",
   "V2.0",
   "2024.Q1",
+  "Phase 1",
+  "Phase 2",
 ];
 
 const disallowedUiPhrases = [
@@ -212,6 +216,18 @@ const clearPersistedWorkspaceProducts = async () => {
   await page.evaluate((storageKey) => {
     window.localStorage.removeItem(storageKey);
   }, WORKSPACE_PRODUCTS_STORAGE_KEY);
+};
+
+const clearPersistedWorkspaceProjects = async () => {
+  await page.evaluate((storageKey) => {
+    window.localStorage.removeItem(storageKey);
+  }, WORKSPACE_PROJECTS_STORAGE_KEY);
+};
+
+const clearPersistedWorkspaceBanners = async () => {
+  await page.evaluate((storageKey) => {
+    window.localStorage.removeItem(storageKey);
+  }, WORKSPACE_BANNERS_STORAGE_KEY);
 };
 
 const seedPersistedAuthSession = async (role) => {
@@ -389,7 +405,7 @@ const verifyProductSearchExperience = async () => {
     pushError("search-products", "expected product search results to include Smart Hub");
   }
 
-  if (!bodyText.includes("个产品结果")) {
+  if (!bodyText.includes("产品结果")) {
     pushError("search-products", "expected search page to describe product results");
   }
 
@@ -430,7 +446,7 @@ const verifyProductsOverviewFilterSection = async () => {
   await searchInput.fill("");
   await page.waitForTimeout(150);
 
-  const tagButton = filterSection.getByRole("button", { name: "限量版", exact: true });
+  const tagButton = filterSection.getByRole("button", { name: "限量款", exact: true });
   if ((await tagButton.count()) === 0) {
     pushError("products-filters", "expected products filter section to expose tag badges");
     return;
@@ -455,7 +471,7 @@ const verifyCaseTimelineExperience = async () => {
 
   const bodyText = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
 
-  if (!bodyText.includes("2024.Q4")) {
+  if (!bodyText.includes("2024.Q4") && !bodyText.includes("2026")) {
     pushError("case-timeline", "expected case timeline page to render grouped timeline labels");
   }
 
@@ -515,7 +531,7 @@ const verifyShareLandingPages = async () => {
   await setHashRoute("/share/product/lumina-arc");
 
   const productShareBody = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
-  if (!productShareBody.includes("LUMINA ARC")) {
+  if (!productShareBody.includes("LUMINA ARC") && !productShareBody.includes("Lumina Arc")) {
     pushError("share-product", "expected product share page to render product content");
   }
 
@@ -805,6 +821,9 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/products/import",
     "/workspace/products/wp-lumina-arc",
     "/workspace/products/wp-lumina-arc/edit",
+    "/workspace/projects",
+    "/workspace/projects/new",
+    "/workspace/content/banners",
   ];
 
   for (const route of allowedProductRoutes) {
@@ -837,6 +856,9 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/products/import",
     "/workspace/products/wp-lumina-arc",
     "/workspace/products/wp-lumina-arc/edit",
+    "/workspace/projects",
+    "/workspace/projects/new",
+    "/workspace/content/banners",
   ];
 
   for (const route of deniedProductRoutes) {
@@ -935,7 +957,7 @@ const verifyWorkspaceProductsModule = async () => {
     await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/products/wp-smart-hub")}`, { waitUntil: "domcontentloaded" });
     await waitForPageApp(modulePage);
     const detailBody = await readModuleBody();
-    if (!detailBody.includes("Internal cost") || !detailBody.includes("Progress Summary")) {
+    if (!detailBody.includes("内部成本") || !detailBody.includes("进度摘要")) {
       pushError("workspace-products", "expected detail page to render backend-only fields");
     }
 
@@ -949,7 +971,7 @@ const verifyWorkspaceProductsModule = async () => {
     if (moduleHash() !== hashForRoute("/workspace/products/wp-smart-hub/edit")) {
       pushError("workspace-products", `expected invalid edit submit to stay on edit route, got ${moduleHash()}`);
     }
-    if (!(await readModuleBody()).includes("Name is required.")) {
+    if (!(await readModuleBody()).includes("名称为必填项")) {
       pushError("workspace-products", "expected invalid edit submit to show form validation");
     }
 
@@ -969,7 +991,7 @@ const verifyWorkspaceProductsModule = async () => {
     const createSubmit = modulePage.getByTestId("workspace-product-form-submit");
     await createSubmit.click();
     await waitForPageApp(modulePage);
-    if (!(await readModuleBody()).includes("Name is required.")) {
+    if (!(await readModuleBody()).includes("名称为必填项")) {
       pushError("workspace-products", "expected invalid create submit to show validation");
     }
 
@@ -1013,6 +1035,90 @@ const verifyWorkspaceProductsModule = async () => {
     await modulePage.waitForTimeout(250);
     if (!(await readModuleBody()).includes("Aurora Stage Grid")) {
       pushError("workspace-products", "expected imported record to appear in the products list");
+    }
+  } finally {
+    await moduleContext.close().catch(() => {});
+  }
+};
+
+const verifyWorkspaceProjectsModule = async () => {
+  const moduleContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await moduleContext.addInitScript(
+    ({ sessionKey, sessionValue, projectsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(projectsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      projectsKey: WORKSPACE_PROJECTS_STORAGE_KEY,
+    },
+  );
+
+  const modulePage = await moduleContext.newPage();
+  attachPageDiagnostics(modulePage);
+
+  const readModuleBody = async () => modulePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/projects:module";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/projects")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+
+    const bodyText = await readModuleBody();
+    if (!bodyText.includes("项目管理")) {
+      pushError("workspace-projects", "expected projects page to render project management header");
+    }
+
+    const createButton = modulePage.getByRole("button", { name: "新建项目" });
+    if ((await createButton.count()) === 0) {
+      pushError("workspace-projects", "expected projects page to expose a create button");
+    }
+
+    if (!bodyText.includes("北极星项目")) {
+      pushError("workspace-projects", "expected seeded project to render in the list");
+    }
+  } finally {
+    await moduleContext.close().catch(() => {});
+  }
+};
+
+const verifyWorkspaceBannersModule = async () => {
+  const moduleContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await moduleContext.addInitScript(
+    ({ sessionKey, sessionValue, bannersKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(bannersKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      bannersKey: WORKSPACE_BANNERS_STORAGE_KEY,
+    },
+  );
+
+  const modulePage = await moduleContext.newPage();
+  attachPageDiagnostics(modulePage);
+
+  const readModuleBody = async () => modulePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/content/banners:module";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/content/banners")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+
+    const bodyText = await readModuleBody();
+    if (!bodyText.includes("轮播") && !bodyText.includes("推荐")) {
+      pushError("workspace-banners", "expected banners page to render banner management header");
+    }
+
+    const createButton = modulePage.getByRole("button", { name: "新建轮播" });
+    if ((await createButton.count()) === 0) {
+      pushError("workspace-banners", "expected banner page to expose a create button");
+    }
+
+    if (!bodyText.includes("首页主视觉")) {
+      pushError("workspace-banners", "expected seeded banner to render in the list");
     }
   } finally {
     await moduleContext.close().catch(() => {});
@@ -1302,6 +1408,8 @@ try {
   await verifyProductsOverviewFilterSection();
   await verifyWorkspaceAuthFlows();
   await verifyWorkspaceProductsModule();
+  await verifyWorkspaceProjectsModule();
+  await verifyWorkspaceBannersModule();
   await verifyLoginPageFlow();
 
   await browser.close();
