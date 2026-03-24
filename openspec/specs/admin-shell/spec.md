@@ -63,3 +63,17 @@ The invalid-session notice text MUST be `登录状态已失效，请重新登录
 The shell MUST support restoring a valid persisted session on refresh.
 
 If the persisted session is valid, the shell MUST restore the current user and maintain the authenticated route state according to the role landing and route-protection rules above.
+
+### 6. Workspace Product Route Authorization
+
+The shell MUST protect all workspace product routes under `#/workspace/products*`.
+
+These routes MUST be allowed for `employee` and `director`:
+
+- `#/workspace/products`
+- `#/workspace/products/new`
+- `#/workspace/products/:id`
+- `#/workspace/products/:id/edit`
+- `#/workspace/products/import`
+
+These same routes MUST be denied for `developer`, and denied access MUST redirect to `#/workspace/forbidden`.
