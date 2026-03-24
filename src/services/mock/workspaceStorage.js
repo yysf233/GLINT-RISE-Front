@@ -63,7 +63,7 @@ function readFromStorage(key, seed) {
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") {
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.items)) {
       throw new Error("Invalid storage payload");
     }
 

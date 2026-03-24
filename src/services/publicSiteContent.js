@@ -29,12 +29,15 @@ function toPublicProduct(item) {
     return clone(item);
   }
 
+  const publicId = String(item.publicProductId ?? item.id ?? "").trim();
+  const priceText = String(item.price ?? item.priceLabel ?? item.retailPrice ?? "").trim();
+
   return {
-    id: String(item.id ?? "").trim(),
+    id: publicId,
     name: String(item.name ?? item.title ?? "").trim(),
     shortName: String(item.shortName ?? item.name ?? item.title ?? "").trim(),
     tag: String(item.tag ?? item.category ?? "").trim(),
-    price: String(item.price ?? item.priceLabel ?? "").trim(),
+    price: priceText,
     desc: String(item.desc ?? item.summary ?? "").trim(),
     hero: String(item.hero ?? item.cover ?? item.heroImage ?? "").trim(),
     thumbs: toArray(item.thumbs ?? item.images),

@@ -139,6 +139,56 @@ describe("publicSiteContent", () => {
     ]);
   });
 
+  it("maps workspace product schema into the public product model", async () => {
+    const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
+
+    createWorkspaceStorage({
+      key: WORKSPACE_STORAGE_KEYS.products,
+      seed: { version: 1, items: [] },
+    }).write({
+      version: 1,
+      items: [
+        {
+          id: "wp-001",
+          publicProductId: "public-001",
+          status: "active",
+          name: "Workspace Product",
+          category: "flagship",
+          retailPrice: 2499,
+          summary: "Workspace summary",
+          hero: "/workspace-hero.jpg",
+          images: ["/img-2.jpg", "/img-1.jpg"],
+        },
+        {
+          id: "wp-002",
+          status: "draft",
+          name: "Draft Workspace Product",
+          category: "device",
+          retailPrice: 1500,
+          summary: "Hidden",
+          hero: "/draft-hero.jpg",
+          images: ["/draft.jpg"],
+        },
+      ],
+    });
+
+    const { readPublishedProducts } = await import("./publicSiteContent");
+
+    expect(readPublishedProducts()).toEqual([
+      {
+        id: "public-001",
+        name: "Workspace Product",
+        shortName: "Workspace Product",
+        tag: "flagship",
+        price: "2499",
+        desc: "Workspace summary",
+        hero: "/workspace-hero.jpg",
+        thumbs: ["/img-2.jpg", "/img-1.jpg"],
+        meta: [],
+      },
+    ]);
+  });
+
   it("keeps online banners and their images in backend order", async () => {
     const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
 

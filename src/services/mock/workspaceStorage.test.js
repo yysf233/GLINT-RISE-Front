@@ -45,6 +45,31 @@ describe("workspaceStorage", () => {
     });
   });
 
+  it("falls back to the seed when the stored module payload is missing items", async () => {
+    const { createWorkspaceStorage } = await import("./workspaceStorage");
+
+    const key = "glint-rise.workspace.products.v1";
+    globalThis.localStorage.setItem(
+      key,
+      JSON.stringify({
+        version: 1,
+      }),
+    );
+
+    const storage = createWorkspaceStorage({
+      key,
+      seed: {
+        version: 1,
+        items: [{ id: "seed-product", status: "published" }],
+      },
+    });
+
+    expect(storage.read()).toEqual({
+      version: 1,
+      items: [{ id: "seed-product", status: "published" }],
+    });
+  });
+
   it("keeps products, projects, and banners in separate storage keys", async () => {
     const { createWorkspaceStorage } = await import("./workspaceStorage");
 
