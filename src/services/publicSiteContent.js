@@ -143,6 +143,7 @@ function toPublicBanner(item) {
   return {
     id: text(item.id),
     title: text(item.title ?? item.name),
+    target: text(item.target),
     hero: text(item.hero ?? item.cover),
     images: toArray(item.images ?? item.thumbs),
   };

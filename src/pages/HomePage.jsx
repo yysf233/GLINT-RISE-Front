@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ImageCard } from "../components/common/ImageCard";
@@ -9,8 +10,10 @@ import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
 import { cases } from "../data/siteContent";
 import { getPublicProductFilters, listPublicProducts } from "../services/publicProductsCatalog";
-import { readPublicSiteSettings } from "../services/publicSiteContent";
+import { readPublicSiteSettings, readPublishedHomeBanners } from "../services/publicSiteContent";
 import { ALL_PRODUCT_CATEGORY_LABEL } from "../utils/productSearch";
+
+const HERO_AUTOPLAY_MS = 5200;
 
 function buildSearchUrl(keyword, category) {
   const params = new URLSearchParams({
@@ -26,16 +29,20 @@ export function HomePage() {
   const navigate = useNavigate();
   const siteSettings = readPublicSiteSettings();
   const publicProducts = listPublicProducts();
+  const homeBanners = readPublishedHomeBanners();
   const { categoryOptions } = getPublicProductFilters(publicProducts);
   const searchOptions = categoryOptions.length > 0 ? categoryOptions : [ALL_PRODUCT_CATEGORY_LABEL];
   const [searchValue, setSearchValue] = useState("");
   const [searchCategory, setSearchCategory] = useState(searchOptions[0]);
+  const [bannerIndex, setBannerIndex] = useState(0);
   const [caseIndex, setCaseIndex] = useState(0);
   const [productIndex, setProductIndex] = useState(0);
 
   const featuredCases = cases.slice(0, 3);
   const featuredProducts = publicProducts.slice(0, 6);
   const heroProduct = featuredProducts[0] ?? publicProducts[0] ?? null;
+  const currentBanner = homeBanners[bannerIndex] ?? null;
+  const heroVisual = currentBanner?.hero || heroProduct?.hero || "";
   const maxProductIndex = Math.max(featuredProducts.length - 3, 0);
   const visibleProducts = useMemo(
     () => featuredProducts.slice(productIndex, productIndex + 3),
@@ -48,6 +55,27 @@ export function HomePage() {
     }
   }, [searchCategory, searchOptions]);
 
+  useEffect(() => {
+    if (homeBanners.length <= 1) {
+      setBannerIndex(0);
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setBannerIndex((current) => (current + 1) % homeBanners.length);
+    }, HERO_AUTOPLAY_MS);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [homeBanners.length]);
+
+  useEffect(() => {
+    if (bannerIndex >= homeBanners.length) {
+      setBannerIndex(0);
+    }
+  }, [bannerIndex, homeBanners.length]);
+
   return (
     <PageShell>
       <section
@@ -55,18 +83,36 @@ export function HomePage() {
         style={{ backgroundColor: "var(--color-background-canvas)" }}
       >
         <div className="absolute inset-0 overflow-hidden rounded-[var(--radius-hero)]">
-          {heroProduct ? (
-            <img
-              src={heroProduct.hero}
-              alt="光速上升首页主视觉"
-              className="h-full w-full object-cover opacity-35"
-            />
-          ) : null}
+          <AnimatePresence mode="wait">
+            {heroVisual ? (
+              <motion.img
+                key={heroVisual}
+                src={heroVisual}
+                alt="光速上升首页主视觉"
+                className="h-full w-full object-cover opacity-35"
+                initial={{ opacity: 0, scale: 1.03 }}
+                animate={{ opacity: 0.35, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.985 }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+              />
+            ) : null}
+          </AnimatePresence>
           <div className="absolute inset-0" style={{ background: "var(--gradient-hero-fade)" }} />
         </div>
 
         <div className="relative z-10 max-w-4xl">
-          <div className="mb-4 text-xs tracking-[0.32em] text-[var(--color-accent-primary)]">{siteSettings.homeHero.eyebrow}</div>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="text-xs tracking-[0.32em] text-[var(--color-accent-primary)]">{siteSettings.homeHero.eyebrow}</div>
+            {currentBanner ? (
+              <div
+                className="rounded-[var(--radius-pill)] border px-3 py-1 text-[11px] tracking-[0.22em] text-[var(--color-text-primary)]"
+                style={{ borderColor: "rgba(255,255,255,0.16)", backgroundColor: "rgba(0,0,0,0.18)" }}
+                data-testid="home-hero-banner-title"
+              >
+                {currentBanner.title}
+              </div>
+            ) : null}
+          </div>
           <h1
             className="text-[var(--color-text-primary)]"
             style={{
@@ -92,6 +138,39 @@ export function HomePage() {
               options={searchOptions}
             />
           </div>
+
+          {currentBanner ? (
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => navigate(currentBanner.target || "/products")}
+                className="rounded-[var(--radius-pill)] px-6 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-on-accent)]"
+                style={{ background: "var(--gradient-accent)" }}
+                data-testid="home-hero-banner-target"
+              >
+                查看当前轮播
+              </button>
+              {homeBanners.length > 1 ? (
+                <div className="flex items-center gap-2">
+                  {homeBanners.map((item, index) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setBannerIndex(index)}
+                      className="h-2.5 rounded-full transition-all duration-300"
+                      style={{
+                        width: index === bannerIndex ? 36 : 14,
+                        backgroundColor:
+                          index === bannerIndex ? "var(--color-accent-primary)" : "rgba(255,255,255,0.22)",
+                      }}
+                      aria-label={`切换到轮播 ${index + 1}`}
+                      data-testid={`home-hero-banner-dot-${index}`}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </section>
 

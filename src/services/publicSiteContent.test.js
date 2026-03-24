@@ -343,12 +343,14 @@ describe("publicSiteContent", () => {
       {
         id: "banner-second",
         title: "Second Banner",
+        target: "",
         hero: "/banner-second.jpg",
         images: ["/second-2.jpg", "/second-1.jpg"],
       },
       {
         id: "banner-first",
         title: "First Banner",
+        target: "",
         hero: "/banner-first.jpg",
         images: ["/first-2.jpg", "/first-1.jpg"],
       },

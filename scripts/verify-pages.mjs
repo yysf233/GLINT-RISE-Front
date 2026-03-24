@@ -1985,6 +1985,79 @@ const verifyWorkspaceSiteSettingsModule = async () => {
   }
 };
 
+const verifyHomeBannerMotionExperience = async () => {
+  const motionContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await motionContext.addInitScript(
+    ({ bannerKey }) => {
+      window.localStorage.setItem(
+        bannerKey,
+        JSON.stringify({
+          version: 1,
+          items: [
+            {
+              id: "regression-banner-001",
+              title: "主视觉轮播 A",
+              status: "online",
+              target: "/products",
+              hero: "/regression-banner-a.jpg",
+              images: ["/regression-banner-a.jpg"],
+            },
+            {
+              id: "regression-banner-002",
+              title: "主视觉轮播 B",
+              status: "online",
+              target: "/cases",
+              hero: "/regression-banner-b.jpg",
+              images: ["/regression-banner-b.jpg"],
+            },
+          ],
+        }),
+      );
+    },
+    {
+      bannerKey: WORKSPACE_BANNERS_STORAGE_KEY,
+    },
+  );
+
+  const motionPage = await motionContext.newPage();
+  attachPageDiagnostics(motionPage);
+
+  try {
+    activeRoute = "/home:banner-motion";
+    await motionPage.goto(`${baseUrl}/${hashForRoute("/home")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(motionPage);
+
+    const bannerTitle = motionPage.getByTestId("home-hero-banner-title");
+    if ((await bannerTitle.count()) === 0) {
+      pushError("home-banner", "expected home hero to render workspace banner title");
+      return;
+    }
+
+    const mainShell = motionPage.getByTestId("page-shell-main");
+    if ((await mainShell.count()) === 0) {
+      pushError("page-motion", "expected public pages to render a shared page motion container");
+    } else {
+      const motionFlag = await mainShell.getAttribute("data-page-motion");
+      if (motionFlag !== "enabled") {
+        pushError("page-motion", `expected page motion container to be enabled, got ${motionFlag}`);
+      }
+    }
+
+    const firstTitle = await bannerTitle.innerText();
+    if (!firstTitle.includes("主视觉轮播 A")) {
+      pushError("home-banner", `expected first visible banner title to be 主视觉轮播 A, got ${firstTitle}`);
+    }
+
+    await motionPage.waitForTimeout(5600);
+    const secondTitle = await bannerTitle.innerText();
+    if (!secondTitle.includes("主视觉轮播 B")) {
+      pushError("home-banner", `expected banner to auto rotate to 主视觉轮播 B, got ${secondTitle}`);
+    }
+  } finally {
+    await motionContext.close().catch(() => {});
+  }
+};
+
 const verifyWorkspaceUsersModule = async () => {
   const employeeContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await employeeContext.addInitScript(
@@ -2372,6 +2445,7 @@ try {
   await verifyWorkspaceBannersModule();
   await verifyWorkspaceQuotesModule();
   await verifyWorkspaceSiteSettingsModule();
+  await verifyHomeBannerMotionExperience();
   await verifyWorkspaceUsersModule();
   await verifyWorkspaceExportsModule();
   await verifyWorkspaceSuppliersModule();
