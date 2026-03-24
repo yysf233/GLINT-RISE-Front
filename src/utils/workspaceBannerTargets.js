@@ -14,7 +14,12 @@ export function replaceWorkspaceBannerTargetCover(targets, nextCover) {
   const existingIndex = next.findIndex((target) => target?.id === replacement.id);
 
   if (existingIndex >= 0) {
-    next.splice(existingIndex, 1, replacement);
+    const existing = next[existingIndex] ?? {};
+    next.splice(existingIndex, 1, {
+      ...existing,
+      ...replacement,
+      isCover: true,
+    });
     return next;
   }
 

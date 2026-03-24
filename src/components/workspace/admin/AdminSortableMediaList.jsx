@@ -33,9 +33,30 @@ export function AdminSortableMediaList({
           return (
             <List.Item
               actions={[
-                <Button key="up" icon={<ArrowUpOutlined />} disabled={isFirst} onClick={() => onMoveUp?.(item, index)} />,
-                <Button key="down" icon={<ArrowDownOutlined />} disabled={isLast} onClick={() => onMoveDown?.(item, index)} />,
-                <Button key="remove" danger icon={<DeleteOutlined />} onClick={() => onRemove?.(item, index)} />,
+                <Button
+                  key="up"
+                  icon={<ArrowUpOutlined />}
+                  disabled={isFirst}
+                  aria-label="上移"
+                  title="上移"
+                  onClick={() => onMoveUp?.(item, index)}
+                />,
+                <Button
+                  key="down"
+                  icon={<ArrowDownOutlined />}
+                  disabled={isLast}
+                  aria-label="下移"
+                  title="下移"
+                  onClick={() => onMoveDown?.(item, index)}
+                />,
+                <Button
+                  key="remove"
+                  danger
+                  icon={<DeleteOutlined />}
+                  aria-label="移除"
+                  title="移除"
+                  onClick={() => onRemove?.(item, index)}
+                />,
               ]}
             >
               <List.Item.Meta

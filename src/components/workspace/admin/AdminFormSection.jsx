@@ -8,10 +8,18 @@ export function AdminFormSection({
   description,
   extra,
   children,
+  useForm = true,
   formProps = {},
   footer,
   style,
 }) {
+  const content = (
+    <>
+      {children}
+      {footer ? <div style={{ marginTop: 24 }}>{footer}</div> : null}
+    </>
+  );
+
   return (
     <Card
       bordered={false}
@@ -26,10 +34,13 @@ export function AdminFormSection({
       }
       extra={extra}
     >
-      <Form layout="vertical" {...formProps}>
-        {children}
-        {footer ? <div style={{ marginTop: 24 }}>{footer}</div> : null}
-      </Form>
+      {useForm ? (
+        <Form layout="vertical" {...formProps}>
+          {content}
+        </Form>
+      ) : (
+        content
+      )}
     </Card>
   );
 }
