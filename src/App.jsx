@@ -28,6 +28,7 @@ import { WorkspaceProductFormPage } from "./pages/WorkspaceProductFormPage";
 import { WorkspaceProductImportPage } from "./pages/WorkspaceProductImportPage";
 import { WorkspaceProductsPage } from "./pages/WorkspaceProductsPage";
 import { WorkspaceQuotesPage } from "./pages/WorkspaceQuotesPage";
+import { WorkspaceLogsPage } from "./pages/WorkspaceLogsPage";
 import { WorkspaceSiteSettingsPage } from "./pages/WorkspaceSiteSettingsPage";
 import { WorkspaceSupplierDetailPage } from "./pages/WorkspaceSupplierDetailPage";
 import { WorkspaceSupplierFormPage } from "./pages/WorkspaceSupplierFormPage";
@@ -76,6 +77,7 @@ export default function App() {
             <Route path="/workspace/quotes" element={<WorkspaceQuotesPage />} />
             <Route path="/workspace/exports" element={<WorkspaceExportsPage />} />
             <Route path="/workspace/settings/content" element={<WorkspaceSiteSettingsPage />} />
+            <Route path="/workspace/settings/logs" element={<WorkspaceLogsPage />} />
             <Route path="/workspace/settings/users" element={<WorkspaceUsersPage />} />
             <Route path="/workspace/settings/users/new" element={<WorkspaceUserFormPage />} />
             <Route path="/workspace/settings/users/:userId" element={<WorkspaceUserDetailPage />} />

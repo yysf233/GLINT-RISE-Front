@@ -25,7 +25,7 @@ const ALL_GROUPS = [
       { to: "/workspace/content", label: "内容管理", roles: ["developer"] },
       { to: "/workspace/settings/content", label: "站点配置", roles: ["employee", "director"] },
       { to: "/workspace/settings/users", label: "权限与用户", roles: ["employee", "director"] },
-      { to: "/workspace/settings/logs", label: "日志与监控", roles: ["employee", "director"], isPlaceholder: true },
+      { to: "/workspace/settings/logs", label: "日志与监控", roles: ["employee", "director"] },
     ],
   },
 ];

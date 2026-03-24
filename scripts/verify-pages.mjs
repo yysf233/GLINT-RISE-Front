@@ -13,6 +13,7 @@ const WORKSPACE_EXPORTS_STORAGE_KEY = "glint-rise.workspace-exports.v1";
 const WORKSPACE_QUOTES_STORAGE_KEY = "glint-rise.workspace-quotes.v1";
 const WORKSPACE_SITE_SETTINGS_STORAGE_KEY = "glint-rise.workspace-site-settings.v1";
 const WORKSPACE_USERS_STORAGE_KEY = "glint-rise.workspace-users.v1";
+const WORKSPACE_LOGS_STORAGE_KEY = "glint-rise.workspace-logs.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -891,6 +892,7 @@ const verifyWorkspaceAuthFlows = async () => {
   await submitLogin("developer", "/workspace/content");
   await submitLoginFromProtectedRoute("/workspace/forbidden", "employee", "/workspace/forbidden");
   await submitLoginFromProtectedRoute("/workspace/content", "employee", "/workspace/dashboard");
+  await submitLoginFromProtectedRoute("/workspace/settings/logs", "employee", "/workspace/settings/logs");
 
   activeRoute = "/workspace/content";
   await runIsolatedAuthScenario({
@@ -916,6 +918,7 @@ const verifyWorkspaceAuthFlows = async () => {
       await expectBodyText(authPage, "仪表盘", "employee dashboard");
       await expectBodyText(authPage, "产品管理", "employee dashboard");
       await expectBodyText(authPage, "项目管理", "employee dashboard");
+      await expectBodyText(authPage, "日志与监控", "employee dashboard");
       await expectWorkspaceShellControls(authPage, "employee dashboard");
     },
   });
@@ -928,6 +931,7 @@ const verifyWorkspaceAuthFlows = async () => {
       await expectBodyText(authPage, "业务后台", "director dashboard");
       await expectBodyText(authPage, "仪表盘", "director dashboard");
       await expectBodyText(authPage, "轮播与推荐", "director dashboard");
+      await expectBodyText(authPage, "日志与监控", "director dashboard");
       await expectWorkspaceShellControls(authPage, "director dashboard");
     },
   });
@@ -973,6 +977,7 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/ws-public-001/edit",
     "/workspace/quotes",
     "/workspace/settings/content",
+    "/workspace/settings/logs",
     "/workspace/settings/users",
     "/workspace/settings/users/new",
     "/workspace/settings/users/user-employee",
@@ -1022,6 +1027,7 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/ws-public-001/edit",
     "/workspace/quotes",
     "/workspace/settings/content",
+    "/workspace/settings/logs",
     "/workspace/settings/users",
     "/workspace/settings/users/new",
     "/workspace/settings/users/user-employee",
@@ -2157,6 +2163,123 @@ const verifyWorkspaceUsersModule = async () => {
   }
 };
 
+const verifyWorkspaceLogsModule = async () => {
+  const employeeContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await employeeContext.addInitScript(
+    ({ sessionKey, sessionValue, logsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(logsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      logsKey: WORKSPACE_LOGS_STORAGE_KEY,
+    },
+  );
+
+  const employeePage = await employeeContext.newPage();
+  attachPageDiagnostics(employeePage);
+  const readEmployeeBody = async () => employeePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/settings/logs:employee-module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/settings/logs")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+
+    const employeeBody = await readEmployeeBody();
+    if (!employeeBody.includes("日志与监控")) {
+      pushError("workspace-logs", "expected logs page to render title for employee");
+    }
+
+    const accessLevel = await employeePage.getByTestId("workspace-logs-access-level").textContent();
+    if (accessLevel?.trim() !== "limited") {
+      pushError("workspace-logs", `expected employee access level to be limited, got ${accessLevel}`);
+    }
+
+    if ((await employeePage.getByTestId("workspace-logs-scope-notice").count()) === 0) {
+      pushError("workspace-logs", "expected employee logs page to render limited-scope notice");
+    }
+
+    if (!employeeBody.includes("LUMINA ARC") && !employeeBody.includes("微信")) {
+      pushError("workspace-logs", "expected employee logs page to include personal share/access record");
+    }
+
+    if (!employeeBody.includes("首页主视觉资源加载耗时偏高")) {
+      pushError("workspace-logs", "expected employee logs page to render alert title");
+    }
+
+    if ((await employeePage.getByTestId("workspace-logs-alert-detail-alert-001").count()) > 0) {
+      pushError("workspace-logs", "expected employee logs page to hide alert detail content");
+    }
+
+    if (employeeBody.includes("建议继续压缩首图资源")) {
+      pushError("workspace-logs", "expected employee logs page to keep alert detail redacted");
+    }
+  } finally {
+    await employeeContext.close().catch(() => {});
+  }
+
+  const directorContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await directorContext.addInitScript(
+    ({ sessionKey, sessionValue, logsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(logsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("director"),
+      logsKey: WORKSPACE_LOGS_STORAGE_KEY,
+    },
+  );
+
+  const directorPage = await directorContext.newPage();
+  attachPageDiagnostics(directorPage);
+  const readDirectorBody = async () => directorPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/settings/logs:director-module";
+    await directorPage.goto(`${baseUrl}/${hashForRoute("/workspace/settings/logs")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(directorPage);
+
+    const directorBody = await readDirectorBody();
+    if (!directorBody.includes("日志与监控")) {
+      pushError("workspace-logs", "expected logs page to render title for director");
+    }
+
+    const accessLevel = await directorPage.getByTestId("workspace-logs-access-level").textContent();
+    if (accessLevel?.trim() !== "full") {
+      pushError("workspace-logs", `expected director access level to be full, got ${accessLevel}`);
+    }
+
+    const alertDetail = directorPage.getByTestId("workspace-logs-alert-detail-alert-001");
+    if ((await alertDetail.count()) === 0) {
+      pushError("workspace-logs", "expected director logs page to render alert detail");
+    } else if (!(await alertDetail.textContent())?.includes("建议继续压缩首图资源")) {
+      pushError("workspace-logs", "expected director logs page to expose full alert detail");
+    }
+
+    const acknowledgeButton = directorPage.getByTestId("workspace-logs-acknowledge-alert-001");
+    if ((await acknowledgeButton.count()) === 0) {
+      pushError("workspace-logs", "expected director logs page to expose acknowledge action");
+    } else {
+      await acknowledgeButton.click();
+      await directorPage.waitForTimeout(350);
+
+      const statusText = await directorPage.getByTestId("workspace-logs-alert-status-alert-001").textContent();
+      if (!statusText?.includes("acknowledged")) {
+        pushError("workspace-logs", `expected alert-001 status to change to acknowledged, got ${statusText}`);
+      }
+
+      const acknowledger = await directorPage.getByTestId("workspace-logs-alert-acknowledger-alert-001").textContent();
+      if (!acknowledger?.includes("部门总监")) {
+        pushError("workspace-logs", `expected alert-001 acknowledger to be 部门总监, got ${acknowledger}`);
+      }
+    }
+  } finally {
+    await directorContext.close().catch(() => {});
+  }
+};
+
 const verifyLoginPageFlow = async () => {
   const runLoginScenario = async ({ route = "/login", persistedRole, verify }) => {
     const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -2446,6 +2569,7 @@ try {
   await verifyWorkspaceQuotesModule();
   await verifyWorkspaceSiteSettingsModule();
   await verifyHomeBannerMotionExperience();
+  await verifyWorkspaceLogsModule();
   await verifyWorkspaceUsersModule();
   await verifyWorkspaceExportsModule();
   await verifyWorkspaceSuppliersModule();

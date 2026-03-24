@@ -36,6 +36,7 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("employee", "/workspace/quotes")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/exports")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/settings/content")).toBe(true);
+    expect(canAccessWorkspaceRoute("employee", "/workspace/settings/logs")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users/new")).toBe(true);
     expect(canAccessWorkspaceRoute("employee", "/workspace/settings/users/user-employee")).toBe(true);
@@ -46,6 +47,7 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/dashboard")).toBe(true);
     expect(canAccessWorkspaceRoute("director", "/workspace/content/banners")).toBe(true);
     expect(canAccessWorkspaceRoute("director", "/workspace/suppliers/import")).toBe(true);
+    expect(canAccessWorkspaceRoute("director", "/workspace/settings/logs")).toBe(true);
     expect(canAccessWorkspaceRoute("director", "/workspace/settings/users")).toBe(true);
     expect(canAccessWorkspaceRoute("director", "/workspace/settings/users/user-director")).toBe(true);
   });
@@ -56,6 +58,7 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/forbidden")).toBe(true);
     expect(canAccessWorkspaceRoute("developer", "/workspace/products")).toBe(false);
     expect(canAccessWorkspaceRoute("developer", "/workspace/settings/content")).toBe(false);
+    expect(canAccessWorkspaceRoute("developer", "/workspace/settings/logs")).toBe(false);
     expect(canAccessWorkspaceRoute("developer", "/workspace/settings/users")).toBe(false);
     expect(canAccessWorkspaceRoute("developer", "/workspace/settings/users/user-developer")).toBe(false);
   });

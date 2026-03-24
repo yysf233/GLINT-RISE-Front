@@ -17,6 +17,7 @@ describe("adminNavConfig", () => {
     expect(itemLabels).toContain("供应商管理");
     expect(itemLabels).toContain("询报价流程");
     expect(itemLabels).toContain("导出中心");
+    expect(itemLabels).toContain("日志与监控");
     expect(itemLabels).toContain("权限与用户");
   });
 
@@ -29,6 +30,7 @@ describe("adminNavConfig", () => {
     expect(itemLabels).toContain("项目管理");
     expect(itemLabels).toContain("询报价流程");
     expect(itemLabels).toContain("导出中心");
+    expect(itemLabels).toContain("日志与监控");
     expect(itemLabels).toContain("权限与用户");
   });
 
@@ -45,13 +47,13 @@ describe("adminNavConfig", () => {
     expect(itemLabels).not.toContain("权限与用户");
   });
 
-  it("keeps only logs route as settings placeholder", () => {
+  it("does not keep business routes as placeholders after modules are implemented", () => {
     const groups = getAdminNavGroups("employee");
     const placeholderPaths = flattenItems(groups)
       .filter((item) => item.isPlaceholder)
       .map((item) => item.to);
 
-    expect(placeholderPaths).toContain("/workspace/settings/logs");
+    expect(placeholderPaths).not.toContain("/workspace/settings/logs");
     expect(placeholderPaths).not.toContain("/workspace/settings/content");
     expect(placeholderPaths).not.toContain("/workspace/settings/users");
     expect(placeholderPaths).not.toContain("/workspace/suppliers");

@@ -11,6 +11,7 @@ const WORKSPACE_QUOTE_STATIC_ROUTES = new Set(["/workspace/quotes"]);
 const WORKSPACE_SITE_SETTINGS_STATIC_ROUTES = new Set(["/workspace/settings/content"]);
 const WORKSPACE_USERS_ROUTE_PATTERN = /^\/workspace\/settings\/users(?:\/new|\/[^/]+|\/[^/]+\/edit)?$/;
 const WORKSPACE_USERS_STATIC_ROUTES = new Set(["/workspace/settings/users", "/workspace/settings/users/new"]);
+const WORKSPACE_LOGS_STATIC_ROUTES = new Set(["/workspace/settings/logs"]);
 
 export function isKnownRole(role) {
   return KNOWN_ROLES.has(role);
@@ -56,6 +57,7 @@ export function canAccessWorkspaceRoute(role, pathname) {
     WORKSPACE_EXPORT_STATIC_ROUTES.has(pathname) ||
     WORKSPACE_QUOTE_STATIC_ROUTES.has(pathname) ||
     WORKSPACE_SITE_SETTINGS_STATIC_ROUTES.has(pathname) ||
+    WORKSPACE_LOGS_STATIC_ROUTES.has(pathname) ||
     WORKSPACE_USERS_STATIC_ROUTES.has(pathname) ||
     WORKSPACE_USERS_ROUTE_PATTERN.test(pathname)
   ) {
