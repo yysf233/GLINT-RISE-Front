@@ -5,6 +5,7 @@ import { chromium } from "playwright-core";
 const repoRoot = process.cwd();
 const baseUrl = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
 const SESSION_STORAGE_KEY = "auth-session";
+const WORKSPACE_PRODUCTS_STORAGE_KEY = "glint-rise.workspace-products.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -205,6 +206,12 @@ const clearPersistedAuthSession = async () => {
   await page.evaluate((storageKey) => {
     window.localStorage.removeItem(storageKey);
   }, SESSION_STORAGE_KEY);
+};
+
+const clearPersistedWorkspaceProducts = async () => {
+  await page.evaluate((storageKey) => {
+    window.localStorage.removeItem(storageKey);
+  }, WORKSPACE_PRODUCTS_STORAGE_KEY);
 };
 
 const seedPersistedAuthSession = async (role) => {
@@ -789,6 +796,59 @@ const verifyWorkspaceAuthFlows = async () => {
     },
   });
 
+  const allowedProductRoutes = [
+    "/workspace/products",
+    "/workspace/products/new",
+    "/workspace/products/import",
+    "/workspace/products/wp-lumina-arc",
+    "/workspace/products/wp-lumina-arc/edit",
+  ];
+
+  for (const route of allowedProductRoutes) {
+    activeRoute = `${route}:employee-allow`;
+    await runIsolatedAuthScenario({
+      route,
+      persistedRole: "employee",
+      verify: async (authPage) => {
+        if (currentHashForPage(authPage) !== hashForRoute(route)) {
+          pushError("auth-workspace", `expected employee to access ${route}, got ${currentHashForPage(authPage)}`);
+        }
+      },
+    });
+
+    activeRoute = `${route}:director-allow`;
+    await runIsolatedAuthScenario({
+      route,
+      persistedRole: "director",
+      verify: async (authPage) => {
+        if (currentHashForPage(authPage) !== hashForRoute(route)) {
+          pushError("auth-workspace", `expected director to access ${route}, got ${currentHashForPage(authPage)}`);
+        }
+      },
+    });
+  }
+
+  const deniedProductRoutes = [
+    "/workspace/products",
+    "/workspace/products/new",
+    "/workspace/products/import",
+    "/workspace/products/wp-lumina-arc",
+    "/workspace/products/wp-lumina-arc/edit",
+  ];
+
+  for (const route of deniedProductRoutes) {
+    activeRoute = `${route}:developer-deny`;
+    await runIsolatedAuthScenario({
+      route,
+      persistedRole: "developer",
+      verify: async (authPage) => {
+        if (currentHashForPage(authPage) !== hashForRoute("/workspace/forbidden")) {
+          pushError("auth-workspace", `expected developer to be denied for ${route}, got ${currentHashForPage(authPage)}`);
+        }
+      },
+    });
+  }
+
   activeRoute = "/workspace/dashboard";
   await runIsolatedAuthScenario({
     route: "/workspace/dashboard",
@@ -812,6 +872,148 @@ const verifyWorkspaceAuthFlows = async () => {
       }
     },
   });
+};
+
+const verifyWorkspaceProductsModule = async () => {
+  const moduleContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await moduleContext.addInitScript(
+    ({ sessionKey, sessionValue, productsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(productsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY,
+    },
+  );
+
+  const modulePage = await moduleContext.newPage();
+  attachPageDiagnostics(modulePage);
+
+  const moduleHash = () => currentHashForPage(modulePage);
+  const readModuleBody = async () => modulePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/products:module";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/products")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+
+    const searchInput = modulePage.getByTestId("workspace-products-search");
+    const bulkTagInput = modulePage.getByTestId("workspace-products-bulk-tags");
+    const applyTagsButton = modulePage.getByTestId("workspace-products-apply-tags");
+
+    if ((await searchInput.count()) === 0 || (await bulkTagInput.count()) === 0 || (await applyTagsButton.count()) === 0) {
+      pushError("workspace-products", "expected list page search and bulk tag controls to exist");
+      return;
+    }
+
+    await searchInput.fill("Smart Hub");
+    await modulePage.waitForTimeout(250);
+    const filteredBody = await readModuleBody();
+    if (!filteredBody.includes("Smart Hub") || filteredBody.includes("Lumina Arc")) {
+      pushError("workspace-products", "expected keyword filter to narrow the product table");
+    }
+
+    await searchInput.fill("");
+    await modulePage.waitForTimeout(250);
+    await modulePage.getByTestId("workspace-products-select-wp-smart-hub").check();
+    await bulkTagInput.fill("priority-sync");
+    await applyTagsButton.click();
+    await modulePage.waitForTimeout(250);
+    await searchInput.fill("priority-sync");
+    await modulePage.waitForTimeout(250);
+    const bulkTagBody = await readModuleBody();
+    if (!bulkTagBody.includes("Smart Hub") || !bulkTagBody.includes("priority-sync")) {
+      pushError("workspace-products", "expected bulk tag action to persist and become searchable");
+    }
+
+    activeRoute = "/workspace/products/wp-smart-hub";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/products/wp-smart-hub")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const detailBody = await readModuleBody();
+    if (!detailBody.includes("Internal cost") || !detailBody.includes("Progress Summary")) {
+      pushError("workspace-products", "expected detail page to render backend-only fields");
+    }
+
+    activeRoute = "/workspace/products/wp-smart-hub/edit";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/products/wp-smart-hub/edit")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const editSubmit = modulePage.getByTestId("workspace-product-form-submit");
+    await modulePage.getByTestId("workspace-product-form-name").fill("");
+    await editSubmit.click();
+    await waitForPageApp(modulePage);
+    if (moduleHash() !== hashForRoute("/workspace/products/wp-smart-hub/edit")) {
+      pushError("workspace-products", `expected invalid edit submit to stay on edit route, got ${moduleHash()}`);
+    }
+    if (!(await readModuleBody()).includes("Name is required.")) {
+      pushError("workspace-products", "expected invalid edit submit to show form validation");
+    }
+
+    await modulePage.getByTestId("workspace-product-form-name").fill("Smart Hub Prime");
+    await editSubmit.click();
+    await waitForPageApp(modulePage);
+    if (moduleHash() !== hashForRoute("/workspace/products/wp-smart-hub")) {
+      pushError("workspace-products", `expected valid edit submit to return to detail route, got ${moduleHash()}`);
+    }
+    if (!(await readModuleBody()).includes("Smart Hub Prime")) {
+      pushError("workspace-products", "expected edited product name to render on detail page");
+    }
+
+    activeRoute = "/workspace/products/new";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/products/new")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const createSubmit = modulePage.getByTestId("workspace-product-form-submit");
+    await createSubmit.click();
+    await waitForPageApp(modulePage);
+    if (!(await readModuleBody()).includes("Name is required.")) {
+      pushError("workspace-products", "expected invalid create submit to show validation");
+    }
+
+    await modulePage.getByTestId("workspace-product-form-name").fill("Atlas Beam");
+    await modulePage.getByTestId("workspace-product-form-id").fill("atlas-beam");
+    await modulePage.getByTestId("workspace-product-form-owner").fill("Tara");
+    await modulePage.getByTestId("workspace-product-form-owner-team").fill("Operations");
+    await modulePage.getByTestId("workspace-product-form-retail-price").fill("3200");
+    await modulePage.getByTestId("workspace-product-form-internal-cost").fill("2100");
+    await modulePage.getByTestId("workspace-product-form-summary").fill("Atlas Beam test record for verification.");
+    await modulePage.getByTestId("workspace-product-form-progress-summary").fill("Verification path for create flow.");
+    await modulePage.getByTestId("workspace-product-form-supplier-summary").fill("Mock supplier aligned.");
+    await modulePage.getByTestId("workspace-product-form-hero").fill("/atlas-beam.jpg");
+    await modulePage.getByTestId("workspace-product-form-tags").fill("atlas, beam");
+    await createSubmit.click();
+    await waitForPageApp(modulePage);
+    if (moduleHash() !== hashForRoute("/workspace/products/atlas-beam")) {
+      pushError("workspace-products", `expected create submit to land on new detail route, got ${moduleHash()}`);
+    }
+    if (!(await readModuleBody()).includes("Atlas Beam")) {
+      pushError("workspace-products", "expected created product to render on detail page");
+    }
+
+    activeRoute = "/workspace/products/import";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/products/import")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    await modulePage.getByTestId("workspace-product-import-preview").click();
+    await modulePage.waitForTimeout(250);
+    const previewBody = await readModuleBody();
+    if (!previewBody.includes("Aurora Stage Grid") || !previewBody.includes("Signal Relay Mini")) {
+      pushError("workspace-products", "expected import preview to render sample rows");
+    }
+
+    await modulePage.getByTestId("workspace-product-import-submit").click();
+    await waitForPageApp(modulePage);
+    if (moduleHash() !== hashForRoute("/workspace/products")) {
+      pushError("workspace-products", `expected import submit to return to products list, got ${moduleHash()}`);
+    }
+
+    await modulePage.getByTestId("workspace-products-search").fill("Aurora Stage Grid");
+    await modulePage.waitForTimeout(250);
+    if (!(await readModuleBody()).includes("Aurora Stage Grid")) {
+      pushError("workspace-products", "expected imported record to appear in the products list");
+    }
+  } finally {
+    await moduleContext.close().catch(() => {});
+  }
 };
 
 const verifyLoginPageFlow = async () => {
@@ -1096,6 +1298,7 @@ try {
   await verifyDetailShareTargets();
   await verifyProductsOverviewFilterSection();
   await verifyWorkspaceAuthFlows();
+  await verifyWorkspaceProductsModule();
   await verifyLoginPageFlow();
 
   await browser.close();

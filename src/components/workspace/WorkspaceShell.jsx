@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, FilePenLine, LayoutDashboard, LogOut, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Boxes, FilePenLine, LayoutDashboard, LogOut, ShieldAlert } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 
@@ -12,10 +12,12 @@ const roleLabels = {
 const navItemsByRole = {
   employee: [
     { to: "/workspace/dashboard", label: "Workspace Overview", description: "Welcome state and future modules", icon: LayoutDashboard },
+    { to: "/workspace/products", label: "Product Operations", description: "Mock list, detail, edit, and import flows", icon: Boxes },
     { to: "/workspace/forbidden", label: "Access Notes", description: "Recovery actions for restricted routes", icon: ShieldAlert },
   ],
   director: [
     { to: "/workspace/dashboard", label: "Workspace Overview", description: "Welcome state and decision placeholders", icon: LayoutDashboard },
+    { to: "/workspace/products", label: "Product Operations", description: "Mock list, detail, edit, and import flows", icon: Boxes },
     { to: "/workspace/forbidden", label: "Access Notes", description: "Recovery actions for restricted routes", icon: ShieldAlert },
   ],
   developer: [

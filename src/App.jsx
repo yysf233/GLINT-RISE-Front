@@ -18,6 +18,10 @@ import { SearchPage } from "./pages/SearchPage";
 import { WorkspaceContentPage } from "./pages/WorkspaceContentPage";
 import { WorkspaceDashboardPage } from "./pages/WorkspaceDashboardPage";
 import { WorkspaceForbiddenPage } from "./pages/WorkspaceForbiddenPage";
+import { WorkspaceProductDetailPage } from "./pages/WorkspaceProductDetailPage";
+import { WorkspaceProductFormPage } from "./pages/WorkspaceProductFormPage";
+import { WorkspaceProductImportPage } from "./pages/WorkspaceProductImportPage";
+import { WorkspaceProductsPage } from "./pages/WorkspaceProductsPage";
 
 export default function App() {
   return (
@@ -40,6 +44,11 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/workspace/dashboard" element={<WorkspaceDashboardPage />} />
             <Route path="/workspace/content" element={<WorkspaceContentPage />} />
+            <Route path="/workspace/products" element={<WorkspaceProductsPage />} />
+            <Route path="/workspace/products/new" element={<WorkspaceProductFormPage />} />
+            <Route path="/workspace/products/import" element={<WorkspaceProductImportPage />} />
+            <Route path="/workspace/products/:productId" element={<WorkspaceProductDetailPage />} />
+            <Route path="/workspace/products/:productId/edit" element={<WorkspaceProductFormPage />} />
             <Route path="/workspace/forbidden" element={<WorkspaceForbiddenPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
