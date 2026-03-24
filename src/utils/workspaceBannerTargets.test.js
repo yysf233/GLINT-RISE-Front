@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { replaceWorkspaceBannerTargetCover } from "./workspaceBannerTargets";
+import { replaceWorkspaceBannerTargetCover, validateWorkspaceBannerTarget } from "./workspaceBannerTargets";
 
 describe("workspaceBannerTargets", () => {
   it("keeps only one cover flag when replacing the cover item", () => {
@@ -49,5 +49,12 @@ describe("workspaceBannerTargets", () => {
         isCover: true,
       },
     ]);
+  });
+
+  it("validates banner targets as internal routes", () => {
+    expect(validateWorkspaceBannerTarget("/products").valid).toBe(true);
+    expect(validateWorkspaceBannerTarget("#/cases").valid).toBe(true);
+    expect(validateWorkspaceBannerTarget("https://example.com").valid).toBe(false);
+    expect(validateWorkspaceBannerTarget("").valid).toBe(false);
   });
 });

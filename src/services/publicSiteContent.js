@@ -1,5 +1,6 @@
 import { products as publicProductSeeds } from "../data/siteContent";
 import workspaceProjectSeeds from "../data/workspace/workspaceProjectSeeds";
+import workspaceBannerSeeds from "../data/workspace/workspaceBannerSeeds";
 import { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
 
 const PUBLISHED_STATUSES = new Set(["published", "active", "online"]);
@@ -117,7 +118,7 @@ const bannerStorage = createWorkspaceStorage({
   key: WORKSPACE_STORAGE_KEYS.banners,
   seed: {
     version: 1,
-    items: [],
+    items: clone(workspaceBannerSeeds),
   },
 });
 

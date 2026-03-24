@@ -27,6 +27,24 @@ export function replaceWorkspaceBannerTargetCover(targets, nextCover) {
   return next;
 }
 
+export function validateWorkspaceBannerTarget(target) {
+  const value = String(target ?? "").trim();
+  if (!value) {
+    return { valid: false, message: "目标不能为空" };
+  }
+
+  if (value.startsWith("/")) {
+    return { valid: true, normalized: value };
+  }
+
+  if (value.startsWith("#/")) {
+    return { valid: true, normalized: value.slice(1) };
+  }
+
+  return { valid: false, message: "仅支持站内路由" };
+}
+
 export default {
   replaceWorkspaceBannerTargetCover,
+  validateWorkspaceBannerTarget,
 };
