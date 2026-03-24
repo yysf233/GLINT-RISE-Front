@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { brand, cases } from "../data/siteContent";
+import { cases } from "../data/siteContent";
+import { readPublicSiteSettings } from "../services/publicSiteContent";
 
 export function EntryPage() {
   const navigate = useNavigate();
+  const { brand } = readPublicSiteSettings();
 
   return (
     <div className="relative min-h-screen overflow-hidden text-[var(--color-text-primary)]">

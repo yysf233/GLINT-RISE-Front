@@ -3,10 +3,12 @@ import { ArrowLeft, ArrowRight, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
-import { products } from "../data/siteContent";
+import { getHotPublicProducts, listPublicProducts } from "../services/publicProductsCatalog";
 
 export function HotProductsPage() {
   const navigate = useNavigate();
+  const hotProducts = getHotPublicProducts();
+  const displayProducts = hotProducts.length > 0 ? hotProducts : listPublicProducts().slice(0, 6);
 
   return (
     <PageShell>
@@ -14,7 +16,7 @@ export function HotProductsPage() {
         <SectionHeading
           eyebrow="热门精选"
           title="热门产品推荐"
-          desc="对应热门产品独立列表页，以六张卡片形成完整浏览矩阵，不扩展购物车或库存模块。"
+          desc="热门产品页直接展示后台已发布且标记为热门精选的产品，若当前没有热门条目则回退到公开产品列表前六项。"
           right={
             <button
               type="button"
@@ -28,7 +30,7 @@ export function HotProductsPage() {
         />
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {products.slice(3).map((item) => (
+          {displayProducts.map((item) => (
             <button
               type="button"
               key={item.id}
@@ -74,7 +76,7 @@ export function HotProductsPage() {
             style={{ backgroundColor: "var(--color-surface-primary)" }}
           >
             <ArrowLeft className="h-4 w-4" />
-            返回产品概览
+            返回产品总览
           </button>
         </div>
       </section>

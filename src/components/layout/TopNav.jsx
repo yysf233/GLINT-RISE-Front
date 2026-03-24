@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Menu, Search, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { brand, navItems } from "../../data/siteContent";
+import { readPublicSiteSettings } from "../../services/publicSiteContent";
 import { cn } from "../../utils/cn";
 
 export function TopNav() {
+  const siteSettings = readPublicSiteSettings();
+  const { brand, navigation } = siteSettings;
+  const navItems = navigation.items;
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -15,7 +18,7 @@ export function TopNav() {
   const searchInputRef = useRef(null);
   const isEntry = location.pathname === "/";
   const isSearchRoute = location.pathname === "/search";
-  const desktopNavItems = useMemo(() => navItems.filter((item) => item.path !== "/search"), []);
+  const desktopNavItems = useMemo(() => navItems.filter((item) => item.path !== "/search"), [navItems]);
 
   const activePath = useMemo(() => {
     if (location.pathname.startsWith("/case-timeline")) return "/case-timeline";
@@ -145,7 +148,7 @@ export function TopNav() {
                     onClick={() => navigate("/login")}
                     className="hidden text-sm tracking-[0.18em] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] md:block"
                   >
-                    登录占位
+                    内部登录
                   </button>
                 ) : null}
 
@@ -181,7 +184,7 @@ export function TopNav() {
                         searchInputRef.current?.blur();
                       }
                     }}
-                    placeholder="搜索产品名称"
+                    placeholder={navigation.searchPlaceholder}
                     className={cn(
                       "min-w-0 bg-transparent text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)] transition-all duration-200",
                       desktopSearchExpanded ? "w-full px-4 opacity-100" : "w-0 px-0 opacity-0 pointer-events-none"

@@ -3,13 +3,13 @@ import { ArrowRight, Share2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { MetaTile } from "../components/common/MetaTile";
 import { PageShell } from "../components/layout/PageShell";
-import { products } from "../data/siteContent";
+import { getPublicProductById } from "../services/publicProductsCatalog";
 import { getProductDetailRoute } from "../utils/shareRoutes";
 
 export function ProductSharePage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const item = products.find((product) => product.id === id);
+  const item = getPublicProductById(id);
 
   if (!item) {
     return <Navigate to="/products" replace />;
@@ -68,7 +68,7 @@ export function ProductSharePage() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <div className="text-sm leading-7 text-[var(--color-text-muted)]">
-                  当前页面仅保留公开可分享字段，适合作为微信、QQ、钉钉中的直接落点。
+                  当前页面仅保留公开可分享字段，适合用作微信、QQ、钉钉中的直接落点。
                 </div>
               </div>
             </div>
@@ -78,3 +78,5 @@ export function ProductSharePage() {
     </PageShell>
   );
 }
+
+export default ProductSharePage;

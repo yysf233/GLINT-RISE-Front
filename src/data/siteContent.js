@@ -207,7 +207,7 @@ export const products = [
     id: "hot-01",
     name: "声场胶囊 Acoustic Void-01",
     shortName: "Acoustic Void-01",
-    tag: "智能声学 / 限量版",
+    tag: "智能声学 / 限量款",
     price: "¥4,299",
     desc: "分布式算力节点支持高负载 AI 处理与数据流优化，适合展陈与试听双重场景。",
     hero:
