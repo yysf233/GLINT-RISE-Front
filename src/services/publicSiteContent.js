@@ -1,7 +1,13 @@
-import { products as legacyPublicProductSeeds } from "../data/siteContent";
+import {
+  brand as legacyBrand,
+  footerLinks as legacyFooterLinks,
+  navItems as legacyNavItems,
+  products as legacyPublicProductSeeds,
+} from "../data/siteContent";
 import workspaceBannerSeeds from "../data/workspace/workspaceBannerSeeds";
 import workspaceProductSeeds from "../data/workspace/workspaceProductSeeds";
 import workspaceProjectSeeds from "../data/workspace/workspaceProjectSeeds";
+import workspaceSiteSettingsSeeds from "../data/workspace/workspaceSiteSettingsSeeds";
 import { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
 
 const PUBLISHED_STATUSES = new Set(["published", "active", "online"]);
@@ -166,6 +172,74 @@ const bannerStorage = createWorkspaceStorage({
   },
 });
 
+const siteSettingsStorage = createWorkspaceStorage({
+  key: WORKSPACE_STORAGE_KEYS.siteSettings,
+  seed: {
+    version: 1,
+    items: clone([workspaceSiteSettingsSeeds]),
+  },
+});
+
+function normalizeNavItems(items, fallback = []) {
+  const source = Array.isArray(items) ? items : fallback;
+  const seen = new Set();
+
+  return source
+    .map((item) => ({
+      path: text(item?.path),
+      label: text(item?.label),
+    }))
+    .filter((item) => item.path && item.label)
+    .filter((item) => {
+      if (seen.has(item.path)) {
+        return false;
+      }
+      seen.add(item.path);
+      return true;
+    });
+}
+
+function normalizeStringList(items, fallback = []) {
+  const source = Array.isArray(items) ? items : fallback;
+  const seen = new Set();
+
+  return source
+    .map((item) => text(item))
+    .filter(Boolean)
+    .filter((item) => {
+      if (seen.has(item)) {
+        return false;
+      }
+      seen.add(item);
+      return true;
+    });
+}
+
+export function readPublicSiteSettings() {
+  const snapshot = siteSettingsStorage.read();
+  const current = Array.isArray(snapshot.items) && snapshot.items.length > 0 ? snapshot.items[0] : workspaceSiteSettingsSeeds;
+
+  return {
+    brand: {
+      name: text(current?.brand?.name) || legacyBrand.name,
+      cnName: text(current?.brand?.cnName) || legacyBrand.cnName,
+      entryEyebrow: text(current?.brand?.entryEyebrow) || legacyBrand.entryEyebrow,
+    },
+    navigation: {
+      items: normalizeNavItems(current?.navigation?.items, legacyNavItems),
+      searchPlaceholder: text(current?.navigation?.searchPlaceholder) || "搜索产品名称",
+    },
+    footer: {
+      description: text(current?.footer?.description) || workspaceSiteSettingsSeeds.footer.description,
+      links: normalizeStringList(current?.footer?.links, legacyFooterLinks),
+    },
+    homeHero: {
+      eyebrow: text(current?.homeHero?.eyebrow) || workspaceSiteSettingsSeeds.homeHero.eyebrow,
+      description: text(current?.homeHero?.description) || workspaceSiteSettingsSeeds.homeHero.description,
+    },
+  };
+}
+
 export function readPublishedProducts() {
   return productStorage
     .read()
@@ -191,6 +265,7 @@ export function readPublishedHomeBanners() {
 }
 
 export const publicSiteContent = {
+  readPublicSiteSettings,
   readPublishedProducts,
   readPublishedCases,
   readPublishedHomeBanners,

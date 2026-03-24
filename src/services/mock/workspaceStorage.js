@@ -9,6 +9,7 @@ export const WORKSPACE_STORAGE_KEYS = {
   suppliers: `${STORAGE_PREFIX}-suppliers.v1`,
   exports: `${STORAGE_PREFIX}-exports.v1`,
   quotes: `${STORAGE_PREFIX}-quotes.v1`,
+  siteSettings: `${STORAGE_PREFIX}-site-settings.v1`,
 };
 
 function clone(value) {

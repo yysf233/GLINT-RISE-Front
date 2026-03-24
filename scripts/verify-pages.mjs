@@ -11,6 +11,7 @@ const WORKSPACE_BANNERS_STORAGE_KEY = "glint-rise.workspace-banners.v1";
 const WORKSPACE_SUPPLIERS_STORAGE_KEY = "glint-rise.workspace-suppliers.v1";
 const WORKSPACE_EXPORTS_STORAGE_KEY = "glint-rise.workspace-exports.v1";
 const WORKSPACE_QUOTES_STORAGE_KEY = "glint-rise.workspace-quotes.v1";
+const WORKSPACE_SITE_SETTINGS_STORAGE_KEY = "glint-rise.workspace-site-settings.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -970,6 +971,7 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/ws-public-001",
     "/workspace/suppliers/ws-public-001/edit",
     "/workspace/quotes",
+    "/workspace/settings/content",
     "/workspace/exports",
   ];
 
@@ -1014,6 +1016,7 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/ws-public-001",
     "/workspace/suppliers/ws-public-001/edit",
     "/workspace/quotes",
+    "/workspace/settings/content",
     "/workspace/exports",
   ];
 
@@ -1897,6 +1900,82 @@ const verifyWorkspaceQuotesModule = async () => {
   }
 };
 
+const verifyWorkspaceSiteSettingsModule = async () => {
+  const moduleContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await moduleContext.addInitScript(
+    ({ sessionKey, sessionValue, settingsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(settingsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      settingsKey: WORKSPACE_SITE_SETTINGS_STORAGE_KEY,
+    },
+  );
+
+  const modulePage = await moduleContext.newPage();
+  attachPageDiagnostics(modulePage);
+  const readBody = async () => modulePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/settings/content:employee-module";
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/workspace/settings/content")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+
+    const initialBody = await readBody();
+    if (!initialBody.includes("站点配置")) {
+      pushError("workspace-site-settings", "expected site settings page to render title");
+    }
+
+    await modulePage.getByTestId("workspace-site-settings-brand-name").fill("GLINT LAB");
+    await modulePage.getByTestId("workspace-site-settings-brand-cn").fill("光速实验室");
+    await modulePage.getByTestId("workspace-site-settings-entry-eyebrow").fill("品牌入口");
+    await modulePage.getByTestId("workspace-site-settings-home-eyebrow").fill("品牌主视觉");
+    await modulePage.getByTestId("workspace-site-settings-home-description").fill("新的首页主视觉文案");
+    await modulePage.getByTestId("workspace-site-settings-search-placeholder").fill("搜索最新产品");
+    await modulePage.getByTestId("workspace-site-settings-nav-label-1").fill("产品中心");
+    await modulePage.getByTestId("workspace-site-settings-footer-description").fill("新的页脚说明");
+    await modulePage.getByTestId("workspace-site-settings-footer-link-3").fill("联系我们");
+    await modulePage.getByTestId("workspace-site-settings-save").click();
+    await modulePage.waitForTimeout(350);
+
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/home")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const homeBody = await readBody();
+    if (!homeBody.includes("GLINT LAB")) {
+      pushError("workspace-site-settings", "expected updated brand name to appear on public home page");
+    }
+    if (!homeBody.includes("光速实验室")) {
+      pushError("workspace-site-settings", "expected updated Chinese brand name to appear on public home page");
+    }
+    if (!homeBody.includes("品牌主视觉")) {
+      pushError("workspace-site-settings", "expected updated home eyebrow to appear on public home page");
+    }
+    if (!homeBody.includes("新的首页主视觉文案")) {
+      pushError("workspace-site-settings", "expected updated home description to appear on public home page");
+    }
+    if (!homeBody.includes("产品中心")) {
+      pushError("workspace-site-settings", "expected updated navigation label to appear on public home page");
+    }
+    if (!homeBody.includes("新的页脚说明")) {
+      pushError("workspace-site-settings", "expected updated footer description to appear on public home page");
+    }
+    if (!homeBody.includes("联系我们")) {
+      pushError("workspace-site-settings", "expected updated footer link to appear on public home page");
+    }
+
+    await modulePage.goto(`${baseUrl}/${hashForRoute("/")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(modulePage);
+    const entryBody = await readBody();
+    if (!entryBody.includes("品牌入口")) {
+      pushError("workspace-site-settings", "expected updated entry eyebrow to appear on entry page");
+    }
+  } finally {
+    await moduleContext.close().catch(() => {});
+  }
+};
+
 const verifyLoginPageFlow = async () => {
   const runLoginScenario = async ({ route = "/login", persistedRole, verify }) => {
     const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -2184,6 +2263,7 @@ try {
   await verifyWorkspaceProjectsModule();
   await verifyWorkspaceBannersModule();
   await verifyWorkspaceQuotesModule();
+  await verifyWorkspaceSiteSettingsModule();
   await verifyWorkspaceExportsModule();
   await verifyWorkspaceSuppliersModule();
   await verifyLoginPageFlow();

@@ -9,6 +9,7 @@ import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
 import { cases } from "../data/siteContent";
 import { getPublicProductFilters, listPublicProducts } from "../services/publicProductsCatalog";
+import { readPublicSiteSettings } from "../services/publicSiteContent";
 import { ALL_PRODUCT_CATEGORY_LABEL } from "../utils/productSearch";
 
 function buildSearchUrl(keyword, category) {
@@ -23,6 +24,7 @@ function buildSearchUrl(keyword, category) {
 
 export function HomePage() {
   const navigate = useNavigate();
+  const siteSettings = readPublicSiteSettings();
   const publicProducts = listPublicProducts();
   const { categoryOptions } = getPublicProductFilters(publicProducts);
   const searchOptions = categoryOptions.length > 0 ? categoryOptions : [ALL_PRODUCT_CATEGORY_LABEL];
@@ -64,7 +66,7 @@ export function HomePage() {
         </div>
 
         <div className="relative z-10 max-w-4xl">
-          <div className="mb-4 text-xs tracking-[0.32em] text-[var(--color-accent-primary)]">策展型品牌前端</div>
+          <div className="mb-4 text-xs tracking-[0.32em] text-[var(--color-accent-primary)]">{siteSettings.homeHero.eyebrow}</div>
           <h1
             className="text-[var(--color-text-primary)]"
             style={{
@@ -75,13 +77,11 @@ export function HomePage() {
               lineHeight: 0.92,
             }}
           >
-            GLINT RISE
+            {siteSettings.brand.name}
             <br />
-            <span className="text-[var(--color-accent-primary)]">光速上升</span>
+            <span className="text-[var(--color-accent-primary)]">{siteSettings.brand.cnName}</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--color-text-secondary)]">
-            保留品牌优先、搜索在前、案例与热门产品并行展示的首页结构，同时让后台已发布产品可以直接驱动首页推荐与搜索入口。
-          </p>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--color-text-secondary)]">{siteSettings.homeHero.description}</p>
           <div className="mt-10">
             <SearchBar
               value={searchValue}

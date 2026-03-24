@@ -48,9 +48,9 @@ describe("adminNavConfig", () => {
       .filter((item) => item.isPlaceholder)
       .map((item) => item.to);
 
-    expect(placeholderPaths).toContain("/workspace/settings/content");
     expect(placeholderPaths).toContain("/workspace/settings/users");
     expect(placeholderPaths).toContain("/workspace/settings/logs");
+    expect(placeholderPaths).not.toContain("/workspace/settings/content");
     expect(placeholderPaths).not.toContain("/workspace/suppliers");
     expect(placeholderPaths).not.toContain("/workspace/quotes");
     expect(placeholderPaths).not.toContain("/workspace/exports");

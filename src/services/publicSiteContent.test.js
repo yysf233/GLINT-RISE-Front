@@ -354,4 +354,69 @@ describe("publicSiteContent", () => {
       },
     ]);
   });
+
+  it("reads public site settings from workspace configuration storage", async () => {
+    const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
+
+    createWorkspaceStorage({
+      key: WORKSPACE_STORAGE_KEYS.siteSettings,
+      seed: {
+        version: 1,
+        items: [],
+      },
+    }).write({
+      version: 1,
+      items: [
+        {
+          id: "site-settings",
+          brand: {
+            name: "GLINT LAB",
+            cnName: "光速实验室",
+            entryEyebrow: "品牌入口",
+          },
+          navigation: {
+            items: [
+              { path: "/home", label: "首页" },
+              { path: "/products", label: "产品中心" },
+              { path: "/search", label: "搜索" },
+            ],
+            searchPlaceholder: "搜索最新产品",
+          },
+          footer: {
+            description: "新的页脚说明",
+            links: ["隐私政策", "服务条款", "联系我们"],
+          },
+          homeHero: {
+            eyebrow: "品牌主视觉",
+            description: "新的首页主视觉文案",
+          },
+        },
+      ],
+    });
+
+    const { readPublicSiteSettings } = await import("./publicSiteContent");
+    expect(readPublicSiteSettings()).toMatchObject({
+      brand: {
+        name: "GLINT LAB",
+        cnName: "光速实验室",
+        entryEyebrow: "品牌入口",
+      },
+      navigation: {
+        items: [
+          { path: "/home", label: "首页" },
+          { path: "/products", label: "产品中心" },
+          { path: "/search", label: "搜索" },
+        ],
+        searchPlaceholder: "搜索最新产品",
+      },
+      footer: {
+        description: "新的页脚说明",
+        links: ["隐私政策", "服务条款", "联系我们"],
+      },
+      homeHero: {
+        eyebrow: "品牌主视觉",
+        description: "新的首页主视觉文案",
+      },
+    });
+  });
 });

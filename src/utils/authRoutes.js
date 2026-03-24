@@ -8,6 +8,7 @@ const WORKSPACE_SUPPLIER_ROUTE_PATTERN = /^\/workspace\/suppliers(?:\/[^/]+)?(?:
 const WORKSPACE_SUPPLIER_STATIC_ROUTES = new Set(["/workspace/suppliers", "/workspace/suppliers/new", "/workspace/suppliers/import"]);
 const WORKSPACE_EXPORT_STATIC_ROUTES = new Set(["/workspace/exports"]);
 const WORKSPACE_QUOTE_STATIC_ROUTES = new Set(["/workspace/quotes"]);
+const WORKSPACE_SITE_SETTINGS_STATIC_ROUTES = new Set(["/workspace/settings/content"]);
 
 export function isKnownRole(role) {
   return KNOWN_ROLES.has(role);
@@ -51,7 +52,8 @@ export function canAccessWorkspaceRoute(role, pathname) {
     WORKSPACE_SUPPLIER_STATIC_ROUTES.has(pathname) ||
     WORKSPACE_SUPPLIER_ROUTE_PATTERN.test(pathname) ||
     WORKSPACE_EXPORT_STATIC_ROUTES.has(pathname) ||
-    WORKSPACE_QUOTE_STATIC_ROUTES.has(pathname)
+    WORKSPACE_QUOTE_STATIC_ROUTES.has(pathname) ||
+    WORKSPACE_SITE_SETTINGS_STATIC_ROUTES.has(pathname)
   ) {
     return role === "employee" || role === "director";
   }
