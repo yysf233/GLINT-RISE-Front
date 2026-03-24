@@ -1,77 +1,91 @@
 import React from "react";
-import { BookMarked, FileCheck2, WandSparkles } from "lucide-react";
+import { CheckCircleOutlined, FileTextOutlined, ToolOutlined } from "@ant-design/icons";
+import { Card, Col, Row, Space, Typography } from "antd";
 import { WorkspaceShell } from "../components/workspace/WorkspaceShell";
+
+const { Paragraph, Text, Title } = Typography;
 
 const contentModules = [
   {
-    title: "Content Maintenance",
-    description: "This placeholder reserves the main maintenance surface without introducing real forms, versions, or publishing flows yet.",
-    icon: BookMarked,
+    title: "内容维护入口",
+    description: "开发者从这里进入站点内容维护能力，后续会继续补齐站点配置、推荐配置和发布规则。",
+    icon: ToolOutlined,
   },
   {
-    title: "Structure Checks",
-    description: "Reserved for field validation, route checks, and baseline rules once later tasks define that behavior.",
-    icon: FileCheck2,
+    title: "结构校验",
+    description: "保留字段校验、路由检查和基础规则的位置，当前只先固定管理端的排版与说明。",
+    icon: CheckCircleOutlined,
   },
   {
-    title: "Release Review",
-    description: "A future place for pre-release checks and regression reminders. This task only sets the boundary.",
-    icon: WandSparkles,
+    title: "发布复核",
+    description: "后续可补发布前检查与回归提醒，这一轮只需要明确开发者的维护落点。",
+    icon: FileTextOutlined,
   },
 ];
 
 export function WorkspaceContentPage() {
   return (
     <WorkspaceShell
-      eyebrow="Protected Workspace"
-      title="Developer Workspace"
-      description="Developers land on the content maintenance route. This page stays intentionally simple and only defines the shell plus placeholders."
+      eyebrow="系统管理"
+      title="内容管理"
+      description="开发者账号落在内容管理页面。当前先保留站点维护入口和后续能力边界，不提前扩展复杂 CMS。"
     >
-      <section className="grid gap-5 xl:grid-cols-[1.15fr,0.85fr]">
-        <article
-          className="rounded-[var(--radius-panel)] border p-6 md:p-7"
-          style={{ backgroundColor: "var(--color-surface-primary)", borderColor: "var(--color-border-subtle)" }}
-        >
-          <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">Content Maintenance</div>
-          <h3 className="mt-4 text-2xl font-semibold text-[var(--color-text-primary)]">Maintenance Entry Ready</h3>
-          <p className="mt-4 max-w-2xl text-[var(--color-text-secondary)]">
-            This route gives developer accounts a clear landing page for future maintenance work without expanding into a real content backend.
-          </p>
-        </article>
+      <Space direction="vertical" size={24} style={{ width: "100%" }}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} xl={14}>
+            <Card bordered={false}>
+              <Text style={{ color: "#1677ff", fontWeight: 700, letterSpacing: "0.12em" }}>当前范围</Text>
+              <Title level={3} style={{ marginTop: 12, marginBottom: 0 }}>
+                维护入口已就绪
+              </Title>
+              <Paragraph style={{ marginTop: 12, marginBottom: 0, color: "#64748b" }}>
+                这一轮先把开发者的内容维护落点和后台样式统一起来，不提前扩展真实 CMS 表单与版本流转。
+              </Paragraph>
+            </Card>
+          </Col>
+          <Col xs={24} xl={10}>
+            <Card bordered={false} style={{ height: "100%" }}>
+              <Paragraph style={{ marginBottom: 0, color: "#64748b" }}>
+                后续高权限系统会继续在这里补齐首页轮播配置、推荐位配置、标签管理、日志与监控等模块。
+              </Paragraph>
+            </Card>
+          </Col>
+        </Row>
 
-        <article
-          className="rounded-[var(--radius-panel)] border p-6 md:p-7"
-          style={{ background: "var(--gradient-accent-muted)", borderColor: "var(--color-border-accent)" }}
-        >
-          <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">Current Scope</div>
-          <p className="mt-4 text-lg leading-8 text-[var(--color-text-primary)]">
-            This task only needs the developer shell and intentional Content Maintenance placeholders. No real management tools are added here.
-          </p>
-        </article>
-      </section>
+        <Row gutter={[16, 16]}>
+          {contentModules.map((item) => {
+            const Icon = item.icon;
 
-      <section className="mt-6 grid gap-4 md:grid-cols-3">
-        {contentModules.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <article
-              key={item.title}
-              className="rounded-[var(--radius-card)] border p-5"
-              style={{ background: "var(--gradient-card)", borderColor: "var(--color-border-subtle)" }}
-            >
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-control)]"
-                style={{ backgroundColor: "var(--color-accent-soft)" }}
-              >
-                <Icon className="h-5 w-5 text-[var(--color-accent-primary)]" />
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-[var(--color-text-primary)]">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-[var(--color-text-secondary)]">{item.description}</p>
-            </article>
-          );
-        })}
-      </section>
+            return (
+              <Col key={item.title} xs={24} md={12} xl={8}>
+                <Card bordered={false} style={{ height: "100%" }}>
+                  <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        background: "rgba(22, 119, 255, 0.12)",
+                        color: "#1677ff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 20,
+                      }}
+                    >
+                      <Icon />
+                    </div>
+                    <Title level={4} style={{ margin: 0 }}>
+                      {item.title}
+                    </Title>
+                    <Paragraph style={{ marginBottom: 0, color: "#64748b" }}>{item.description}</Paragraph>
+                  </Space>
+                </Card>
+              </Col>
+            );
+          })}
+        </Row>
+      </Space>
     </WorkspaceShell>
   );
 }

@@ -627,8 +627,8 @@ const verifyWorkspaceAuthFlows = async () => {
   };
 
   const expectWorkspaceShellControls = async (targetPage, label) => {
-    await expectButton(targetPage, "Back to Public Site", label);
-    await expectButton(targetPage, "Log Out", label);
+    await expectButton(targetPage, "返回官网", label);
+    await expectButton(targetPage, "退出登录", label);
   };
 
   activeRoute = "/workspace/dashboard";
@@ -756,8 +756,10 @@ const verifyWorkspaceAuthFlows = async () => {
     route: "/workspace/dashboard",
     persistedRole: "employee",
     verify: async (authPage) => {
-      await expectBodyText(authPage, "Employee Workspace", "employee dashboard");
-      await expectBodyText(authPage, "Future Modules", "employee dashboard");
+      await expectBodyText(authPage, "业务后台", "employee dashboard");
+      await expectBodyText(authPage, "仪表盘", "employee dashboard");
+      await expectBodyText(authPage, "产品管理", "employee dashboard");
+      await expectBodyText(authPage, "项目管理", "employee dashboard");
       await expectWorkspaceShellControls(authPage, "employee dashboard");
     },
   });
@@ -767,8 +769,9 @@ const verifyWorkspaceAuthFlows = async () => {
     route: "/workspace/dashboard",
     persistedRole: "director",
     verify: async (authPage) => {
-      await expectBodyText(authPage, "Director Workspace", "director dashboard");
-      await expectBodyText(authPage, "Decision View", "director dashboard");
+      await expectBodyText(authPage, "业务后台", "director dashboard");
+      await expectBodyText(authPage, "仪表盘", "director dashboard");
+      await expectBodyText(authPage, "轮播与推荐", "director dashboard");
       await expectWorkspaceShellControls(authPage, "director dashboard");
     },
   });
@@ -778,8 +781,8 @@ const verifyWorkspaceAuthFlows = async () => {
     route: "/workspace/content",
     persistedRole: "developer",
     verify: async (authPage) => {
-      await expectBodyText(authPage, "Developer Workspace", "developer content page");
-      await expectBodyText(authPage, "Content Maintenance", "developer content page");
+      await expectBodyText(authPage, "业务后台", "developer content page");
+      await expectBodyText(authPage, "内容管理", "developer content page");
       await expectWorkspaceShellControls(authPage, "developer content page");
     },
   });
@@ -789,9 +792,9 @@ const verifyWorkspaceAuthFlows = async () => {
     route: "/workspace/forbidden",
     persistedRole: "employee",
     verify: async (authPage) => {
-      await expectBodyText(authPage, "No Access", "forbidden page");
-      await expectButton(authPage, "Return to My Workspace", "forbidden page");
-      await expectButton(authPage, "Switch Account", "forbidden page");
+      await expectBodyText(authPage, "无权限访问", "forbidden page");
+      await expectButton(authPage, "返回我的工作台", "forbidden page");
+      await expectButton(authPage, "切换账号", "forbidden page");
       await expectWorkspaceShellControls(authPage, "forbidden page");
     },
   });
@@ -1162,7 +1165,7 @@ const verifyLoginPageFlow = async () => {
     persistedRole: "employee",
     route: "/workspace/dashboard",
     verify: async (authPage) => {
-      const logoutButton = authPage.getByRole("button", { name: "Log Out" });
+      const logoutButton = authPage.getByRole("button", { name: "退出登录" });
       if ((await logoutButton.count()) === 0) {
         pushError("login-flow", "expected workspace shell to expose logout button");
         return;

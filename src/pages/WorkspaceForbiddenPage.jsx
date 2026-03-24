@@ -1,14 +1,17 @@
 import React from "react";
-import { ArrowRight, KeyRound, ShieldX } from "lucide-react";
+import { ArrowRightOutlined, SafetyCertificateOutlined, SwapOutlined } from "@ant-design/icons";
+import { Button, Card, Col, Row, Space, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { WorkspaceShell } from "../components/workspace/WorkspaceShell";
 import { useAuth } from "../context/useAuth";
 import { getDefaultWorkspaceRoute } from "../utils/authRoutes";
 
+const { Paragraph, Text, Title } = Typography;
+
 const roleLabels = {
-  employee: "Employee Workspace",
-  director: "Director Workspace",
-  developer: "Developer Workspace",
+  employee: "员工账号",
+  director: "总监账号",
+  developer: "开发者账号",
 };
 
 export function WorkspaceForbiddenPage() {
@@ -34,61 +37,57 @@ export function WorkspaceForbiddenPage() {
 
   return (
     <WorkspaceShell
-      eyebrow="Restricted Route"
-      title="No Access"
-      description="This account is authenticated but it does not have permission for the requested workspace page. Use the recovery actions below."
+      eyebrow="权限限制"
+      title="无权限访问"
+      description="当前账号已经登录，但没有访问该后台页面的权限。你可以返回默认工作台，或切换账号后重新进入。"
     >
-      <section className="grid gap-5 xl:grid-cols-[1.15fr,0.85fr]">
-        <article
-          className="rounded-[var(--radius-panel)] border p-6 md:p-7"
-          style={{ backgroundColor: "var(--color-surface-primary)", borderColor: "var(--color-border-subtle)" }}
-        >
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)]"
-            style={{ backgroundColor: "rgba(169, 107, 49, 0.22)" }}
-          >
-            <ShieldX className="h-6 w-6 text-[var(--color-accent-primary)]" />
-          </div>
-          <h3 className="mt-5 text-2xl font-semibold text-[var(--color-text-primary)]">Recovery Actions</h3>
-          <p className="mt-4 max-w-2xl text-[var(--color-text-secondary)]">
-            Your current role is {roleLabels[user?.role] ?? "Protected Account"}. This page exists only to explain the restriction and provide a way back.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-4">
-            <button
-              type="button"
-              onClick={() => navigate(fallbackRoute)}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.14em] text-[var(--color-text-on-accent)]"
-              style={{ background: "var(--gradient-accent)" }}
-            >
-              <ArrowRight className="h-4 w-4" />
-              Return to My Workspace
-            </button>
-            <button
-              type="button"
-              onClick={handleSwitchAccount}
-              disabled={isSwitching}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.14em] text-[var(--color-text-primary)] disabled:opacity-70"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              <KeyRound className="h-4 w-4" />
-              {isSwitching ? "Switching" : "Switch Account"}
-            </button>
-          </div>
-        </article>
-
-        <article
-          className="rounded-[var(--radius-panel)] border p-6 md:p-7"
-          style={{ background: "var(--gradient-card)", borderColor: "var(--color-border-subtle)" }}
-        >
-          <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">What To Do Next</div>
-          <ul className="mt-4 grid gap-3 text-sm leading-7 text-[var(--color-text-secondary)]">
-            <li>Use Return to My Workspace to go back to the default route your current role can open.</li>
-            <li>Use Switch Account if another role should have access to the page you wanted.</li>
-            <li>Use Back to Public Site in the shell if you want to continue outside the protected area.</li>
-          </ul>
-        </article>
-      </section>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} xl={14}>
+          <Card bordered={false}>
+            <Space direction="vertical" size={16} style={{ width: "100%" }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: "rgba(250, 173, 20, 0.16)",
+                  color: "#faad14",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                }}
+              >
+                <SafetyCertificateOutlined />
+              </div>
+              <div>
+                <Title level={3} style={{ marginBottom: 8 }}>
+                  权限恢复动作
+                </Title>
+                <Paragraph style={{ marginBottom: 0, color: "#64748b" }}>
+                  当前角色为 {roleLabels[user?.role] ?? "受保护账号"}。你可以返回自己的默认工作台，或切换账号后重新访问目标页面。
+                </Paragraph>
+              </div>
+              <Space wrap>
+                <Button type="primary" icon={<ArrowRightOutlined />} onClick={() => navigate(fallbackRoute)}>
+                  返回我的工作台
+                </Button>
+                <Button icon={<SwapOutlined />} loading={isSwitching} onClick={handleSwitchAccount}>
+                  切换账号
+                </Button>
+              </Space>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} xl={10}>
+          <Card bordered={false}>
+            <Text style={{ color: "#1677ff", fontWeight: 700, letterSpacing: "0.12em" }}>下一步建议</Text>
+            <Paragraph style={{ marginTop: 12, marginBottom: 0, color: "#64748b" }}>
+              如果当前账号不具备权限，请先返回自己的默认工作台；如果是角色不匹配，请退出登录并切换为有权限的账号。
+            </Paragraph>
+          </Card>
+        </Col>
+      </Row>
     </WorkspaceShell>
   );
 }
