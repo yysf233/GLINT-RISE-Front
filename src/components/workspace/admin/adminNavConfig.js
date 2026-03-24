@@ -17,7 +17,7 @@ const ALL_GROUPS = [
     label: "采购与导出",
     items: [
       { to: "/workspace/suppliers", label: "供应商管理", roles: ["employee", "director"] },
-      { to: "/workspace/quotes", label: "询报价流程", roles: ["employee", "director"], isPlaceholder: true },
+      { to: "/workspace/quotes", label: "询报价流程", roles: ["employee", "director"] },
       { to: "/workspace/exports", label: "导出中心", roles: ["employee", "director"] },
     ],
   },

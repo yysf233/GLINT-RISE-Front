@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import {
   Alert,
   App,
@@ -99,6 +100,7 @@ function getFormatTag(format) {
 
 export function WorkspaceExportsPage() {
   const app = App.useApp();
+  const location = useLocation();
   const { user } = useAuth();
   const [formState, setFormState] = React.useState(() => createWorkspaceExportFormDefaults());
   const [resourceState, setResourceState] = React.useState({
@@ -165,6 +167,27 @@ export function WorkspaceExportsPage() {
       active = false;
     };
   }, [refreshToken, user]);
+
+  React.useEffect(() => {
+    const prefill = location.state?.prefill;
+    if (!prefill || typeof prefill !== "object") {
+      return;
+    }
+
+    setFormState((current) => ({
+      ...current,
+      title: String(prefill.title ?? current.title ?? "").trim(),
+      version: String(prefill.version ?? current.version ?? "public").trim() || "public",
+      format: String(prefill.format ?? current.format ?? "pdf").trim() || "pdf",
+      productIds: Array.isArray(prefill.productIds)
+        ? [...new Set(prefill.productIds.map((item) => String(item ?? "").trim()).filter(Boolean))]
+        : current.productIds,
+      supplierIds: Array.isArray(prefill.supplierIds)
+        ? [...new Set(prefill.supplierIds.map((item) => String(item ?? "").trim()).filter(Boolean))]
+        : current.supplierIds,
+      notes: String(prefill.notes ?? current.notes ?? "").trim(),
+    }));
+  }, [location.key, location.state]);
 
   const preview = buildWorkspaceExportPreview(formState, user || {});
   const historySummary = buildHistorySummary(resourceState.history);

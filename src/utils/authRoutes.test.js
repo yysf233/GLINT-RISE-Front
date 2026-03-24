@@ -74,6 +74,10 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("employee", "/workspace/exports")).toBe(true);
   });
 
+  it("allows employee access to workspace quote routes", () => {
+    expect(canAccessWorkspaceRoute("employee", "/workspace/quotes")).toBe(true);
+  });
+
   it("allows director dashboard access", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/dashboard")).toBe(true);
   });
@@ -117,6 +121,10 @@ describe("authRoutes", () => {
     expect(canAccessWorkspaceRoute("director", "/workspace/exports")).toBe(true);
   });
 
+  it("allows director access to workspace quote routes", () => {
+    expect(canAccessWorkspaceRoute("director", "/workspace/quotes")).toBe(true);
+  });
+
   it("rejects developer dashboard access", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/dashboard")).toBe(false);
   });
@@ -158,6 +166,10 @@ describe("authRoutes", () => {
 
   it("rejects developer access to workspace export routes", () => {
     expect(canAccessWorkspaceRoute("developer", "/workspace/exports")).toBe(false);
+  });
+
+  it("rejects developer access to workspace quote routes", () => {
+    expect(canAccessWorkspaceRoute("developer", "/workspace/quotes")).toBe(false);
   });
 
   it("returns requested route when state.from is allowed for the role", () => {

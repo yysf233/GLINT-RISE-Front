@@ -27,6 +27,7 @@ import { WorkspaceProductDetailPage } from "./pages/WorkspaceProductDetailPage";
 import { WorkspaceProductFormPage } from "./pages/WorkspaceProductFormPage";
 import { WorkspaceProductImportPage } from "./pages/WorkspaceProductImportPage";
 import { WorkspaceProductsPage } from "./pages/WorkspaceProductsPage";
+import { WorkspaceQuotesPage } from "./pages/WorkspaceQuotesPage";
 import { WorkspaceSupplierDetailPage } from "./pages/WorkspaceSupplierDetailPage";
 import { WorkspaceSupplierFormPage } from "./pages/WorkspaceSupplierFormPage";
 import { WorkspaceSupplierImportPage } from "./pages/WorkspaceSupplierImportPage";
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="/workspace/suppliers/import" element={<WorkspaceSupplierImportPage />} />
             <Route path="/workspace/suppliers/:supplierId" element={<WorkspaceSupplierDetailPage />} />
             <Route path="/workspace/suppliers/:supplierId/edit" element={<WorkspaceSupplierFormPage />} />
+            <Route path="/workspace/quotes" element={<WorkspaceQuotesPage />} />
             <Route path="/workspace/exports" element={<WorkspaceExportsPage />} />
             <Route path="/workspace/forbidden" element={<WorkspaceForbiddenPage />} />
           </Route>

@@ -10,6 +10,7 @@ const WORKSPACE_PROJECTS_STORAGE_KEY = "glint-rise.workspace-projects.v1";
 const WORKSPACE_BANNERS_STORAGE_KEY = "glint-rise.workspace-banners.v1";
 const WORKSPACE_SUPPLIERS_STORAGE_KEY = "glint-rise.workspace-suppliers.v1";
 const WORKSPACE_EXPORTS_STORAGE_KEY = "glint-rise.workspace-exports.v1";
+const WORKSPACE_QUOTES_STORAGE_KEY = "glint-rise.workspace-quotes.v1";
 const FIXED_PASSWORD = "glintrise-123";
 const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -968,6 +969,7 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/import",
     "/workspace/suppliers/ws-public-001",
     "/workspace/suppliers/ws-public-001/edit",
+    "/workspace/quotes",
     "/workspace/exports",
   ];
 
@@ -1011,6 +1013,7 @@ const verifyWorkspaceAuthFlows = async () => {
     "/workspace/suppliers/import",
     "/workspace/suppliers/ws-public-001",
     "/workspace/suppliers/ws-public-001/edit",
+    "/workspace/quotes",
     "/workspace/exports",
   ];
 
@@ -1668,6 +1671,232 @@ const verifyWorkspaceExportsModule = async () => {
   }
 };
 
+const verifyWorkspaceQuotesModule = async () => {
+  const openDropdownAndPick = async (targetPage, locator, labelPattern) => {
+    await locator.click();
+    const dropdown = targetPage.locator(".ant-select-dropdown:visible").last();
+    await dropdown.getByText(labelPattern).click();
+    await targetPage.keyboard.press("Escape").catch(() => {});
+    await targetPage.waitForTimeout(120);
+  };
+
+  const employeeContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    acceptDownloads: true,
+  });
+  await employeeContext.addInitScript(
+    ({ sessionKey, sessionValue, productsKey, suppliersKey, quotesKey, exportsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(productsKey);
+      window.localStorage.removeItem(suppliersKey);
+      window.localStorage.removeItem(quotesKey);
+      window.localStorage.removeItem(exportsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("employee"),
+      productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY,
+      suppliersKey: WORKSPACE_SUPPLIERS_STORAGE_KEY,
+      quotesKey: WORKSPACE_QUOTES_STORAGE_KEY,
+      exportsKey: WORKSPACE_EXPORTS_STORAGE_KEY,
+    },
+  );
+
+  const employeePage = await employeeContext.newPage();
+  attachPageDiagnostics(employeePage);
+  const readEmployeeBody = async () => employeePage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/quotes:employee-module";
+    await employeePage.goto(`${baseUrl}/${hashForRoute("/workspace/quotes")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(employeePage);
+
+    const firstBody = await readEmployeeBody();
+    if (!firstBody.includes("询报价流程")) {
+      pushError("workspace-quotes", "expected employee quote page to render workflow header");
+    }
+
+    await employeePage.getByTestId("workspace-quotes-title").fill("门店灯箱询价");
+    await employeePage
+      .getByTestId("workspace-quotes-import-text")
+      .fill("旗舰灯箱定制|lumina,lighting|80|25|高|是|重点项目");
+    await employeePage.getByTestId("workspace-quotes-import-preview").click();
+    await employeePage.waitForTimeout(250);
+
+    const previewBody = await readEmployeeBody();
+    if (!previewBody.includes("导入预览") || !previewBody.includes("旗舰灯箱定制")) {
+      pushError("workspace-quotes", "expected employee quote import preview to render imported requirement");
+    }
+
+    await employeePage.getByTestId("workspace-quotes-import-apply").click();
+    await employeePage.getByTestId("workspace-quotes-next").click();
+    await employeePage.waitForTimeout(350);
+
+    const step2Body = await readEmployeeBody();
+    if (!step2Body.includes("Step2 匹配产品结果")) {
+      pushError("workspace-quotes", "expected employee quote flow to reach step 2");
+    }
+    if (!step2Body.includes("Lumina Arc")) {
+      pushError("workspace-quotes", "expected employee step 2 to include Lumina Arc match candidate");
+    }
+
+    await employeePage.getByTestId("workspace-quotes-add-match").click();
+    await openDropdownAndPick(
+      employeePage,
+      employeePage.locator('[data-testid^="workspace-quotes-match-product-"]').last(),
+      /Smart Hub/,
+    );
+    await employeePage.locator('[data-testid^="workspace-quotes-remove-match-"]').last().click();
+    await employeePage.waitForTimeout(150);
+    await employeePage.getByTestId("workspace-quotes-next").click();
+    await employeePage.waitForTimeout(350);
+
+    const step3Body = await readEmployeeBody();
+    if (!step3Body.includes("Step3 供应商推荐与排序")) {
+      pushError("workspace-quotes", "expected employee quote flow to reach step 3");
+    }
+    if (!step3Body.includes("私有供应商（受限）")) {
+      pushError("workspace-quotes", "expected employee quote recommendations to mask private supplier");
+    }
+
+    await openDropdownAndPick(employeePage, employeePage.getByTestId("workspace-quotes-supplier-sort"), "按工艺能力");
+    await openDropdownAndPick(
+      employeePage,
+      employeePage.locator('[data-testid^="workspace-quotes-supplier-select-"]').first(),
+      /私有供应商（受限）/,
+    );
+    await employeePage.getByTestId("workspace-quotes-next").click();
+    await employeePage.waitForTimeout(350);
+
+    const step4Body = await readEmployeeBody();
+    if (!step4Body.includes("Step4 加价 / 模具费 / 交期余量")) {
+      pushError("workspace-quotes", "expected employee quote flow to reach step 4");
+    }
+
+    await employeePage.locator('[data-testid^="workspace-quotes-markup-"]').first().fill("12");
+    await employeePage.locator('[data-testid^="workspace-quotes-tooling-"]').first().fill("600");
+    await employeePage.locator('[data-testid^="workspace-quotes-buffer-"]').first().fill("4");
+    await employeePage.waitForTimeout(120);
+    await employeePage.getByTestId("workspace-quotes-next").click();
+    await employeePage.waitForTimeout(350);
+
+    const [employeeDownload] = await Promise.all([
+      employeePage.waitForEvent("download"),
+      employeePage.getByTestId("workspace-quotes-generate").click(),
+    ]);
+    const employeeQuoteContent = await readDownloadContent(employeeDownload);
+    await employeePage.waitForTimeout(300);
+
+    if (!employeeQuoteContent.includes("Lumina Arc")) {
+      pushError("workspace-quotes", "expected employee quote sheet to include matched product");
+    }
+    if (!employeeQuoteContent.includes("私有供应商（受限）")) {
+      pushError("workspace-quotes", "expected employee quote sheet to keep private supplier masked");
+    }
+    if (employeeQuoteContent.includes("内部成本")) {
+      pushError("workspace-quotes", "expected employee quote sheet to exclude internal cost");
+    }
+
+    await employeePage.getByTestId("workspace-quotes-open-exports").click();
+    await waitForPageApp(employeePage);
+    await employeePage.waitForTimeout(250);
+
+    if (currentHashForPage(employeePage) !== hashForRoute("/workspace/exports")) {
+      pushError("workspace-quotes", `expected quote export handoff to land on exports center, got ${currentHashForPage(employeePage)}`);
+    }
+
+    const exportTitle = await employeePage.getByTestId("workspace-exports-title").inputValue();
+    const exportNotes = await employeePage.getByTestId("workspace-exports-notes").inputValue();
+    if (!exportTitle.includes("门店灯箱询价")) {
+      pushError("workspace-quotes", "expected export center prefill title to come from quote title");
+    }
+    if (!exportNotes.includes("来自询价单")) {
+      pushError("workspace-quotes", "expected export center notes to include quote source");
+    }
+  } finally {
+    await employeeContext.close().catch(() => {});
+  }
+
+  const directorContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    acceptDownloads: true,
+  });
+  await directorContext.addInitScript(
+    ({ sessionKey, sessionValue, productsKey, suppliersKey, quotesKey, exportsKey }) => {
+      window.localStorage.setItem(sessionKey, JSON.stringify(sessionValue));
+      window.localStorage.removeItem(productsKey);
+      window.localStorage.removeItem(suppliersKey);
+      window.localStorage.removeItem(quotesKey);
+      window.localStorage.removeItem(exportsKey);
+    },
+    {
+      sessionKey: SESSION_STORAGE_KEY,
+      sessionValue: createPersistedSession("director"),
+      productsKey: WORKSPACE_PRODUCTS_STORAGE_KEY,
+      suppliersKey: WORKSPACE_SUPPLIERS_STORAGE_KEY,
+      quotesKey: WORKSPACE_QUOTES_STORAGE_KEY,
+      exportsKey: WORKSPACE_EXPORTS_STORAGE_KEY,
+    },
+  );
+
+  const directorPage = await directorContext.newPage();
+  attachPageDiagnostics(directorPage);
+  const readDirectorBody = async () => directorPage.evaluate(() => document.body.innerText.replace(/\s+/g, " ").trim());
+
+  try {
+    activeRoute = "/workspace/quotes:director-module";
+    await directorPage.goto(`${baseUrl}/${hashForRoute("/workspace/quotes")}`, { waitUntil: "domcontentloaded" });
+    await waitForPageApp(directorPage);
+
+    await directorPage.getByTestId("workspace-quotes-title").fill("总监灯箱询价");
+    await directorPage
+      .getByTestId("workspace-quotes-import-text")
+      .fill("旗舰灯箱定制|lumina,lighting|80|25|高|是|重点项目");
+    await directorPage.getByTestId("workspace-quotes-import-preview").click();
+    await directorPage.waitForTimeout(200);
+    await directorPage.getByTestId("workspace-quotes-import-apply").click();
+    await directorPage.getByTestId("workspace-quotes-next").click();
+    await directorPage.waitForTimeout(350);
+    await directorPage.getByTestId("workspace-quotes-next").click();
+    await directorPage.waitForTimeout(350);
+
+    const directorStep3Body = await readDirectorBody();
+    if (!directorStep3Body.includes("Lydia Precision Works")) {
+      pushError("workspace-quotes", "expected director quote recommendations to reveal full private supplier name");
+    }
+
+    await openDropdownAndPick(
+      directorPage,
+      directorPage.locator('[data-testid^="workspace-quotes-supplier-select-"]').first(),
+      /Lydia Precision Works/,
+    );
+    await directorPage.getByTestId("workspace-quotes-next").click();
+    await directorPage.waitForTimeout(350);
+
+    await directorPage.locator('[data-testid^="workspace-quotes-markup-"]').first().fill("15");
+    await directorPage.locator('[data-testid^="workspace-quotes-tooling-"]').first().fill("800");
+    await directorPage.locator('[data-testid^="workspace-quotes-buffer-"]').first().fill("5");
+    await directorPage.waitForTimeout(120);
+    await directorPage.getByTestId("workspace-quotes-next").click();
+    await directorPage.waitForTimeout(350);
+
+    const [directorDownload] = await Promise.all([
+      directorPage.waitForEvent("download"),
+      directorPage.getByTestId("workspace-quotes-generate").click(),
+    ]);
+    const directorQuoteContent = await readDownloadContent(directorDownload);
+
+    if (!directorQuoteContent.includes("Lydia Precision Works")) {
+      pushError("workspace-quotes", "expected director quote sheet to include full private supplier name");
+    }
+    if (!directorQuoteContent.includes("内部成本")) {
+      pushError("workspace-quotes", "expected director quote sheet to include internal cost");
+    }
+  } finally {
+    await directorContext.close().catch(() => {});
+  }
+};
+
 const verifyLoginPageFlow = async () => {
   const runLoginScenario = async ({ route = "/login", persistedRole, verify }) => {
     const authContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -1954,6 +2183,7 @@ try {
   await verifyWorkspaceProductsModule();
   await verifyWorkspaceProjectsModule();
   await verifyWorkspaceBannersModule();
+  await verifyWorkspaceQuotesModule();
   await verifyWorkspaceExportsModule();
   await verifyWorkspaceSuppliersModule();
   await verifyLoginPageFlow();
