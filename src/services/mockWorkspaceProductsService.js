@@ -1,8 +1,9 @@
 import workspaceProductSeeds, { workspaceProductSeedState } from "../data/workspaceProductSeeds";
+import { invalidateWorkspaceStorageCache, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
 import { filterWorkspaceProducts, getWorkspaceProductSummary, normalizeWorkspaceProductQuery } from "../utils/workspaceProductFilters";
 import { previewWorkspaceProductImport as previewWorkspaceProductImportText } from "../utils/workspaceProductImport";
 
-const STORAGE_KEY = "glint-rise.workspace-products.v1";
+const STORAGE_KEY = WORKSPACE_STORAGE_KEYS.products;
 const FIXED_DELAY_MS = 5;
 
 let cachedStore = null;
@@ -80,6 +81,7 @@ function readStoreFromStorage() {
 function persistStore(store) {
   const storage = getStorage();
   storage.setItem(STORAGE_KEY, JSON.stringify(store));
+  invalidateWorkspaceStorageCache(STORAGE_KEY);
 }
 
 function getStore() {
@@ -170,7 +172,8 @@ function normalizeMedia(media, coverId, existingMedia) {
 
   const requestedCoverId = text(coverId);
   const existingCoverId = normalized.find((item) => item.isCover)?.id;
-  const finalCoverId = requestedCoverId || existingCoverId || normalized[0]?.id;
+  const hasRequested = requestedCoverId && normalized.some((item) => item.id === requestedCoverId);
+  const finalCoverId = hasRequested ? requestedCoverId : existingCoverId || normalized[0]?.id;
 
   return normalized.map((item) => ({
     ...item,
@@ -282,6 +285,7 @@ function materializeImportedProduct(store, imported, index) {
     summary: payload.summary,
     publicProductId: payload.publicProductId,
     hero: payload.hero,
+    media: payload.media,
     progressSummary: payload.progressSummary,
     supplierSummary: payload.supplierSummary,
     logs: normalizeLogs(payload.logs, "import", payload.owner || "import", `Imported record ${index}.`),

@@ -118,10 +118,19 @@ export function resetWorkspaceStorage({ key, seed } = {}) {
   return createWorkspaceStorage({ key, seed }).reset();
 }
 
+export function invalidateWorkspaceStorageCache(key) {
+  if (key) {
+    MODULE_CACHE.delete(key);
+  } else {
+    MODULE_CACHE.clear();
+  }
+}
+
 export default {
   WORKSPACE_STORAGE_KEYS,
   createWorkspaceStorage,
   readWorkspaceStorage,
   writeWorkspaceStorage,
   resetWorkspaceStorage,
+  invalidateWorkspaceStorageCache,
 };

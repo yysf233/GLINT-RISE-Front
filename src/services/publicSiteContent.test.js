@@ -232,6 +232,27 @@ describe("publicSiteContent", () => {
     ]);
   });
 
+  it("reflects workspace product updates in the public adapter", async () => {
+    const { readPublishedProducts } = await import("./publicSiteContent");
+    const { createWorkspaceProduct } = await import("./mockWorkspaceProductsService");
+
+    const before = readPublishedProducts();
+
+    await createWorkspaceProduct({
+      name: "Public Sync",
+      category: "device",
+      status: "active",
+      needsUpdate: false,
+      owner: "Maya",
+      retailPrice: 2000,
+      publicProductId: "public-sync",
+    });
+
+    const after = readPublishedProducts();
+    expect(after.length).toBe(before.length + 1);
+    expect(after.some((item) => item.id === "public-sync")).toBe(true);
+  });
+
   it("keeps online banners and their images in backend order", async () => {
     const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
 

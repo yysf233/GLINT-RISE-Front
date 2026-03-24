@@ -10,7 +10,7 @@ function clone(value) {
 function isPublished(item) {
   const status = String(item?.status ?? "").trim().toLowerCase();
   if (!status) {
-    return true;
+    return false;
   }
 
   return PUBLISHED_STATUSES.has(status);
@@ -95,7 +95,10 @@ const productStorage = createWorkspaceStorage({
   key: WORKSPACE_STORAGE_KEYS.products,
   seed: {
     version: 1,
-    items: clone(publicProductSeeds),
+    items: clone(publicProductSeeds).map((item) => ({
+      ...item,
+      status: "published",
+    })),
   },
 });
 
@@ -103,7 +106,10 @@ const caseStorage = createWorkspaceStorage({
   key: WORKSPACE_STORAGE_KEYS.projects,
   seed: {
     version: 1,
-    items: clone(publicCaseSeeds),
+    items: clone(publicCaseSeeds).map((item) => ({
+      ...item,
+      status: "published",
+    })),
   },
 });
 

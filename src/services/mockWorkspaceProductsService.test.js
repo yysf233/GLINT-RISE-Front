@@ -183,6 +183,29 @@ describe("mockWorkspaceProductsService", () => {
     expect(stored.total).toBe(1);
   });
 
+  it("imports media and cover data from json payloads", async () => {
+    const jsonPayload = JSON.stringify([
+      {
+        name: "Media Import",
+        category: "device",
+        status: "active",
+        needsUpdate: false,
+        owner: "Maya",
+        retailPrice: 1800,
+        publicProductId: "product-a",
+        media: [
+          { id: "json-1", url: "/json-1.jpg" },
+          { id: "json-2", url: "/json-2.jpg" },
+        ],
+        coverId: "json-2",
+      },
+    ]);
+
+    const imported = await importWorkspaceProducts(jsonPayload);
+    expect(imported.items[0].media.map((item) => item.id)).toEqual(["json-1", "json-2"]);
+    expect(imported.items[0].media.find((item) => item.isCover)?.id).toBe("json-2");
+  });
+
   it("rejects imports that contain no valid records", async () => {
     const imported = await importWorkspaceProducts("name: Broken Record");
 
@@ -211,5 +234,23 @@ describe("mockWorkspaceProductsService", () => {
 
     const afterReset = await listWorkspaceProducts();
     expect(afterReset.total).toBe(before.total);
+  });
+
+  it("falls back to the first media item when coverId is missing", async () => {
+    const created = await createWorkspaceProduct({
+      name: "Fallback Media",
+      category: "device",
+      status: "active",
+      needsUpdate: false,
+      owner: "Maya",
+      media: [
+        { id: "cover-1", url: "/cover-1.jpg" },
+        { id: "cover-2", url: "/cover-2.jpg" },
+      ],
+      coverId: "missing",
+    });
+
+    expect(created.product.media.find((item) => item.isCover)?.id).toBe("cover-1");
+    expect(created.product.hero).toBe("/cover-1.jpg");
   });
 });
