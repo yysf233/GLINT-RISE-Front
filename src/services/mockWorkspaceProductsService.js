@@ -402,11 +402,11 @@ export async function importWorkspaceProducts(rawText) {
     items.push(importedProduct);
   }
 
-  if (items.length > 0) {
-    saveStore(store);
-  } else {
-    persistStore(store);
+  if (items.length === 0) {
+    return createError("INVALID_IMPORT_INPUT", "Import preview contains no valid records.");
   }
+
+  saveStore(store);
 
   return {
     importedCount: items.length,

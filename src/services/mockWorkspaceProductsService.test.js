@@ -119,6 +119,17 @@ describe("mockWorkspaceProductsService", () => {
     expect(stored.total).toBe(1);
   });
 
+  it("rejects imports that contain no valid records", async () => {
+    const imported = await importWorkspaceProducts("name: Broken Record");
+
+    expect(imported).toEqual({
+      error: {
+        code: "INVALID_IMPORT_INPUT",
+        message: "Import preview contains no valid records.",
+      },
+    });
+  });
+
   it("restores seed data after reset", async () => {
     const before = await listWorkspaceProducts();
     await createWorkspaceProduct({
