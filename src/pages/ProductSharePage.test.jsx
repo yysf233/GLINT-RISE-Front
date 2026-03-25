@@ -19,4 +19,16 @@ describe("ProductSharePage", () => {
     expect(html).toContain("进入官网详情");
     expect(html).toContain("分享产品卡");
   });
+
+  it("uses Chinese share-page helper copy", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/share/product/lumina-arc"]}>
+        <Routes>
+          <Route path="/share/product/:id" element={<ProductSharePage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain("当前页面仅保留公开可分享字段");
+  });
 });

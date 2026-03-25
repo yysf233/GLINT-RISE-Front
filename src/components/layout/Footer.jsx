@@ -8,7 +8,7 @@ export function Footer() {
   const { brand, footer } = siteSettings;
   const location = useLocation();
   const isHome = location.pathname !== "/";
-  const darkFooterLinks = footer.links.length > 0 ? footer.links : ["PRIVACY", "TERMS", "COMPLIANCE", "SITEMAP"];
+  const darkFooterLinks = footer.links.length > 0 ? footer.links : ["隐私政策", "使用条款", "合规说明", "站点地图"];
 
   if (isHome) {
     return (
@@ -35,7 +35,7 @@ export function Footer() {
               ))}
             </div>
 
-            <div className="text-[11px] tracking-[0.22em] text-white/36">© 2024 {brand.name}. ALL RIGHTS RESERVED.</div>
+            <div className="text-[11px] tracking-[0.22em] text-white/36">© 2024 {brand.name}。保留所有权利。</div>
           </div>
 
           <div className="mt-10 flex items-center justify-center gap-6 text-white/28">

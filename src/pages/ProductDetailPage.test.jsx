@@ -23,4 +23,21 @@ describe("ProductDetailPage", () => {
     expect(html).toContain("分享页面");
     expect(html).toContain("查看第 1 张产品图");
   });
+
+  it("uses Chinese detail labels and exhibition copy", () => {
+    const html = renderToStaticMarkup(
+      <NoticeProvider>
+        <MemoryRouter initialEntries={["/product/lumina-arc"]}>
+          <Routes>
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </NoticeProvider>,
+    );
+
+    expect(html).toContain("展陈系列");
+    expect(html).toContain("2026 产品系列");
+    expect(html).toContain("策展素材");
+    expect(html).toContain("返回热门产品");
+  });
 });

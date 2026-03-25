@@ -22,7 +22,7 @@ export function CaseTimelinePage() {
       <section className="mx-auto max-w-[1600px] text-white" data-case-timeline-layout="prototype-dark" aria-label="项目时间轴">
         <div className="grid gap-8 xl:grid-cols-[300px_1fr]">
           <aside className="h-fit rounded-[28px] border border-white/6 bg-[#1c1b1b] p-6" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.22)" }}>
-            <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">CASE TIMELINE</div>
+            <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">案例时间轴</div>
             <h1
               className="mt-4 text-white"
               style={{
@@ -49,7 +49,7 @@ export function CaseTimelinePage() {
                 <div className="mt-2 text-[10px] tracking-[0.22em] text-white/38">公开案例</div>
               </div>
               <div className="rounded-[20px] bg-[#101114] p-4">
-                <div className="text-3xl font-extrabold tracking-[-0.05em] text-white">PC / M</div>
+                <div className="text-3xl font-extrabold tracking-[-0.05em] text-white">桌面 / 移动</div>
                 <div className="mt-2 text-[10px] tracking-[0.22em] text-white/38">双端共用</div>
               </div>
             </div>
@@ -77,7 +77,7 @@ export function CaseTimelinePage() {
           <div className="rounded-[28px] border border-white/6 bg-[#131313] p-6 md:p-8" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-[10px] tracking-[0.28em] text-white/40">TIMELINE VIEW</div>
+                <div className="text-[10px] tracking-[0.28em] text-white/40">时间轴视图</div>
                 <p className="mt-3 max-w-[52ch] text-sm leading-7 text-white/68">
                   每个阶段保留案例标题、摘要、标签和详情跳转，方便继续扩充季度内容或做客户讲述时的快速导航。
                 </p>

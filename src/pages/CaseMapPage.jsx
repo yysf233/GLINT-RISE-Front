@@ -26,7 +26,7 @@ export function CaseMapPage() {
       <section className="relative mx-auto max-w-[1600px] text-white" data-case-map-layout="prototype-dark" aria-label="案例图谱">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">CASE ECOSYSTEM</div>
+            <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">案例图谱</div>
             <h1
               className="mt-4 text-white"
               style={{
@@ -110,7 +110,7 @@ export function CaseMapPage() {
                     <div className="text-center">
                       <Sparkles className="mx-auto h-6 w-6 text-[#bac3ff]" />
                       <div className="mt-3 text-sm font-semibold tracking-[0.18em] text-white">案例中心</div>
-                      <div className="mt-1 text-[10px] tracking-[0.24em] text-white/36">CORE HUB</div>
+                      <div className="mt-1 text-[10px] tracking-[0.24em] text-white/36">核心节点</div>
                     </div>
                   ) : (
                     <div className="relative">
@@ -124,7 +124,7 @@ export function CaseMapPage() {
                           {node.featured ? <Sparkles className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
                         </div>
                         <div>
-                          <div className="text-[10px] tracking-[0.26em] text-white/34">{node.featured ? "FEATURED" : "NODE"}</div>
+                          <div className="text-[10px] tracking-[0.26em] text-white/34">{node.featured ? "重点节点" : "普通节点"}</div>
                           <div className="mt-1 text-sm font-semibold text-white">{node.label}</div>
                         </div>
                       </div>
@@ -168,21 +168,21 @@ export function CaseMapPage() {
 
           <div className="space-y-5">
             <div className="rounded-[24px] border border-white/6 bg-[#1c1b1b] p-6">
-              <div className="text-[10px] tracking-[0.28em] text-white/40">LIVE STATISTICS</div>
+              <div className="text-[10px] tracking-[0.28em] text-white/40">实时统计</div>
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <div className="rounded-[20px] bg-[#101114] p-4">
                   <div className="text-3xl font-extrabold tracking-[-0.05em] text-white">42</div>
-                  <div className="mt-1 text-[10px] tracking-[0.22em] text-white/38">ACTIVE NODES</div>
+                  <div className="mt-1 text-[10px] tracking-[0.22em] text-white/38">活跃节点</div>
                 </div>
                 <div className="rounded-[20px] bg-[#101114] p-4">
                   <div className="text-3xl font-extrabold tracking-[-0.05em] text-white">128</div>
-                  <div className="mt-1 text-[10px] tracking-[0.22em] text-white/38">CONNECTIONS</div>
+                  <div className="mt-1 text-[10px] tracking-[0.22em] text-white/38">连接数</div>
                 </div>
               </div>
             </div>
 
             <div className="rounded-[24px] border border-white/6 bg-[#1c1b1b] p-6">
-              <div className="text-[10px] tracking-[0.28em] text-white/40">MAP NOTES</div>
+              <div className="text-[10px] tracking-[0.28em] text-white/40">图谱说明</div>
               <ul className="mt-5 space-y-3 text-sm leading-6 text-white/64">
                 <li>核心节点保持居中，维持案例传播的主浏览路径。</li>
                 <li>重点节点直接连到详情页，普通节点承担生态关系提示。</li>

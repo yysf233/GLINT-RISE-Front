@@ -75,7 +75,7 @@ export function ProductDetailPage() {
               className="mt-8 rounded-[28px] border border-white/6 bg-[#1c1b1b] p-7"
               style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.18)" }}
             >
-              <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">EXHIBITION SERIES</div>
+              <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">展陈系列</div>
               <h1
                 className="mt-4 text-white"
                 style={{
@@ -90,8 +90,8 @@ export function ProductDetailPage() {
               </h1>
               <div className="mt-5 flex flex-wrap gap-3">
                 <span className="rounded-full bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-white/68">{item.tag}</span>
-                <span className="rounded-full bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-white/68">2026 COLLECTION</span>
-                <span className="rounded-full bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-white/68">CURATED MATERIAL</span>
+                <span className="rounded-full bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-white/68">2026 产品系列</span>
+                <span className="rounded-full bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-white/68">策展素材</span>
               </div>
               <p className="mt-6 max-w-xl text-base leading-8 text-white/68">{item.desc}</p>
 

@@ -21,4 +21,19 @@ describe("CaseMapPage", () => {
     expect(html).toContain("放大图谱");
     expect(html).toContain("分享页面");
   });
+
+  it("uses Chinese map titles and note blocks", () => {
+    const html = renderToStaticMarkup(
+      <NoticeProvider>
+        <MemoryRouter initialEntries={["/case-map"]}>
+          <CaseMapPage />
+        </MemoryRouter>
+      </NoticeProvider>,
+    );
+
+    expect(html).toContain("案例图谱页");
+    expect(html).toContain("案例中心");
+    expect(html).toContain("实时统计");
+    expect(html).toContain("图谱说明");
+  });
 });

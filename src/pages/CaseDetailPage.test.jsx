@@ -23,4 +23,21 @@ describe("CaseDetailPage", () => {
     expect(html).toContain("分享当前案例");
     expect(html).toContain("进入视觉档案");
   });
+
+  it("uses Chinese archival and meta labels", () => {
+    const html = renderToStaticMarkup(
+      <NoticeProvider>
+        <MemoryRouter initialEntries={["/case/quantum-security-protocol"]}>
+          <Routes>
+            <Route path="/case/:id" element={<CaseDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </NoticeProvider>,
+    );
+
+    expect(html).toContain("行业领域");
+    expect(html).toContain("视觉档案 01 // 主视觉");
+    expect(html).toContain("观看项目短片");
+    expect(html).toContain("项目地点");
+  });
 });

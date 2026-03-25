@@ -167,7 +167,7 @@ export function ProductsOverviewPage() {
 
           <div data-testid="products-filter-grid" className="mt-8 grid gap-8 xl:grid-cols-[320px_1fr]">
             <aside className="rounded-[24px] border border-white/6 bg-[#1c1b1b] p-6">
-              <div className="text-[10px] tracking-[0.3em] text-white/40">FILTER SUMMARY</div>
+              <div className="text-[10px] tracking-[0.3em] text-white/40">筛选摘要</div>
               <div className="mt-5 space-y-3 text-sm text-white/68">
                 <div>
                   共找到 <span className="text-[#bac3ff]">{filteredProducts.length}</span> 个产品
@@ -176,7 +176,7 @@ export function ProductsOverviewPage() {
                 <div>标签: {tag}</div>
               </div>
 
-              <div className="mt-10 text-[10px] tracking-[0.3em] text-white/40">TAG FILTERS</div>
+              <div className="mt-10 text-[10px] tracking-[0.3em] text-white/40">标签筛选</div>
               <div className="mt-5 flex flex-wrap gap-3">
                 {safeTagOptions.map((item) => (
                   <Badge key={item} active={tag === item} onClick={() => setTag(item)} variant="prototype-dark">

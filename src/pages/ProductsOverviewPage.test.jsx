@@ -15,10 +15,10 @@ describe("ProductsOverviewPage", () => {
     expect(html).toContain('data-products-layout="prototype-dark"');
     expect(html).toContain('data-testid="products-hero-showcase"');
     expect(html).toContain('data-testid="products-filter-grid"');
-    expect(html).toContain("搜索洞察、产品、案例...");
+    expect(html).toContain("搜索洞察、产品、案例");
   });
 
-  it("uses Chinese overview headings and call-to-action labels", () => {
+  it("uses Chinese overview headings and filter labels", () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={["/products"]}>
         <ProductsOverviewPage />
@@ -29,5 +29,7 @@ describe("ProductsOverviewPage", () => {
     expect(html).toContain("热门产品库");
     expect(html).toContain("查看详情");
     expect(html).toContain("筛选产品库");
+    expect(html).toContain("筛选摘要");
+    expect(html).toContain("标签筛选");
   });
 });

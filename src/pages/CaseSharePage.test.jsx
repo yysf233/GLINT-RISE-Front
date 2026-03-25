@@ -21,4 +21,20 @@ describe("CaseSharePage", () => {
     expect(html).toContain("进入官网详情");
     expect(html).toContain("分享项目卡");
   });
+
+  it("uses Chinese case-share labels and helper copy", () => {
+    const html = renderToStaticMarkup(
+      <NoticeProvider>
+        <MemoryRouter initialEntries={["/share/case/quantum-security-protocol"]}>
+          <Routes>
+            <Route path="/share/case/:id" element={<CaseSharePage />} />
+          </Routes>
+        </MemoryRouter>
+      </NoticeProvider>,
+    );
+
+    expect(html).toContain("案例分享页");
+    expect(html).toContain("分享提示");
+    expect(html).toContain("项目类别");
+  });
 });

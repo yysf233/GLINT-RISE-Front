@@ -72,7 +72,7 @@ export function CaseDetailPage() {
 
           <div className="space-y-6 lg:text-right">
             <div>
-              <div className="text-[10px] tracking-[0.28em] text-white/34">SECTOR</div>
+              <div className="text-[10px] tracking-[0.28em] text-white/34">行业领域</div>
               <div className="mt-2 text-sm text-white">{item.industry}</div>
             </div>
             <button
@@ -92,7 +92,7 @@ export function CaseDetailPage() {
           <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[#1c1b1b]" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}>
             <img src={item.images[0] ?? item.hero} alt={item.title} className="aspect-[21/9] w-full object-cover grayscale transition duration-700 hover:grayscale-0" />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,11,15,0)_0%,rgba(10,11,15,0.62)_100%)]" />
-            <div className="absolute bottom-7 left-7 text-[10px] tracking-[0.3em] text-white/40">VISUAL 01 // HERO FRAME</div>
+            <div className="absolute bottom-7 left-7 text-[10px] tracking-[0.3em] text-white/40">视觉档案 01 // 主视觉</div>
           </div>
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(300px,0.38fr)]">
@@ -111,14 +111,14 @@ export function CaseDetailPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Material Integrity
+                  材质完整性
                 </div>
                 <p className="mt-4 text-sm leading-7 text-white/68">{item.short || item.summary}</p>
                 <div className="mt-8 overflow-hidden rounded-[24px] bg-[#101114]">
                   <img src={item.images[2] ?? item.images[1] ?? item.hero} alt={`${item.title} 补充画面`} className="aspect-square w-full object-cover opacity-70" />
                 </div>
                 <div className="mt-6 border-l-2 border-[#bac3ff]/24 pl-5 text-sm italic leading-7 text-white/46">
-                  “Each case is treated as a spatial narrative system, not a flat marketing asset.”
+                  “每个案例都被视作一套空间叙事系统，而不只是平面的传播素材。”
                 </div>
               </div>
             </div>
@@ -131,7 +131,7 @@ export function CaseDetailPage() {
                 <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-white/20 bg-white/6 backdrop-blur-md">
                   <span className="text-lg text-white">▶</span>
                 </div>
-                <div className="mt-4 text-[10px] tracking-[0.28em] text-white/52">VIEW CAMPAIGN FILM</div>
+                <div className="mt-4 text-[10px] tracking-[0.28em] text-white/52">观看项目短片</div>
               </div>
             </div>
           </div>

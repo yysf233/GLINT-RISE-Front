@@ -65,7 +65,7 @@ export function EntryPage() {
 
             <div className="mt-12 flex items-center justify-center gap-2 opacity-40">
               <span className="h-1.5 w-1.5 rounded-full bg-[#bac3ff]" />
-              <span className="text-[10px] tracking-[0.22em] uppercase">Private Archive Access</span>
+              <span className="text-[10px] tracking-[0.22em] uppercase">私域档案入口</span>
             </div>
           </div>
 
@@ -90,11 +90,11 @@ export function EntryPage() {
             {brand.name}
           </div>
           <div className="flex gap-8 text-[10px] uppercase tracking-[0.24em] text-white/40">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Compliance</span>
+            <span>隐私政策</span>
+            <span>使用条款</span>
+            <span>合规说明</span>
           </div>
-          <div className="text-[10px] uppercase tracking-[0.24em] text-white/40">© 2024 {brand.name}. All rights reserved.</div>
+          <div className="text-[10px] uppercase tracking-[0.24em] text-white/40">© 2024 {brand.name}。保留所有权利。</div>
         </div>
       </footer>
     </div>
