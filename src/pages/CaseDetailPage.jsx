@@ -46,7 +46,7 @@ export function CaseDetailPage() {
           </button>
         </div>
 
-        <header className="mb-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
+        <header data-testid="case-detail-header" className="mb-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
           <div className="max-w-4xl">
             <div className="text-[10px] tracking-[0.3em] text-[#bac3ff]">{item.timelineLabel || item.year}</div>
             <h1
@@ -78,7 +78,7 @@ export function CaseDetailPage() {
             <button
               type="button"
               onClick={() => {
-                const anchor = document.getElementById("case-visual-archive");
+                const anchor = document.getElementById("case-detail-film-panel");
                 anchor?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
               className="inline-flex items-center gap-2 text-sm font-semibold tracking-[0.22em] text-[#bac3ff]"
@@ -88,19 +88,19 @@ export function CaseDetailPage() {
           </div>
         </header>
 
-        <div data-testid="case-detail-visual-stack" className="space-y-12">
+        <div className="space-y-12">
           <div className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[#1c1b1b]" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}>
             <img src={item.images[0] ?? item.hero} alt={item.title} className="aspect-[21/9] w-full object-cover grayscale transition duration-700 hover:grayscale-0" />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,11,15,0)_0%,rgba(10,11,15,0.62)_100%)]" />
             <div className="absolute bottom-7 left-7 text-[10px] tracking-[0.3em] text-white/40">视觉档案 01 // 主视觉</div>
           </div>
 
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(300px,0.38fr)]">
+          <div data-testid="case-detail-showcase-grid" className="grid gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(300px,0.38fr)]">
             <div className="overflow-hidden rounded-[28px] border border-white/6 bg-[#1c1b1b]" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.18)" }}>
               <img src={item.images[1] ?? item.images[0] ?? item.hero} alt={`${item.title} 视觉细节`} className="aspect-[4/5] w-full object-cover grayscale transition duration-700 hover:grayscale-0" />
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-8 lg:pt-10">
               <div className="rounded-[28px] border border-white/6 bg-[#1c1b1b] p-7">
                 <div
                   className="text-white"
@@ -124,7 +124,11 @@ export function CaseDetailPage() {
             </div>
           </div>
 
-          <div id="case-visual-archive" className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[#1c1b1b]">
+          <div
+            id="case-detail-film-panel"
+            data-testid="case-detail-film-panel"
+            className="relative overflow-hidden rounded-[30px] border border-white/6 bg-[#1c1b1b]"
+          >
             <img src={item.images[3] ?? item.images[0] ?? item.hero} alt={`${item.title} 终稿视觉`} className="aspect-[16/7] w-full object-cover grayscale brightness-75" />
             <div className="absolute inset-0 grid place-items-center">
               <div className="text-center">
@@ -137,7 +141,7 @@ export function CaseDetailPage() {
           </div>
         </div>
 
-        <div data-testid="case-detail-meta-grid" className="mt-16 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div data-testid="case-detail-meta-grid" className="mt-16 grid gap-4 border-t border-white/6 pt-10 sm:grid-cols-2 xl:grid-cols-4">
           <MetaTile label="客户名称" value={getCaseClientName(item.title)} variant="prototype-dark" />
           <MetaTile label="服务机构" value="GLINT RISE" variant="prototype-dark" />
           <MetaTile label="项目时间" value={item.year} variant="prototype-dark" />
