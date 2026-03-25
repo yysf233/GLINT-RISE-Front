@@ -1,6 +1,6 @@
 # Frontend Stitch Redesign Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 在不损失现有公开站功能的前提下，把前台页面逐页改造成接近 Stitch 原型的浅底蓝系视觉系统，并完成逐页验收和整站回归。
 
@@ -60,12 +60,12 @@
 - Modify: `scripts/verify-pages.mjs`
 - Test: `src/components/layout/PageShell.test.jsx`
 
-- [ ] **Step 1: 写失败断言，锁定公开站局部主题容器和现有 test hook 不被删掉**
-- [ ] **Step 2: 运行相关测试并确认失败**
-- [ ] **Step 3: 最小实现公开站主题隔离层，保证后台工作台不受影响**
-- [ ] **Step 4: 运行相关测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 提交一次前置基建改动**
+- [x] **Step 1: 写失败断言，锁定公开站局部主题容器和现有 test hook 不被删掉**
+- [x] **Step 2: 运行相关测试并确认失败**
+- [x] **Step 3: 最小实现公开站主题隔离层，保证后台工作台不受影响**
+- [x] **Step 4: 运行相关测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 提交一次前置基建改动**
 
 ### Task 1: 固化新视觉主题与公共布局
 
@@ -79,13 +79,13 @@
 - Test: `src/components/layout/PageShell.test.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 写公共层失败测试，锁定导航搜索交互和全站 page shell hook**
-- [ ] **Step 2: 运行公共层测试并确认按预期失败**
-- [ ] **Step 3: 最小实现 Stitch 浅底主题 token 与公共布局**
-- [ ] **Step 4: 运行公共层测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认顶部搜索、页面动效和后台入口不退化**
-- [ ] **Step 6: 提交一次公共层改动**
+- [x] **Step 1: 写公共层失败测试，锁定导航搜索交互和全站 page shell hook**
+- [x] **Step 2: 运行公共层测试并确认按预期失败**
+- [x] **Step 3: 最小实现 Stitch 浅底主题 token 与公共布局**
+- [x] **Step 4: 运行公共层测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认顶部搜索、页面动效和后台入口不退化**
+- [x] **Step 6: 提交一次公共层改动**
 
 ### Task 2: 重写首页并保留轮播、搜索、推荐功能
 
@@ -98,13 +98,13 @@
 - Test: `src/pages/HomePage.test.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 写首页失败断言，覆盖轮播标题、搜索提交、后台轮播同步**
-- [ ] **Step 2: 运行首页相关测试并确认失败**
-- [ ] **Step 3: 最小实现首页高拟真改版**
-- [ ] **Step 4: 运行首页单测并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认首页相关断言通过**
-- [ ] **Step 7: 提交首页改动**
+- [x] **Step 1: 写首页失败断言，覆盖轮播标题、搜索提交、后台轮播同步**
+- [x] **Step 2: 运行首页相关测试并确认失败**
+- [x] **Step 3: 最小实现首页高拟真改版**
+- [x] **Step 4: 运行首页单测并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认首页相关断言通过**
+- [x] **Step 7: 提交首页改动**
 
 ### Task 3: 重写产品概览页与搜索结果页
 
@@ -116,13 +116,13 @@
 - Test: `src/pages/ProductsOverviewPage.test.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 写产品概览页失败测试，并在浏览器回归中补搜索页失败断言，覆盖筛选、URL 参数、跳转**
-- [ ] **Step 2: 运行相关测试并确认失败**
-- [ ] **Step 3: 最小实现产品概览与搜索页高拟真改版**
-- [ ] **Step 4: 运行相关测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认产品线搜索链路通过**
-- [ ] **Step 7: 提交产品概览与搜索页改动**
+- [x] **Step 1: 写产品概览页失败测试，并在浏览器回归中补搜索页失败断言，覆盖筛选、URL 参数、跳转**
+- [x] **Step 2: 运行相关测试并确认失败**
+- [x] **Step 3: 最小实现产品概览与搜索页高拟真改版**
+- [x] **Step 4: 运行相关测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认产品线搜索链路通过**
+- [x] **Step 7: 提交产品概览与搜索页改动**
 
 ### Task 4: 重写热门产品页、产品详情页与分享页
 
@@ -134,13 +134,13 @@
 - Test: `src/pages/ProductDetailPage.test.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 写产品详情失败测试，并在浏览器回归中补热门产品和分享页断言，覆盖图片切换、分享入口、后台同步字段展示**
-- [ ] **Step 2: 运行相关测试并确认失败**
-- [ ] **Step 3: 最小实现热门产品、详情、分享页高拟真改版**
-- [ ] **Step 4: 运行相关测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认产品详情与分享链路通过**
-- [ ] **Step 7: 提交产品详情域改动**
+- [x] **Step 1: 写产品详情失败测试，并在浏览器回归中补热门产品和分享页断言，覆盖图片切换、分享入口、后台同步字段展示**
+- [x] **Step 2: 运行相关测试并确认失败**
+- [x] **Step 3: 最小实现热门产品、详情、分享页高拟真改版**
+- [x] **Step 4: 运行相关测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认产品详情与分享链路通过**
+- [x] **Step 7: 提交产品详情域改动**
 
 ### Task 5: 重写案例总览与案例详情域
 
@@ -150,13 +150,13 @@
 - Modify: `src/pages/CaseSharePage.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 在浏览器回归中补案例总览、案例详情和分享页失败断言，覆盖跳转、分享、核心文案展示**
-- [ ] **Step 2: 运行相关测试并确认失败**
-- [ ] **Step 3: 最小实现案例总览、案例详情、案例分享页高拟真改版**
-- [ ] **Step 4: 运行相关测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认案例详情链路通过**
-- [ ] **Step 7: 提交案例详情域改动**
+- [x] **Step 1: 在浏览器回归中补案例总览、案例详情和分享页失败断言，覆盖跳转、分享、核心文案展示**
+- [x] **Step 2: 运行相关测试并确认失败**
+- [x] **Step 3: 最小实现案例总览、案例详情、案例分享页高拟真改版**
+- [x] **Step 4: 运行相关测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认案例详情链路通过**
+- [x] **Step 7: 提交案例详情域改动**
 
 ### Task 6: 重写案例时间轴与案例图谱
 
@@ -165,13 +165,13 @@
 - Modify: `src/pages/CaseMapPage.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 为时间轴与图谱关键交互补失败浏览器断言**
-- [ ] **Step 2: 运行相关检查并确认失败**
-- [ ] **Step 3: 最小实现时间轴与图谱页高拟真改版**
-- [ ] **Step 4: 运行相关测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认时间轴和图谱链路通过**
-- [ ] **Step 7: 提交案例扩展页改动**
+- [x] **Step 1: 为时间轴与图谱关键交互补失败浏览器断言**
+- [x] **Step 2: 运行相关检查并确认失败**
+- [x] **Step 3: 最小实现时间轴与图谱页高拟真改版**
+- [x] **Step 4: 运行相关测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认时间轴和图谱链路通过**
+- [x] **Step 7: 提交案例扩展页改动**
 
 ### Task 7: 重写入口页与登录页公开站外壳
 
@@ -180,13 +180,13 @@
 - Modify: `src/pages/LoginPage.jsx`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 为入口页与登录页关键展示补失败浏览器断言**
-- [ ] **Step 2: 运行相关检查并确认失败**
-- [ ] **Step 3: 最小实现入口页与登录页高拟真改版**
-- [ ] **Step 4: 运行相关测试并确认通过**
-- [ ] **Step 5: 运行 `npm run build`**
-- [ ] **Step 6: 运行浏览器回归，确认入口和登录路径通过**
-- [ ] **Step 7: 提交入口与登录页改动**
+- [x] **Step 1: 为入口页与登录页关键展示补失败浏览器断言**
+- [x] **Step 2: 运行相关检查并确认失败**
+- [x] **Step 3: 最小实现入口页与登录页高拟真改版**
+- [x] **Step 4: 运行相关测试并确认通过**
+- [x] **Step 5: 运行 `npm run build`**
+- [x] **Step 6: 运行浏览器回归，确认入口和登录路径通过**
+- [x] **Step 7: 提交入口与登录页改动**
 
 ### Task 8: 更新 PRD 与执行整站最终回归
 
@@ -196,10 +196,16 @@
 - Modify: `docs/REGRESSION_TEST_REPORT.md`
 - Modify: `scripts/verify-pages.mjs`
 
-- [ ] **Step 1: 回填前台高拟真改版的阶段性成果到 PRD**
-- [ ] **Step 2: 更新回归文档，补充逐页改版验收结果**
-- [ ] **Step 3: 运行 `npm run test:unit`**
-- [ ] **Step 4: 运行 `npm run build`**
-- [ ] **Step 5: 启动预览并运行 `npm run verify:routes -- http://127.0.0.1:4184`**
-- [ ] **Step 6: 检查四类重点验收项并记录结果，明确区分“后台驱动页面”和“静态内容页面”**
-- [ ] **Step 7: 提交最终整站改版结果**
+- [x] **Step 1: 回填前台高拟真改版的阶段性成果到 PRD**
+- [x] **Step 2: 更新回归文档，补充逐页改版验收结果**
+- [x] **Step 3: 运行 `npm run test:unit`**
+- [x] **Step 4: 运行 `npm run build`**
+- [x] **Step 5: 启动预览并运行 `npm run verify:routes -- http://127.0.0.1:4184`**
+- [x] **Step 6: 检查四类重点验收项并记录结果，明确区分“后台驱动页面”和“静态内容页面”**
+- [x] **Step 7: 提交最终整站改版结果**
+
+## 执行结果回填
+
+- [x] 公共主题层、首页、产品线、案例线、入口页、登录页已全部切换为 Stitch 浅底蓝系高拟真视觉语言。
+- [x] 已保留并复核现有公开站功能：搜索参数同步、右上角搜索展开提交、首页轮播自动切换、产品/案例详情与分享、后台配置联动。
+- [x] 已完成逐页单测与整站回归，并以 `npm run test:unit`、`npm run build`、`npm run verify:routes -- http://127.0.0.1:4184` 为最终验收基线。
