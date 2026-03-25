@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { ProductDetailPage } from "./ProductDetailPage";
 
 describe("ProductDetailPage", () => {
-  it("renders the dark prototype detail layout without dropping share actions", () => {
+  it("renders the desktop prototype product-detail layout with gallery, spec panel, and ecosystem block", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/product/lumina-arc"]}>
@@ -18,13 +18,13 @@ describe("ProductDetailPage", () => {
     );
 
     expect(html).toContain('data-product-detail-layout="prototype-dark"');
-    expect(html).toContain('data-testid="product-detail-media-rail"');
+    expect(html).toContain('data-testid="product-detail-gallery-grid"');
+    expect(html).toContain('data-testid="product-detail-spec-panel"');
+    expect(html).toContain('data-testid="product-detail-ecosystem-panel"');
     expect(html).toContain('data-testid="product-detail-meta-grid"');
-    expect(html).toContain("分享页面");
-    expect(html).toContain("查看第 1 张产品图");
   });
 
-  it("uses Chinese detail labels and exhibition copy", () => {
+  it("uses Chinese product-detail labels matching the prototype rhythm", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/product/lumina-arc"]}>
@@ -35,9 +35,11 @@ describe("ProductDetailPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain("展陈系列");
-    expect(html).toContain("2026 产品系列");
-    expect(html).toContain("策展素材");
     expect(html).toContain("返回热门产品");
+    expect(html).toContain("分享当前产品");
+    expect(html).toContain("展陈系列");
+    expect(html).toContain("参数规格");
+    expect(html).toContain("生态联动");
+    expect(html).toContain("返回产品总览");
   });
 });

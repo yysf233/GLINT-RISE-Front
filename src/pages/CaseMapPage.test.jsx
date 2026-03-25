@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { CaseMapPage } from "./CaseMapPage";
 
 describe("CaseMapPage", () => {
-  it("renders the dark prototype map layout with zoom controls and share action", () => {
+  it("renders the desktop prototype case-map layout with toolbar, canvas, and floating stats", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/case-map"]}>
@@ -16,13 +16,13 @@ describe("CaseMapPage", () => {
     );
 
     expect(html).toContain('data-case-map-layout="prototype-dark"');
+    expect(html).toContain('data-testid="case-map-toolbar"');
     expect(html).toContain('data-testid="case-map-canvas"');
-    expect(html).toContain("缩小图谱");
-    expect(html).toContain("放大图谱");
-    expect(html).toContain("分享页面");
+    expect(html).toContain('data-testid="case-map-node-focus"');
+    expect(html).toContain('data-testid="case-map-live-stats"');
   });
 
-  it("uses Chinese map titles and note blocks", () => {
+  it("uses Chinese case-map labels matching the prototype controls", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/case-map"]}>
@@ -31,9 +31,12 @@ describe("CaseMapPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain("案例图谱页");
+    expect(html).toContain("案例生态图谱");
+    expect(html).toContain("搜索案例节点");
+    expect(html).toContain("分享洞察");
     expect(html).toContain("案例中心");
     expect(html).toContain("实时统计");
-    expect(html).toContain("图谱说明");
+    expect(html).toContain("缩小图谱");
+    expect(html).toContain("放大图谱");
   });
 });
