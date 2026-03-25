@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
+import { themeVars } from "../../theme/tokens";
 import { Footer } from "./Footer";
 import { TopNav } from "./TopNav";
 
@@ -8,7 +9,12 @@ export function PageShell({ children }) {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen text-[var(--color-text-primary)]" style={{ background: "var(--gradient-page)" }}>
+    <div
+      data-public-theme="glint-rise-public"
+      data-testid="page-shell-root"
+      className="min-h-screen text-[var(--color-text-primary)]"
+      style={{ ...themeVars, background: "var(--gradient-page)" }}
+    >
       <TopNav />
       <motion.main
         key={`${location.pathname}${location.search}`}

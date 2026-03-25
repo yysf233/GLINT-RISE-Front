@@ -12,20 +12,16 @@ export function ImageCard({ image, title, subtitle, tag, onClick, className = ""
       )}
       style={{ backgroundColor: "var(--color-surface-secondary)" }}
     >
-      <img
-        src={image}
-        alt={title}
-        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-      />
+      <img src={image} alt={title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
       {overlay ? (
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.1), var(--color-overlay-strong))" }}
+          style={{ background: "linear-gradient(180deg, rgba(13,23,41,0.08), var(--color-overlay-strong))" }}
         />
       ) : null}
       <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
         {tag ? (
-          <div className="mb-3 inline-flex rounded-[var(--radius-pill)] bg-white/10 px-3 py-1 text-[10px] tracking-[0.24em] text-white/80">
+          <div className="mb-3 inline-flex rounded-[var(--radius-pill)] bg-white/70 px-3 py-1 text-[10px] tracking-[0.24em] text-[var(--color-accent-primary)] backdrop-blur-md">
             {tag}
           </div>
         ) : null}
@@ -40,8 +36,10 @@ export function ImageCard({ image, title, subtitle, tag, onClick, className = ""
         >
           {title}
         </h3>
-        {subtitle ? <p className="mt-3 max-w-xl text-sm leading-7 text-white/75 md:text-base">{subtitle}</p> : null}
+        {subtitle ? <p className="mt-3 max-w-xl text-sm leading-7 text-white/80 md:text-base">{subtitle}</p> : null}
       </div>
     </button>
   );
 }
+
+export default ImageCard;

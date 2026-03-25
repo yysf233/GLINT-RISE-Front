@@ -40,10 +40,17 @@ import { WorkspaceUsersPage } from "./pages/WorkspaceUsersPage";
 
 export default function App() {
   return (
-    <div style={themeVars}>
+    <div>
       <HashRouter>
         <Routes>
-          <Route path="/" element={<EntryPage />} />
+          <Route
+            path="/"
+            element={
+              <div data-public-theme="glint-rise-public" style={themeVars}>
+                <EntryPage />
+              </div>
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
