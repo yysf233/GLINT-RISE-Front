@@ -173,7 +173,7 @@ export function LoginPage() {
 
             <div
               className="flex items-start gap-3 rounded-[var(--radius-tile)] px-4 py-4 text-sm leading-6 text-[var(--color-text-secondary)]"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.04)" }}
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.52)" }}
             >
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent-primary)]" />
               <div>

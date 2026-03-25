@@ -7,13 +7,17 @@ export function Badge({ children, active = false, onClick }) {
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-[var(--radius-pill)] px-4 py-2 text-xs tracking-[0.22em] transition-all duration-300",
-        active
-          ? "bg-[var(--color-accent-soft)] text-[var(--color-accent-primary)] shadow-[var(--shadow-subtle)]"
-          : "bg-[var(--color-surface-primary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-secondary)]"
+        "rounded-[var(--radius-pill)] px-4 py-2.5 text-xs tracking-[0.2em] transition-all duration-300",
+        active ? "shadow-[var(--shadow-subtle)]" : ""
       )}
+      style={{
+        backgroundColor: active ? "var(--color-accent-soft)" : "var(--color-surface-primary)",
+        color: active ? "var(--color-accent-primary)" : "var(--color-text-secondary)",
+      }}
     >
       {children}
     </button>
   );
 }
+
+export default Badge;

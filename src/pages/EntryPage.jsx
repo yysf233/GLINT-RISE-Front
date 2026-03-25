@@ -15,7 +15,7 @@ export function EntryPage() {
         className="absolute inset-0 h-full w-full object-cover opacity-30"
       />
       <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-black/25 backdrop-blur-xl" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-white/30 backdrop-blur-xl" />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-[1680px] flex-col justify-between px-[var(--space-page-x)] py-10">
         <div className="flex items-center justify-between text-xs tracking-[0.32em] text-[var(--color-text-muted)]">

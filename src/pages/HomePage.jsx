@@ -203,9 +203,12 @@ export function HomePage() {
               </AnimatePresence>
               <div className="absolute inset-0" style={{ background: "var(--gradient-hero-fade)" }} />
 
-              <div className="absolute right-5 top-5 rounded-[var(--radius-card)] px-4 py-3 backdrop-blur-md" style={{ backgroundColor: "rgba(255,255,255,0.74)" }}>
-                <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">AUTO ROTATION</div>
-                <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">{HERO_AUTOPLAY_MS / 1000}s / 帧</div>
+              <div
+                className="absolute right-5 top-5 rounded-[var(--radius-card)] px-4 py-3 backdrop-blur-md"
+                style={{ backgroundColor: "rgba(255,255,255,0.74)" }}
+              >
+                <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">自动轮播</div>
+                <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">{HERO_AUTOPLAY_MS / 1000}s / 轮</div>
               </div>
 
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
@@ -213,7 +216,7 @@ export function HomePage() {
                   className="mb-3 inline-flex rounded-[var(--radius-pill)] px-3 py-1 text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]"
                   style={{ backgroundColor: "rgba(255,255,255,0.74)" }}
                 >
-                  STITCH HERO PANEL
+                  主视觉卡片
                 </div>
                 <h2
                   className="max-w-xl text-[var(--color-text-primary)]"
@@ -228,7 +231,7 @@ export function HomePage() {
                   {currentBanner?.title || heroProduct?.name || siteSettings.brand.name}
                 </h2>
                 <p className="mt-4 max-w-lg text-sm leading-7 text-[var(--color-text-secondary)]">
-                  以后台可维护的轮播主视觉作为首页叙事起点，保留搜索、跳转和自动轮播能力。
+                  以后端可维护的轮播主视觉作为首页叙事起点，保留搜索、跳转和自动轮播能力。
                 </p>
               </div>
             </div>
@@ -240,7 +243,7 @@ export function HomePage() {
         <SectionHeading
           eyebrow="精选案例"
           title="案例总览保持策展叙事，但层次切到 Stitch 语言。"
-          desc="保留首页案例主图、右侧切换和时间轴入口，只把布局切成更轻、更具编辑感的浅底容器。"
+          desc="保留首页案例主图、右侧切换和时间线入口，只把布局切成更轻、更具编辑感的浅底容器。"
           action={
             <button
               type="button"
@@ -257,7 +260,7 @@ export function HomePage() {
         <div className="grid gap-8 xl:grid-cols-[0.74fr_1.26fr]">
           <div className="grid gap-4">
             <div className="rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-panel)]" style={{ background: "var(--gradient-card)" }}>
-              <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">CURRENT CASE</div>
+              <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">当前案例</div>
               <div
                 className="mt-3 text-[var(--color-text-primary)]"
                 style={{
@@ -340,7 +343,7 @@ export function HomePage() {
         <SectionHeading
           eyebrow="热门产品"
           title="公开产品列表保留原有逻辑，视觉切到轻量策展矩阵。"
-          desc="首页产品区继续读取后台已发布产品，保留产品切换、详情跳转和热门入口，只把卡片语言统一到 Stitch 原型。"
+          desc="首页产品区继续读取后台已发布产品，保留产品切换、详情跳转和热门入口，只把卡片语言统一到 Stitch 的浅底蓝系。"
           action={
             <button
               type="button"
@@ -356,7 +359,7 @@ export function HomePage() {
 
         <div className="grid gap-8 xl:grid-cols-[0.78fr_1.22fr]">
           <div className="rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-panel)]" style={{ background: "var(--gradient-card)" }}>
-            <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">CURATED PRODUCTS</div>
+            <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">产品策展</div>
             <div
               className="mt-3 text-[var(--color-text-primary)]"
               style={{

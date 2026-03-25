@@ -13,9 +13,7 @@ export function Footer() {
       >
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
-            <div className="mb-3 text-[11px] tracking-[0.32em] text-[var(--color-accent-primary)]">
-              PUBLIC EXPERIENCE FOOTER
-            </div>
+            <div className="mb-3 text-[11px] tracking-[0.32em] text-[var(--color-accent-primary)]">公开站体验页脚</div>
             <div
               className="text-[var(--color-text-primary)]"
               style={{
@@ -38,7 +36,7 @@ export function Footer() {
                 style={{ backgroundColor: index % 2 === 0 ? "var(--color-surface-secondary)" : "var(--color-background-canvas)" }}
               >
                 <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">
-                  LINK {String(index + 1).padStart(2, "0")}
+                  链接 {String(index + 1).padStart(2, "0")}
                 </div>
                 <div className="mt-2 text-sm tracking-[0.14em] text-[var(--color-text-primary)]">{item}</div>
               </div>
@@ -48,7 +46,7 @@ export function Footer() {
 
         <div className="mt-8 flex flex-col gap-3 border-t border-[color:var(--color-border-subtle)] pt-6 text-[11px] tracking-[0.22em] text-[var(--color-text-muted)] md:flex-row md:items-center md:justify-between">
           <span>{brand.cnName}</span>
-          <span>GLINT RISE PUBLIC EXPERIENCE SYSTEM</span>
+          <span>GLINT RISE 公开体验系统</span>
         </div>
       </div>
     </footer>

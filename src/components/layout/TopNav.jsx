@@ -126,7 +126,7 @@ export function TopNav() {
                   <span
                     className={cn(
                       "absolute inset-x-0 -bottom-1 h-0.5 rounded-full transition-opacity duration-300",
-                      active ? "opacity-100" : "opacity-0"
+                      active ? "opacity-100" : "opacity-0",
                     )}
                     style={{ background: "var(--gradient-accent)" }}
                   />
@@ -181,7 +181,7 @@ export function TopNav() {
                 placeholder={navigation.searchPlaceholder}
                 className={cn(
                   "min-w-0 bg-transparent text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)] transition-all duration-200",
-                  desktopSearchExpanded ? "w-full px-4 opacity-100" : "w-0 px-0 opacity-0 pointer-events-none"
+                  desktopSearchExpanded ? "w-full px-4 opacity-100" : "pointer-events-none w-0 px-0 opacity-0",
                 )}
                 aria-label="顶部搜索输入"
                 data-testid="top-nav-search-input"
@@ -189,7 +189,7 @@ export function TopNav() {
               <span
                 className={cn(
                   "overflow-hidden whitespace-nowrap text-sm text-[var(--color-text-secondary)] transition-all duration-200",
-                  desktopSearchExpanded ? "w-0 px-0 opacity-0" : "w-auto px-3 opacity-100"
+                  desktopSearchExpanded ? "w-0 px-0 opacity-0" : "w-auto px-3 opacity-100",
                 )}
               >
                 搜索
@@ -275,7 +275,7 @@ export function TopNav() {
                       }}
                       className={cn(
                         "flex w-full items-center justify-between rounded-[var(--radius-card)] px-4 py-4 text-left transition",
-                        active ? "shadow-[var(--shadow-subtle)]" : ""
+                        active ? "shadow-[var(--shadow-subtle)]" : "",
                       )}
                       style={{
                         backgroundColor: active ? "var(--color-surface-secondary)" : "var(--color-background-canvas)",
@@ -290,9 +290,9 @@ export function TopNav() {
               </div>
 
               <div className="mt-8 rounded-[var(--radius-card)] p-5" style={{ backgroundColor: "var(--color-surface-secondary)" }}>
-                <div className="text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]">视觉说明</div>
+                <div className="text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]">移动端说明</div>
                 <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">
-                  移动端保持抽屉导航节奏，但整体语言切换为 Stitch 原型中的浅底玻璃体系。
+                  移动端继续保留抽屉导航节奏，但整体视觉统一切换到浅底蓝系的玻璃层设计语言。
                 </p>
               </div>
             </motion.div>

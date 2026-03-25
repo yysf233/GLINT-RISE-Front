@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Grid3X3, Maximize2, Minus, Plus, Share2, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
 import { caseMapLines, caseMapNodes } from "../data/siteContent";
 import { useNotice } from "../context/useNotice";
@@ -15,38 +14,56 @@ export function CaseMapPage() {
 
   const getNode = (id) => caseMapNodes.find((node) => node.id === id);
 
+  const updateScale = (delta) => {
+    setScale((current) => {
+      const next = +(current + delta).toFixed(1);
+      return Math.min(1.35, Math.max(0.85, next));
+    });
+  };
+
   return (
     <PageShell>
-      <section className="mx-auto max-w-[1600px]">
-        <SectionHeading
-          eyebrow="案例图谱"
-          title="案例关系图"
-          desc="以图谱方式串联案例之间的主题与叙事路径，支持缩放与详情跳转。"
-          action={
-            <button
-              type="button"
-              onClick={() => shareCurrentPage("案例关系图", showNotice)}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-text-primary)]"
-              style={{ backgroundColor: "var(--color-surface-primary)" }}
+      <section className="mx-auto max-w-[1600px]" data-case-map-layout="map" aria-label="案例图谱">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-xs tracking-[0.3em] text-[var(--color-accent-primary)]">案例图谱</div>
+            <h1
+              className="mt-3 text-[var(--color-text-primary)]"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.2rem, 3vw, 3.4rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.05em",
+                lineHeight: 1,
+              }}
             >
-              <Share2 className="h-4 w-4" />
-              分享页面
-            </button>
-          }
-        />
+              案例关系图
+            </h1>
+            <p className="mt-4 max-w-[58ch] text-sm leading-7 text-[var(--color-text-secondary)]">
+              以图谱方式串联案例之间的主题与叙事路径，保留缩放、详情跳转和分享能力，只换成更轻的蓝系界面。
+            </p>
+          </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1.2fr_320px]">
-          <div
-            className="overflow-hidden rounded-[var(--radius-panel)] p-5 md:p-8"
-            style={{ backgroundColor: "var(--color-surface-primary)" }}
+          <button
+            type="button"
+            onClick={() => shareCurrentPage("案例图谱", showNotice)}
+            className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-4 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-on-accent)] shadow-[var(--shadow-accent)] transition hover:-translate-y-0.5"
+            style={{ background: "var(--gradient-accent)" }}
           >
-            <div
-              className="rounded-[var(--radius-card)] p-4 md:p-6"
-              style={{ backgroundColor: "var(--color-background-canvas)" }}
-            >
+            <Share2 className="h-4 w-4" />
+            分享页面
+          </button>
+        </div>
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_340px]">
+          <div className="overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-border-muted)] bg-[var(--color-surface-glass)] p-5 shadow-[var(--shadow-panel)] backdrop-blur-xl md:p-8">
+            <div className="rounded-[var(--radius-card)] border border-[var(--color-border-muted)] bg-white/80 p-4 shadow-[var(--shadow-panel)] md:p-6">
               <div
                 className="relative h-[560px] overflow-hidden rounded-[var(--radius-media)]"
-                style={{ background: "var(--gradient-map)" }}
+                style={{
+                  background:
+                    "radial-gradient(circle at top left, rgba(97, 163, 255, 0.16) 0%, rgba(255,255,255,0.94) 40%), linear-gradient(180deg, #fbfdff 0%, #eef6ff 100%)",
+                }}
               >
                 <svg className="absolute inset-0 h-full w-full">
                   {caseMapLines.map(([from, to]) => {
@@ -60,7 +77,7 @@ export function CaseMapPage() {
                         y1={`${fromNode.y}%`}
                         x2={`${toNode.x}%`}
                         y2={`${toNode.y}%`}
-                        stroke="var(--color-border-accent)"
+                        stroke="rgba(84, 132, 198, 0.5)"
                         strokeWidth="1.5"
                       />
                     );
@@ -78,17 +95,16 @@ export function CaseMapPage() {
                       }}
                       style={{ left: `${node.x}%`, top: `${node.y}%` }}
                       className={cn(
-                        "absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-tile)] px-4 py-3 text-left shadow-[var(--shadow-panel)] transition",
-                        node.featured ? "min-w-[240px]" : ""
+                        "absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-tile)] px-4 py-3 text-left shadow-[var(--shadow-panel)] transition hover:-translate-y-[50%]",
+                        node.featured ? "min-w-[240px]" : "min-w-[170px]",
                       )}
                       aria-label={node.label}
                     >
                       <div
                         className={cn(
                           "absolute inset-0 rounded-[var(--radius-tile)]",
-                          node.featured ? "" : "bg-[var(--color-surface-primary)] hover:bg-[var(--color-surface-secondary)]"
+                          node.featured ? "bg-[linear-gradient(180deg,rgba(84,132,198,0.16)_0%,rgba(255,255,255,0.94)_100%)]" : "bg-white/92",
                         )}
-                        style={node.featured ? { background: "var(--gradient-accent-soft)" } : undefined}
                       />
                       <div className="relative flex items-center gap-3">
                         <div
@@ -101,7 +117,7 @@ export function CaseMapPage() {
                           {node.featured ? <Sparkles className="h-5 w-5" /> : <Grid3X3 className="h-4 w-4" />}
                         </div>
                         <div>
-                          <div className="text-[10px] tracking-[0.26em] text-white/45">
+                          <div className="text-[10px] tracking-[0.26em] text-[var(--color-text-muted)]">
                             {node.featured ? "重点节点" : "普通节点"}
                           </div>
                           <div className="mt-1 text-sm font-bold tracking-[-0.03em] text-[var(--color-text-primary)]">
@@ -118,23 +134,20 @@ export function CaseMapPage() {
                   ))}
                 </div>
 
-                <div
-                  className="absolute bottom-5 right-5 flex items-center gap-2 rounded-[var(--radius-pill)] px-3 py-2 text-xs tracking-[0.22em] text-[var(--color-text-primary)] backdrop-blur-xl"
-                  style={{ backgroundColor: "var(--color-surface-primary)" }}
-                >
+                <div className="absolute bottom-5 right-5 flex items-center gap-2 rounded-[var(--radius-pill)] border border-[var(--color-border-muted)] bg-white/88 px-3 py-2 text-xs tracking-[0.22em] text-[var(--color-text-primary)] shadow-[var(--shadow-panel)] backdrop-blur-xl">
                   <button
                     type="button"
-                    onClick={() => setScale((current) => Math.max(0.8, +(current - 0.1).toFixed(1)))}
-                    className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-2"
+                    onClick={() => updateScale(-0.1)}
+                    className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-2 transition hover:-translate-y-0.5"
                     aria-label="缩小图谱"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <span>{Math.round(scale * 100)}%</span>
+                  <span className="min-w-[4ch] text-center">{Math.round(scale * 100)}%</span>
                   <button
                     type="button"
-                    onClick={() => setScale((current) => Math.min(1.4, +(current + 0.1).toFixed(1)))}
-                    className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-2"
+                    onClick={() => updateScale(0.1)}
+                    className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-2 transition hover:-translate-y-0.5"
                     aria-label="放大图谱"
                   >
                     <Plus className="h-3 w-3" />
@@ -142,7 +155,7 @@ export function CaseMapPage() {
                   <button
                     type="button"
                     onClick={() => setScale(1)}
-                    className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-2"
+                    className="rounded-[var(--radius-pill)] bg-[var(--color-background-canvas)] p-2 transition hover:-translate-y-0.5"
                     aria-label="重置图谱缩放"
                   >
                     <Maximize2 className="h-3 w-3" />
@@ -153,32 +166,26 @@ export function CaseMapPage() {
           </div>
 
           <div className="space-y-5">
-            <div
-              className="rounded-[var(--radius-card)] p-6"
-              style={{ backgroundColor: "var(--color-surface-primary)" }}
-            >
+            <div className="rounded-[var(--radius-card)] border border-[var(--color-border-muted)] bg-white/85 p-6 shadow-[var(--shadow-panel)] backdrop-blur-xl">
               <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">图谱统计</div>
               <div className="mt-6 grid grid-cols-2 gap-4">
-                <div className="rounded-[var(--radius-tile)] bg-[var(--color-background-canvas)] p-4">
-                  <div className="text-3xl font-extrabold tracking-[-0.05em]">42</div>
+                <div className="rounded-[var(--radius-card)] bg-[var(--color-background-canvas)] p-4">
+                  <div className="text-3xl font-extrabold tracking-[-0.05em] text-[var(--color-text-primary)]">42</div>
                   <div className="mt-1 text-xs tracking-[0.22em] text-[var(--color-text-muted)]">活跃节点</div>
                 </div>
-                <div className="rounded-[var(--radius-tile)] bg-[var(--color-background-canvas)] p-4">
-                  <div className="text-3xl font-extrabold tracking-[-0.05em]">128</div>
+                <div className="rounded-[var(--radius-card)] bg-[var(--color-background-canvas)] p-4">
+                  <div className="text-3xl font-extrabold tracking-[-0.05em] text-[var(--color-text-primary)]">128</div>
                   <div className="mt-1 text-xs tracking-[0.22em] text-[var(--color-text-muted)]">连接关系</div>
                 </div>
               </div>
             </div>
 
-            <div
-              className="rounded-[var(--radius-card)] p-6"
-              style={{ backgroundColor: "var(--color-surface-primary)" }}
-            >
+            <div className="rounded-[var(--radius-card)] border border-[var(--color-border-muted)] bg-white/85 p-6 shadow-[var(--shadow-panel)] backdrop-blur-xl">
               <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">图谱说明</div>
               <ul className="mt-5 space-y-3 text-sm leading-6 text-[var(--color-text-secondary)]">
-                <li>核心节点保持居中，符合案例分发的主要浏览路径。</li>
+                <li>核心节点保持居中，符合案例传播的主要浏览路径。</li>
                 <li>右下角保留缩放与重置控制，方便快速切换视角。</li>
-                <li>分享按钮统一复用当前路由地址，保证分享后可直达对应页面。</li>
+                <li>分享按钮复用当前路由地址，保证分享后可直达对应页面。</li>
               </ul>
             </div>
           </div>
