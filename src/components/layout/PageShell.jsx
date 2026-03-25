@@ -7,13 +7,14 @@ import { TopNav } from "./TopNav";
 
 export function PageShell({ children }) {
   const location = useLocation();
+  const isHome = location.pathname === "/home";
 
   return (
     <div
       data-public-theme="glint-rise-public"
       data-testid="page-shell-root"
       className="min-h-screen text-[var(--color-text-primary)]"
-      style={{ ...themeVars, background: "var(--gradient-page)" }}
+      style={{ ...themeVars, background: isHome ? "#0f1116" : "var(--gradient-page)" }}
     >
       <TopNav />
       <motion.main

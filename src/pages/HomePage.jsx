@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Cpu, Globe2, ScanSearch, Share2, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ImageCard } from "../components/common/ImageCard";
-import { ProductTile } from "../components/common/ProductTile";
-import { ProgressiveBar } from "../components/common/ProgressiveBar";
 import { SearchBar } from "../components/common/SearchBar";
-import { SectionHeading } from "../components/common/SectionHeading";
 import { PageShell } from "../components/layout/PageShell";
 import { cases } from "../data/siteContent";
 import { getPublicProductFilters, listPublicProducts } from "../services/publicProductsCatalog";
@@ -14,6 +10,15 @@ import { readPublicSiteSettings, readPublishedHomeBanners } from "../services/pu
 import { ALL_PRODUCT_CATEGORY_LABEL } from "../utils/productSearch";
 
 const HERO_AUTOPLAY_MS = 5200;
+const CASE_PRIORITY = ["enterprise-data-synergy", "quantum-security-protocol", "bosideng-aerospace"];
+const PRODUCT_ICONS = [Cpu, Shield, ScanSearch, Globe2];
+const STORY_METRICS = [
+  {
+    value: "99.9%",
+    label: "RELIABILITY UPTIME",
+    description: "Our commitment to stability is non-negotiable, ensuring constant operational flow.",
+  },
+];
 
 function buildSearchUrl(keyword, category) {
   const params = new URLSearchParams({
@@ -23,6 +28,138 @@ function buildSearchUrl(keyword, category) {
   });
 
   return `/search?${params.toString()}`;
+}
+
+function getCircularWindow(items, startIndex, size) {
+  if (!Array.isArray(items) || items.length === 0 || size <= 0) {
+    return [];
+  }
+
+  return Array.from({ length: Math.min(size, items.length) }, (_, index) => items[(startIndex + index) % items.length]);
+}
+
+function reorderCases(items) {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const prioritized = CASE_PRIORITY.map((id) => byId.get(id)).filter(Boolean);
+  const remaining = items.filter((item) => !CASE_PRIORITY.includes(item.id));
+  return [...prioritized, ...remaining];
+}
+
+function SectionHeading({ eyebrow, subtitle, title, action }) {
+  return (
+    <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
+      <div>
+        <div className="text-[10px] tracking-[0.34em] text-white/46 md:text-[11px]">{eyebrow}</div>
+        <h2
+          className="mt-3 text-[2rem] text-white md:text-[2.4rem] lg:text-[2.85rem]"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 800,
+            letterSpacing: "-0.05em",
+            lineHeight: 0.94,
+          }}
+        >
+          {title}
+        </h2>
+        {subtitle ? <div className="mt-2 text-[11px] tracking-[0.22em] text-white/36">{subtitle}</div> : null}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function CaseSpotlightCard({ item, layout = "primary", onClick }) {
+  if (!item) {
+    return null;
+  }
+
+  const isPrimary = layout === "primary";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative overflow-hidden rounded-[30px] border border-white/6 bg-[#17181d] text-left"
+      style={{
+        minHeight: isPrimary ? 420 : 420,
+        boxShadow: "0 28px 72px rgba(0, 0, 0, 0.26)",
+      }}
+    >
+      <img
+        src={item.hero}
+        alt={item.title}
+        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,11,15,0.12)_0%,rgba(10,11,15,0.48)_48%,rgba(10,11,15,0.92)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 p-5 md:p-7">
+        <div className="text-[10px] tracking-[0.26em] text-white/58">{item.category}</div>
+        <div
+          className="mt-3 text-white"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: isPrimary ? "2rem" : "1.8rem",
+            fontWeight: 700,
+            letterSpacing: "-0.04em",
+            lineHeight: 0.96,
+          }}
+        >
+          {item.title}
+        </div>
+        <p className="mt-3 max-w-xl text-sm leading-7 text-white/72">{item.summary}</p>
+        <div className="mt-4 inline-flex rounded-full border border-white/16 px-3 py-1 text-[10px] tracking-[0.18em] text-white">
+          {item.industry || item.year}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function ProductShowcaseCard({ item, icon: Icon, onClick }) {
+  if (!item) {
+    return null;
+  }
+
+  const categoryLabel = item.searchCategory || item.tag || "精选产品";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex h-full flex-col rounded-[26px] border border-white/6 bg-[#252427] p-4 text-left text-white transition hover:-translate-y-1"
+      style={{ boxShadow: "0 24px 56px rgba(0, 0, 0, 0.18)" }}
+    >
+      <div className="overflow-hidden rounded-[18px] bg-[#101114]">
+        <img
+          src={item.hero}
+          alt={item.name}
+          className="aspect-[1/1] w-full object-cover transition duration-700 group-hover:scale-[1.05]"
+        />
+      </div>
+
+      <div className="mt-4 flex items-start justify-between gap-4">
+        <div
+          className="text-[1.15rem] text-white"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          {item.name}
+        </div>
+        <div className="rounded-full border border-white/12 bg-white/4 p-2 text-[#b8c4ff]">
+          <Icon className="h-4 w-4" />
+        </div>
+      </div>
+
+      <p className="mt-3 flex-1 text-sm leading-6 text-white/64">{item.desc}</p>
+
+      <div className="mt-4 flex items-center justify-between text-[10px] tracking-[0.22em] text-white/40">
+        <span>{categoryLabel}</span>
+        <Share2 className="h-4 w-4 text-[#b8c4ff]" />
+      </div>
+    </button>
+  );
 }
 
 export function HomePage() {
@@ -35,17 +172,19 @@ export function HomePage() {
   const [searchValue, setSearchValue] = useState("");
   const [searchCategory, setSearchCategory] = useState(searchOptions[0]);
   const [bannerIndex, setBannerIndex] = useState(0);
-  const [caseIndex, setCaseIndex] = useState(0);
   const [productIndex, setProductIndex] = useState(0);
 
-  const featuredCases = cases.slice(0, 3);
-  const featuredProducts = publicProducts.slice(0, 6);
+  const featuredCases = useMemo(() => reorderCases(cases).slice(0, 4), []);
+  const featuredProducts = useMemo(() => publicProducts.slice(0, 8), [publicProducts]);
   const heroProduct = featuredProducts[0] ?? publicProducts[0] ?? null;
   const currentBanner = homeBanners[bannerIndex] ?? null;
-  const heroVisual = currentBanner?.hero || heroProduct?.hero || "";
-  const maxProductIndex = Math.max(featuredProducts.length - 3, 0);
+  const heroVisual = currentBanner?.hero || heroProduct?.hero || featuredCases[0]?.hero || "";
+  const spotlightCases = useMemo(
+    () => getCircularWindow(featuredCases, bannerIndex % Math.max(featuredCases.length, 1), 2),
+    [bannerIndex, featuredCases],
+  );
   const visibleProducts = useMemo(
-    () => featuredProducts.slice(productIndex, productIndex + 3),
+    () => getCircularWindow(featuredProducts, productIndex, 4),
     [featuredProducts, productIndex],
   );
 
@@ -74,55 +213,87 @@ export function HomePage() {
     }
   }, [bannerIndex, homeBanners.length]);
 
+  useEffect(() => {
+    if (productIndex >= featuredProducts.length && featuredProducts.length > 0) {
+      setProductIndex(0);
+    }
+  }, [featuredProducts.length, productIndex]);
+
   return (
     <PageShell>
-      <section data-home-layout="editorial" className="mx-auto max-w-[1600px]">
+      <section data-home-layout="prototype-dark" className="mx-auto max-w-[1600px] text-white">
         <div
-          className="relative overflow-hidden rounded-[var(--radius-hero)] px-6 py-6 shadow-[var(--shadow-floating)] md:px-8 md:py-8 xl:px-10"
-          style={{ background: "var(--gradient-card)" }}
+          className="relative overflow-hidden rounded-[34px] border border-white/6 bg-[#0f1116] px-6 py-6 md:px-8 lg:px-10 lg:py-8"
+          style={{ boxShadow: "0 32px 96px rgba(0, 0, 0, 0.32)" }}
         >
-          <div className="absolute -left-16 top-0 h-56 w-56 rounded-full bg-[var(--color-accent-soft)] blur-3xl" />
-          <div className="absolute -right-10 top-12 h-64 w-64 rounded-full bg-[rgba(0,110,242,0.10)] blur-3xl" />
+          <AnimatePresence mode="wait">
+            {heroVisual ? (
+              <motion.img
+                key={heroVisual}
+                src={heroVisual}
+                alt={siteSettings.brand.name}
+                className="absolute inset-0 h-full w-full object-cover opacity-[0.14]"
+                initial={{ opacity: 0, scale: 1.06 }}
+                animate={{ opacity: 0.14, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+              />
+            ) : null}
+          </AnimatePresence>
 
-          <div className="relative z-10 grid gap-8 xl:grid-cols-[1.08fr_0.92fr] xl:items-stretch">
-            <div className="flex flex-col justify-between py-4">
-              <div>
-                <div className="mb-5 flex flex-wrap items-center gap-3">
-                  <div className="text-[11px] tracking-[0.34em] text-[var(--color-accent-primary)]">
-                    {siteSettings.homeHero.eyebrow}
-                  </div>
-                  {currentBanner ? (
-                    <div
-                      className="rounded-[var(--radius-pill)] px-3 py-1 text-[11px] tracking-[0.22em] text-[var(--color-accent-primary)]"
-                      style={{ backgroundColor: "var(--color-accent-soft)" }}
-                      data-testid="home-hero-banner-title"
-                    >
-                      {currentBanner.title}
-                    </div>
-                  ) : null}
-                </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_36%,rgba(0,204,255,0.16),transparent_24%),radial-gradient(circle_at_82%_48%,rgba(0,110,242,0.22),transparent_36%),linear-gradient(90deg,rgba(12,14,18,0.98)_0%,rgba(12,14,18,0.9)_45%,rgba(12,14,18,0.76)_64%,rgba(12,14,18,0.94)_100%)]" />
+          <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(8,9,12,0.56)_0%,rgba(8,9,12,0)_100%)]" />
 
-                <h1
-                  className="max-w-4xl text-[var(--color-text-primary)]"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "var(--font-size-hero)",
-                    fontWeight: 800,
-                    letterSpacing: "-0.065em",
-                    lineHeight: 0.92,
-                  }}
-                >
-                  {siteSettings.brand.name}
-                  <br />
-                  <span className="text-[var(--color-accent-primary)]">{siteSettings.brand.cnName}</span>
-                </h1>
+          <div
+            data-testid="home-hero-orb"
+            className="pointer-events-none absolute right-[-10%] top-1/2 hidden h-[620px] w-[620px] -translate-y-1/2 rounded-full border border-white/10 lg:block"
+            style={{
+              background:
+                "radial-gradient(circle at center, rgba(116, 204, 255, 0.36) 0%, rgba(116, 204, 255, 0.14) 14%, rgba(116, 204, 255, 0) 36%), repeating-radial-gradient(circle at center, rgba(255,255,255,0.14) 0 2px, transparent 2px 68px)",
+              boxShadow: "0 0 120px rgba(67, 183, 255, 0.18)",
+            }}
+          >
+            <div className="absolute inset-[8%] rounded-full border border-white/12" />
+            <div className="absolute inset-[18%] rounded-full border border-white/10" />
+            <div className="absolute inset-[28%] rounded-full border border-white/8" />
+            <div className="absolute inset-[38%] rounded-full border border-white/8" />
+            <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(135,206,255,0.26)_0%,rgba(135,206,255,0)_34%)]" />
+          </div>
 
-                <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--color-text-secondary)] md:text-lg">
-                  {siteSettings.homeHero.description}
-                </p>
+          <div className="relative z-10 grid min-h-[680px] items-center lg:grid-cols-[0.78fr_1.22fr]">
+            <div className="max-w-[640px] py-12 lg:py-20">
+              <div className="flex flex-wrap items-center gap-3 text-[10px] tracking-[0.34em] text-white/60 md:text-[11px]">
+                <span>{siteSettings.homeHero.eyebrow || "FUTURE FORWARD TECHNOLOGY"}</span>
+                {currentBanner ? (
+                  <span
+                    className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-white/78"
+                    data-testid="home-hero-banner-title"
+                  >
+                    {currentBanner.title}
+                  </span>
+                ) : null}
               </div>
 
-              <div className="mt-10 space-y-6">
+              <h1
+                className="mt-5 text-white"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(3.4rem, 8vw, 5.8rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.07em",
+                  lineHeight: 0.9,
+                }}
+              >
+                {siteSettings.brand.name}
+                <br />
+                <span className="text-[#c7d1ff]">{siteSettings.brand.cnName}</span>
+              </h1>
+
+              <p className="mt-6 max-w-xl text-base leading-8 text-white/72 md:text-lg">
+                {siteSettings.homeHero.description}
+              </p>
+
+              <div className="mt-8 max-w-[640px]">
                 <SearchBar
                   value={searchValue}
                   setValue={setSearchValue}
@@ -130,139 +301,203 @@ export function HomePage() {
                   setCategory={setSearchCategory}
                   onSubmit={() => navigate(buildSearchUrl(searchValue, searchCategory))}
                   options={searchOptions}
+                  variant="dark"
+                  placeholder="搜索洞察、产品、案例"
                 />
+              </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                  {currentBanner ? (
-                    <button
-                      type="button"
-                      onClick={() => navigate(currentBanner.target || "/products")}
-                      className="rounded-[var(--radius-pill)] px-6 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-on-accent)] shadow-[var(--shadow-accent)]"
-                      style={{ background: "var(--gradient-accent)" }}
-                      data-testid="home-hero-banner-target"
-                    >
-                      查看当前轮播
-                    </button>
-                  ) : null}
-
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                {currentBanner ? (
                   <button
                     type="button"
-                    onClick={() => navigate("/cases")}
-                    className="rounded-[var(--radius-pill)] px-6 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-                    style={{ backgroundColor: "var(--color-surface-secondary)" }}
+                    onClick={() => navigate(currentBanner.target || "/products")}
+                    className="rounded-full border border-white/10 bg-[#4453a7] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#5262c2]"
+                    data-testid="home-hero-banner-target"
                   >
-                    浏览案例总览
+                    VIEW SIGNAL
                   </button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-5">
-                  {homeBanners.length > 1 ? (
-                    <div className="flex items-center gap-2">
-                      {homeBanners.map((item, index) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setBannerIndex(index)}
-                          className="h-2.5 rounded-full transition-all duration-300"
-                          style={{
-                            width: index === bannerIndex ? 34 : 12,
-                            backgroundColor:
-                              index === bannerIndex ? "var(--color-accent-primary)" : "var(--color-surface-muted)",
-                          }}
-                          aria-label={`切换到轮播 ${index + 1}`}
-                          data-testid={`home-hero-banner-dot-${index}`}
-                        />
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <div className="text-[11px] tracking-[0.24em] text-[var(--color-text-muted)]">
-                    已发布产品 {publicProducts.length} · 当前案例 {featuredCases.length}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="relative min-h-[440px] overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-panel)]"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              <AnimatePresence mode="wait">
-                {heroVisual ? (
-                  <motion.img
-                    key={heroVisual}
-                    src={heroVisual}
-                    alt="光速上升首页主视觉"
-                    className="absolute inset-0 h-full w-full object-cover"
-                    initial={{ opacity: 0, scale: 1.04 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.985 }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  />
                 ) : null}
-              </AnimatePresence>
-              <div className="absolute inset-0" style={{ background: "var(--gradient-hero-fade)" }} />
 
-              <div
-                className="absolute right-5 top-5 rounded-[var(--radius-card)] px-4 py-3 backdrop-blur-md"
-                style={{ backgroundColor: "rgba(255,255,255,0.74)" }}
-              >
-                <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">自动轮播</div>
-                <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">{HERO_AUTOPLAY_MS / 1000}s / 轮</div>
-              </div>
-
-              <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                <div
-                  className="mb-3 inline-flex rounded-[var(--radius-pill)] px-3 py-1 text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]"
-                  style={{ backgroundColor: "rgba(255,255,255,0.74)" }}
+                <button
+                  type="button"
+                  onClick={() => navigate("/cases")}
+                  className="rounded-full border border-white/10 bg-white/4 px-5 py-3 text-sm tracking-[0.18em] text-white/78 transition hover:bg-white/10"
                 >
-                  主视觉卡片
+                  VIEW MORE
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {homeBanners.map((item, index) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setBannerIndex(index)}
+                      className="h-2.5 rounded-full transition-all duration-300"
+                      style={{
+                        width: index === bannerIndex ? 34 : 11,
+                        backgroundColor: index === bannerIndex ? "#c7d1ff" : "rgba(255,255,255,0.18)",
+                      }}
+                      aria-label={`切换到轮播 ${index + 1}`}
+                      data-testid={`home-hero-banner-dot-${index}`}
+                    />
+                  ))}
                 </div>
-                <h2
-                  className="max-w-xl text-[var(--color-text-primary)]"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(2rem, 4vw, 3rem)",
-                    fontWeight: 700,
-                    letterSpacing: "-0.05em",
-                    lineHeight: 0.95,
-                  }}
-                >
-                  {currentBanner?.title || heroProduct?.name || siteSettings.brand.name}
-                </h2>
-                <p className="mt-4 max-w-lg text-sm leading-7 text-[var(--color-text-secondary)]">
-                  以后端可维护的轮播主视觉作为首页叙事起点，保留搜索、跳转和自动轮播能力。
-                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto mt-[var(--space-section-gap)] max-w-[1600px]">
+      <section data-testid="home-case-spotlight" className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white">
         <SectionHeading
-          eyebrow="精选案例"
-          title="案例总览保持策展叙事，但层次切到 Stitch 语言。"
-          desc="保留首页案例主图、右侧切换和时间线入口，只把布局切成更轻、更具编辑感的浅底容器。"
+          eyebrow="公司案例轮播大图"
+          subtitle="FEATURED SUCCESS STORIES"
+          title="High-signal proof points from enterprise and security transformation."
           action={
             <button
               type="button"
               onClick={() => navigate("/cases")}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
+              className="inline-flex items-center gap-2 text-sm tracking-[0.18em] text-white/72 transition hover:text-white"
             >
-              查看更多
+              <span>View More</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           }
         />
 
-        <div className="grid gap-8 xl:grid-cols-[0.74fr_1.26fr]">
-          <div className="grid gap-4">
-            <div className="rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-panel)]" style={{ background: "var(--gradient-card)" }}>
-              <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">当前案例</div>
+        <div className="grid gap-5 lg:grid-cols-[1.42fr_0.98fr]">
+          <CaseSpotlightCard item={spotlightCases[0]} onClick={() => navigate(`/case/${spotlightCases[0].id}`)} />
+          <CaseSpotlightCard
+            item={spotlightCases[1]}
+            layout="secondary"
+            onClick={() => navigate(`/case/${spotlightCases[1].id}`)}
+          />
+        </div>
+      </section>
+
+      <section data-testid="home-product-carousel" className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white">
+        <SectionHeading
+          eyebrow="库中产品热门推荐轮播"
+          subtitle="ELITE PRODUCT ECOSYSTEM"
+          title="Modular products presented as a premium four-card recommendation rail."
+          action={
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setProductIndex((current) => (current - 1 + featuredProducts.length) % featuredProducts.length)}
+                disabled={featuredProducts.length <= 1}
+                className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/4 text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="查看上一组产品"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductIndex((current) => (current + 1) % featuredProducts.length)}
+                disabled={featuredProducts.length <= 1}
+                className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/4 text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="查看下一组产品"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          }
+        />
+
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {visibleProducts.map((item, index) => {
+            const Icon = PRODUCT_ICONS[index % PRODUCT_ICONS.length];
+            return <ProductShowcaseCard key={`${item.id}-${index}`} item={item} icon={Icon} onClick={() => navigate(`/product/${item.id}`)} />;
+          })}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => navigate("/products")}
+            className="rounded-full border border-[#9fb1ff] px-7 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#4453a7]"
+          >
+            EXPLORE FULL INVENTORY
+          </button>
+        </div>
+      </section>
+
+      <section data-testid="home-brand-story-grid" className="mx-auto mt-16 max-w-[1600px] border-t border-white/6 py-16 text-white">
+        <div className="grid gap-5 lg:grid-cols-[1.9fr_1fr]">
+          <article className="relative min-h-[310px] overflow-hidden rounded-[30px] border border-white/6 bg-[#141416]">
+            <img
+              src={spotlightCases[0]?.hero || heroVisual}
+              alt={siteSettings.brand.name}
+              className="absolute inset-0 h-full w-full object-cover opacity-55"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(14,14,14,0.86)_0%,rgba(14,14,14,0.5)_54%,rgba(14,14,14,0.72)_100%)]" />
+            <div className="relative z-10 max-w-[560px] p-7 md:p-9">
+              <div className="text-[10px] tracking-[0.32em] text-white/58">CORPORATE VISION</div>
               <div
-                className="mt-3 text-[var(--color-text-primary)]"
+                className="mt-4 text-white"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(2.1rem, 4.5vw, 3.3rem)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.05em",
+                  lineHeight: 0.94,
+                }}
+              >
+                Crafting the Digital Infrastructure of Tomorrow.
+              </div>
+              <p className="mt-4 max-w-md text-sm leading-7 text-white/70">
+                We do not just build products; we architect the foundations for the next generation of global connectivity.
+              </p>
+            </div>
+          </article>
+
+          <article className="rounded-[30px] border border-white/6 bg-[#5866d9] p-7 text-white">
+            <div className="grid h-full content-between gap-8">
+              <div className="rounded-full border border-white/16 bg-white/10 p-3 w-fit">
+                <Globe2 className="h-5 w-5" />
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.04em",
+                  }}
+                >
+                  Global Reach
+                </div>
+                <p className="mt-3 max-w-xs text-sm leading-7 text-white/82">
+                  Serving over 40+ countries with localized digital transformation strategies.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-[0.76fr_1.24fr]">
+          {STORY_METRICS.map((item) => (
+            <article key={item.label} className="rounded-[28px] border border-white/6 bg-[#171719] p-7">
+              <div
+                className="text-white"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "2.2rem",
+                  fontWeight: 800,
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                {item.value}
+              </div>
+              <div className="mt-1 text-[10px] tracking-[0.3em] text-white/52">{item.label}</div>
+              <p className="mt-4 max-w-xs text-sm leading-7 text-white/68">{item.description}</p>
+            </article>
+          ))}
+
+          <article className="flex flex-col justify-between gap-8 rounded-[28px] border border-white/6 bg-[#101114] p-7 md:flex-row md:items-center">
+            <div>
+              <div
+                className="text-white"
                 style={{
                   fontFamily: "var(--font-display)",
                   fontSize: "2rem",
@@ -270,144 +505,21 @@ export function HomePage() {
                   letterSpacing: "-0.04em",
                 }}
               >
-                {featuredCases[caseIndex].title}
+                Partner with {siteSettings.brand.name}
               </div>
-              <p className="mt-4 text-sm leading-7 text-[var(--color-text-secondary)]">{featuredCases[caseIndex].summary}</p>
-              <div className="mt-5 flex flex-wrap gap-3 text-[11px] tracking-[0.22em] text-[var(--color-text-muted)]">
-                <span>{featuredCases[caseIndex].year}</span>
-                <span>{featuredCases[caseIndex].category}</span>
-              </div>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-white/68">
+                Join our ecosystem of innovators and leaders building resilient digital systems at global scale.
+              </p>
             </div>
 
-            <div className="grid gap-3">
-              {featuredCases.map((item, index) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  onClick={() => setCaseIndex(index)}
-                  className="rounded-[var(--radius-card)] px-5 py-5 text-left shadow-[var(--shadow-subtle)] transition"
-                  style={{ backgroundColor: index === caseIndex ? "var(--color-surface-secondary)" : "var(--color-surface-primary)" }}
-                >
-                  <div className="text-[10px] tracking-[0.26em] text-[var(--color-text-muted)]">{item.year}</div>
-                  <div
-                    className="mt-2 text-[var(--color-text-primary)]"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "1.45rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
-                    }}
-                  >
-                    {item.title}
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{item.short}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <ImageCard
-            image={featuredCases[caseIndex].hero}
-            title={featuredCases[caseIndex].title}
-            subtitle={featuredCases[caseIndex].summary}
-            tag={featuredCases[caseIndex].category}
-            className="min-h-[620px]"
-            onClick={() => navigate(`/case/${featuredCases[caseIndex].id}`)}
-          />
-        </div>
-
-        <div className="mt-6 flex items-center justify-between">
-          <ProgressiveBar total={featuredCases.length} active={caseIndex} />
-          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setCaseIndex((current) => (current - 1 + featuredCases.length) % featuredCases.length)}
-              className="rounded-[var(--radius-pill)] bg-[var(--color-surface-primary)] p-3 text-[var(--color-text-primary)] shadow-[var(--shadow-subtle)]"
-              aria-label="查看上一个案例"
+              onClick={() => navigate("/login")}
+              className="rounded-full bg-white px-6 py-3 text-sm font-semibold tracking-[0.16em] text-[#101114] transition hover:bg-[#dbe2ff]"
             >
-              <ArrowLeft className="h-4 w-4" />
+              INQUIRE NOW
             </button>
-            <button
-              type="button"
-              onClick={() => setCaseIndex((current) => (current + 1) % featuredCases.length)}
-              className="rounded-[var(--radius-pill)] bg-[var(--color-surface-primary)] p-3 text-[var(--color-text-primary)] shadow-[var(--shadow-subtle)]"
-              aria-label="查看下一个案例"
-            >
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto mt-[var(--space-section-gap)] max-w-[1600px]">
-        <SectionHeading
-          eyebrow="热门产品"
-          title="公开产品列表保留原有逻辑，视觉切到轻量策展矩阵。"
-          desc="首页产品区继续读取后台已发布产品，保留产品切换、详情跳转和热门入口，只把卡片语言统一到 Stitch 的浅底蓝系。"
-          action={
-            <button
-              type="button"
-              onClick={() => navigate("/products/hot")}
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              进入热门产品
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          }
-        />
-
-        <div className="grid gap-8 xl:grid-cols-[0.78fr_1.22fr]">
-          <div className="rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-panel)]" style={{ background: "var(--gradient-card)" }}>
-            <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">产品策展</div>
-            <div
-              className="mt-3 text-[var(--color-text-primary)]"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "2rem",
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-              }}
-            >
-              以功能完整为前提做高拟真视觉升级。
-            </div>
-            <p className="mt-4 text-sm leading-7 text-[var(--color-text-secondary)]">
-              当前首页仍保留产品切换、详情跳转和后台数据同步，只把容器、留白、图片承托与信息层次更新为 Stitch 的浅底蓝系语言。
-            </p>
-            <div className="mt-6 grid gap-3 text-[11px] tracking-[0.22em] text-[var(--color-text-muted)]">
-              <div>已发布产品：{publicProducts.length}</div>
-              <div>当前窗口：第 {productIndex + 1} 组</div>
-              <div>当前分类入口：{searchCategory}</div>
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {visibleProducts.map((item, index) => (
-              <ProductTile key={item.id} item={item} highlight={index === 1} onClick={() => navigate(`/product/${item.id}`)} />
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 flex items-center justify-between">
-          <ProgressiveBar total={maxProductIndex + 1} active={productIndex} />
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setProductIndex((current) => Math.max(current - 1, 0))}
-              className="rounded-[var(--radius-pill)] bg-[var(--color-surface-primary)] p-3 text-[var(--color-text-primary)] shadow-[var(--shadow-subtle)]"
-              aria-label="查看上一组产品"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setProductIndex((current) => Math.min(current + 1, maxProductIndex))}
-              className="rounded-[var(--radius-pill)] bg-[var(--color-surface-primary)] p-3 text-[var(--color-text-primary)] shadow-[var(--shadow-subtle)]"
-              aria-label="查看下一组产品"
-            >
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
+          </article>
         </div>
       </section>
     </PageShell>

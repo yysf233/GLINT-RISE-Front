@@ -17,8 +17,18 @@ export function TopNav() {
   const searchFormRef = useRef(null);
   const searchInputRef = useRef(null);
   const isEntry = location.pathname === "/";
+  const isHome = location.pathname === "/home";
   const isSearchRoute = location.pathname === "/search";
   const desktopNavItems = useMemo(() => navItems.filter((item) => item.path !== "/search"), [navItems]);
+  const homeNavItems = useMemo(
+    () => [
+      { path: "/products", label: "SOLUTIONS" },
+      { path: "/products/hot", label: "PRODUCTS" },
+      { path: "/cases", label: "PARTNERS" },
+      { path: "/case-timeline", label: "COMPANY" },
+    ],
+    [],
+  );
 
   const activePath = useMemo(() => {
     if (location.pathname.startsWith("/case-timeline")) return "/case-timeline";
@@ -43,6 +53,9 @@ export function TopNav() {
   }, [isSearchRoute]);
 
   const desktopSearchExpanded = searchOpen || isSearchRoute;
+  const desktopSearchCollapsedWidth = isHome ? 52 : 164;
+  const desktopSearchExpandedWidth = isHome ? 288 : 340;
+  const visibleDesktopNavItems = isHome ? homeNavItems : desktopNavItems;
 
   const buildDesktopSearchRoute = (keyword) => {
     const currentParams = new URLSearchParams(location.search);
@@ -81,15 +94,23 @@ export function TopNav() {
     <>
       <div className="fixed inset-x-0 top-0 z-50 px-[var(--space-page-x)] pt-4">
         <div
-          data-nav-appearance="glass"
-          className="mx-auto flex h-[76px] w-full max-w-[1600px] items-center justify-between rounded-[var(--radius-pill)] border border-[color:var(--color-border-subtle)] px-4 shadow-[var(--shadow-floating)] backdrop-blur-[20px] md:px-6"
-          style={{ background: "var(--gradient-glass)" }}
+          data-nav-appearance={isHome ? "dark-prototype" : "glass"}
+          className={cn(
+            "mx-auto flex h-[76px] w-full max-w-[1600px] items-center justify-between rounded-[var(--radius-pill)] px-4 backdrop-blur-[20px] md:px-6",
+            isHome
+              ? "border border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.28)]"
+              : "border border-[color:var(--color-border-subtle)] shadow-[var(--shadow-floating)]",
+          )}
+          style={{ background: isHome ? "rgba(14, 14, 14, 0.72)" : "var(--gradient-glass)" }}
         >
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="grid h-11 w-11 place-items-center rounded-[var(--radius-pill)] bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] md:hidden"
+              className={cn(
+                "grid h-11 w-11 place-items-center rounded-[var(--radius-pill)] md:hidden",
+                isHome ? "bg-white/8 text-white" : "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]",
+              )}
               aria-label="打开导航菜单"
             >
               <Menu className="h-4 w-4" />
@@ -97,30 +118,43 @@ export function TopNav() {
 
             <button type="button" onClick={() => navigate("/home")} className="text-left">
               <div
-                className="text-[var(--color-text-primary)]"
+                className={cn(isHome ? "text-[#eef2ff]" : "text-[var(--color-text-primary)]")}
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: "1.6rem",
+                  fontSize: isHome ? "1.2rem" : "1.6rem",
                   fontWeight: 800,
-                  letterSpacing: "-0.06em",
+                  letterSpacing: isHome ? "-0.03em" : "-0.06em",
                 }}
               >
                 {brand.name}
               </div>
-              <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">{brand.cnName}</div>
+              {!isHome ? (
+                <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">{brand.cnName}</div>
+              ) : null}
             </button>
           </div>
 
-          <div className="hidden items-center gap-8 lg:flex">
-            {desktopNavItems.map((item) => {
+          <div className={cn("hidden items-center lg:flex", isHome ? "gap-10" : "gap-8")}>
+            {visibleDesktopNavItems.map((item) => {
               const active = activePath === item.path;
               return (
                 <button
                   type="button"
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className="relative pb-1 text-sm tracking-[0.18em] transition-colors"
-                  style={{ color: active ? "var(--color-accent-primary)" : "var(--color-text-secondary)" }}
+                  className={cn(
+                    "relative pb-1 text-sm transition-colors",
+                    isHome ? "font-semibold tracking-[0.14em]" : "tracking-[0.18em]",
+                  )}
+                  style={{
+                    color: active
+                      ? isHome
+                        ? "#eef2ff"
+                        : "var(--color-accent-primary)"
+                      : isHome
+                        ? "rgba(229, 226, 225, 0.7)"
+                        : "var(--color-text-secondary)",
+                  }}
                 >
                   {item.label}
                   <span
@@ -128,7 +162,7 @@ export function TopNav() {
                       "absolute inset-x-0 -bottom-1 h-0.5 rounded-full transition-opacity duration-300",
                       active ? "opacity-100" : "opacity-0",
                     )}
-                    style={{ background: "var(--gradient-accent)" }}
+                    style={{ background: isHome ? "#bac3ff" : "var(--gradient-accent)" }}
                   />
                 </button>
               );
@@ -140,16 +174,21 @@ export function TopNav() {
               <button
                 type="button"
                 onClick={() => navigate("/login")}
-                className="hidden text-sm tracking-[0.18em] text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)] md:block"
+                className={cn(
+                  "hidden text-sm transition md:block",
+                  isHome
+                    ? "tracking-[0.14em] text-white/72 hover:text-white"
+                    : "tracking-[0.18em] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
+                )}
               >
-                内部登录
+                {isHome ? "LOGIN" : "登录"}
               </button>
             ) : null}
 
             <motion.form
               ref={searchFormRef}
               initial={false}
-              animate={{ width: desktopSearchExpanded ? 340 : 164 }}
+              animate={{ width: desktopSearchExpanded ? desktopSearchExpandedWidth : desktopSearchCollapsedWidth }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               onSubmit={handleDesktopSearchSubmit}
               onClick={() => {
@@ -164,7 +203,7 @@ export function TopNav() {
                 }
               }}
               className="hidden h-12 items-center overflow-hidden rounded-[var(--radius-pill)] md:flex"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
+              style={{ backgroundColor: isHome ? "rgba(255,255,255,0.08)" : "var(--color-surface-secondary)" }}
               aria-label="顶部搜索框"
               data-testid="top-nav-search-form"
             >
@@ -180,7 +219,8 @@ export function TopNav() {
                 }}
                 placeholder={navigation.searchPlaceholder}
                 className={cn(
-                  "min-w-0 bg-transparent text-sm text-[var(--color-text-primary)] outline-none placeholder:text-[var(--color-text-muted)] transition-all duration-200",
+                  "min-w-0 bg-transparent text-sm outline-none transition-all duration-200",
+                  isHome ? "text-white placeholder:text-white/45" : "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
                   desktopSearchExpanded ? "w-full px-4 opacity-100" : "pointer-events-none w-0 px-0 opacity-0",
                 )}
                 aria-label="顶部搜索输入"
@@ -188,8 +228,9 @@ export function TopNav() {
               />
               <span
                 className={cn(
-                  "overflow-hidden whitespace-nowrap text-sm text-[var(--color-text-secondary)] transition-all duration-200",
-                  desktopSearchExpanded ? "w-0 px-0 opacity-0" : "w-auto px-3 opacity-100",
+                  "overflow-hidden whitespace-nowrap text-sm transition-all duration-200",
+                  isHome ? "text-white/0" : "text-[var(--color-text-secondary)]",
+                  desktopSearchExpanded ? "w-0 px-0 opacity-0" : isHome ? "w-0 px-0 opacity-0" : "w-auto px-3 opacity-100",
                 )}
               >
                 搜索
@@ -203,7 +244,7 @@ export function TopNav() {
                   }
                 }}
                 className="mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-pill)] text-[var(--color-text-on-accent)]"
-                style={{ background: "var(--gradient-accent)" }}
+                style={{ background: isHome ? "#4453a7" : "var(--gradient-accent)" }}
                 aria-label={desktopSearchExpanded ? "提交顶部搜索" : "展开顶部搜索"}
                 data-testid="top-nav-search-submit"
               >
@@ -211,13 +252,23 @@ export function TopNav() {
               </button>
             </motion.form>
 
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="hidden rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-accent-primary)] transition hover:bg-[var(--color-surface-secondary)] md:block"
-            >
-              回到入口
-            </button>
+            {isHome ? (
+              <button
+                type="button"
+                onClick={() => navigate("/workspace/dashboard")}
+                className="hidden rounded-full bg-[#bac3ff] px-5 py-2 text-sm font-semibold tracking-[0.16em] text-[#15267b] transition hover:opacity-90 md:block"
+              >
+                CONSOLE
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="hidden rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-accent-primary)] transition hover:bg-[var(--color-surface-secondary)] md:block"
+              >
+                回到入口
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -235,12 +286,12 @@ export function TopNav() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -32, opacity: 0 }}
               className="h-full w-[86%] max-w-sm p-6"
-              style={{ backgroundColor: "var(--color-surface-primary)" }}
+              style={{ backgroundColor: isHome ? "#111317" : "var(--color-surface-primary)" }}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <div
-                    className="text-[var(--color-text-primary)]"
+                    className={cn(isHome ? "text-white" : "text-[var(--color-text-primary)]")}
                     style={{
                       fontFamily: "var(--font-display)",
                       fontSize: "1.45rem",
@@ -250,50 +301,74 @@ export function TopNav() {
                   >
                     {brand.name}
                   </div>
-                  <div className="mt-1 text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">{brand.cnName}</div>
+                  <div className={cn("mt-1 text-[10px] tracking-[0.28em]", isHome ? "text-white/50" : "text-[var(--color-text-muted)]")}>
+                    {brand.cnName}
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setMenuOpen(false)}
-                  className="grid h-10 w-10 place-items-center rounded-[var(--radius-pill)] bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]"
+                  className={cn(
+                    "grid h-10 w-10 place-items-center rounded-[var(--radius-pill)]",
+                    isHome ? "bg-white/8 text-white" : "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]",
+                  )}
                   aria-label="关闭导航菜单"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="mt-8 space-y-3">
-                {navItems.map((item) => {
+              <div className="mt-8 grid gap-3">
+                {(isHome ? homeNavItems : navItems).map((item) => {
                   const active = activePath === item.path;
                   return (
                     <button
                       type="button"
                       key={item.path}
                       onClick={() => {
-                        navigate(item.path);
                         setMenuOpen(false);
+                        navigate(item.path);
                       }}
-                      className={cn(
-                        "flex w-full items-center justify-between rounded-[var(--radius-card)] px-4 py-4 text-left transition",
-                        active ? "shadow-[var(--shadow-subtle)]" : "",
-                      )}
+                      className="flex items-center justify-between rounded-[var(--radius-card)] px-4 py-4 text-left transition"
                       style={{
-                        backgroundColor: active ? "var(--color-surface-secondary)" : "var(--color-background-canvas)",
-                        color: active ? "var(--color-accent-primary)" : "var(--color-text-primary)",
+                        backgroundColor: active
+                          ? isHome
+                            ? "rgba(255,255,255,0.08)"
+                            : "var(--color-surface-secondary)"
+                          : "transparent",
                       }}
                     >
-                      <span className="text-sm tracking-[0.18em]">{item.label}</span>
-                      <ArrowRight className="h-4 w-4" />
+                      <span className={cn(isHome ? "text-white" : "text-[var(--color-text-primary)]")}>{item.label}</span>
+                      <ArrowRight className={cn("h-4 w-4", isHome ? "text-white/45" : "text-[var(--color-text-muted)]")} />
                     </button>
                   );
                 })}
               </div>
 
-              <div className="mt-8 rounded-[var(--radius-card)] p-5" style={{ backgroundColor: "var(--color-surface-secondary)" }}>
-                <div className="text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]">移动端说明</div>
-                <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">
-                  移动端继续保留抽屉导航节奏，但整体视觉统一切换到浅底蓝系的玻璃层设计语言。
-                </p>
+              <div className="mt-10">
+                <div className={cn("text-[11px] tracking-[0.28em]", isHome ? "text-white/42" : "text-[var(--color-text-muted)]")}>站内搜索</div>
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    setMenuOpen(false);
+                    navigate(buildDesktopSearchRoute(searchValue));
+                  }}
+                  className={cn(
+                    "mt-8 flex items-center gap-2 rounded-[var(--radius-card)] p-2",
+                    isHome ? "bg-white/8" : "bg-[var(--color-surface-secondary)]",
+                  )}
+                >
+                  <Search className={cn("ml-2 h-4 w-4", isHome ? "text-white/42" : "text-[var(--color-text-muted)]")} />
+                  <input
+                    value={searchValue}
+                    onChange={(event) => setSearchValue(event.target.value)}
+                    placeholder={navigation.searchPlaceholder}
+                    className={cn(
+                      "min-w-0 flex-1 bg-transparent text-sm outline-none",
+                      isHome ? "text-white placeholder:text-white/40" : "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
+                    )}
+                  />
+                </form>
               </div>
             </motion.div>
           </motion.div>
@@ -302,5 +377,3 @@ export function TopNav() {
     </>
   );
 }
-
-export default TopNav;

@@ -1,9 +1,55 @@
 import React from "react";
+import { Globe, Mail, Orbit } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { readPublicSiteSettings } from "../../services/publicSiteContent";
 
 export function Footer() {
   const siteSettings = readPublicSiteSettings();
   const { brand, footer } = siteSettings;
+  const location = useLocation();
+  const isHome = location.pathname === "/home";
+  const homeFooterLinks = ["PRIVACY", "TERMS", "COMPLIANCE", "SITEMAP"];
+
+  if (isHome) {
+    return (
+      <footer className="border-t border-white/5 bg-[#0e0e0e] px-[var(--space-page-x)] py-14 text-white">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div
+              className="text-lg uppercase text-white/28"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 800,
+                letterSpacing: "0.28em",
+              }}
+            >
+              {brand.name}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-6 text-[11px] tracking-[0.24em] text-white/42">
+              {homeFooterLinks.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+
+            <div className="text-[11px] tracking-[0.22em] text-white/36">© 2024 {brand.name}. ALL RIGHTS RESERVED.</div>
+          </div>
+
+          <div className="mt-10 flex items-center justify-center gap-6 text-white/28">
+            <button type="button" className="transition hover:text-[#bac3ff]" aria-label="访问公开站地图">
+              <Globe className="h-4 w-4" />
+            </button>
+            <button type="button" className="transition hover:text-[#bac3ff]" aria-label="联系邮箱">
+              <Mail className="h-4 w-4" />
+            </button>
+            <button type="button" className="transition hover:text-[#bac3ff]" aria-label="查看合作网络">
+              <Orbit className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="mt-28 px-[var(--space-page-x)] pb-12 pt-4">
@@ -35,9 +81,7 @@ export function Footer() {
                 className="rounded-[var(--radius-card)] px-5 py-4"
                 style={{ backgroundColor: index % 2 === 0 ? "var(--color-surface-secondary)" : "var(--color-background-canvas)" }}
               >
-                <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">
-                  链接 {String(index + 1).padStart(2, "0")}
-                </div>
+                <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">链接 {String(index + 1).padStart(2, "0")}</div>
                 <div className="mt-2 text-sm tracking-[0.14em] text-[var(--color-text-primary)]">{item}</div>
               </div>
             ))}
