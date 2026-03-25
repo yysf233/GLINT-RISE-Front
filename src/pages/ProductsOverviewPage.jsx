@@ -51,7 +51,7 @@ function PrototypeFeatureCard({ item, onClick, layout = "primary" }) {
         </div>
         <p className="mt-4 max-w-xl text-sm leading-7 text-white/70">{item.desc}</p>
         <div className="mt-6 inline-flex items-center gap-2 text-xs font-semibold tracking-[0.24em] text-[#bac3ff]">
-          <span>EXPLORE DETAILS</span>
+          <span>查看详情</span>
           <ArrowRight className="h-4 w-4" />
         </div>
       </div>
@@ -97,11 +97,11 @@ export function ProductsOverviewPage() {
       <section data-products-layout="prototype-dark" className="mx-auto max-w-[1600px] text-white">
         <SectionHeading
           variant="dark-prototype"
-          eyebrow="COLLECTION 2026 / EXHIBITION"
-          subtitle="PRODUCTS OVERVIEW"
+          eyebrow="产品矩阵 / 策展精选"
+          subtitle="产品总览"
           title={
             <>
-              ARCHITECTURAL <span className="text-white/30">PRECISION.</span>
+              架构级<span className="text-white/30">精度。</span>
             </>
           }
           desc="以首页同源的深色科技展陈语言重构产品总览，首屏负责建立策展感，下半屏继续承接真实搜索与筛选能力。"
@@ -123,7 +123,7 @@ export function ProductsOverviewPage() {
             onClick={() => navigate("/products/hot")}
             className="rounded-full border border-[#9fb1ff] px-7 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#4453a7]"
           >
-            HOT PRODUCTS HUB
+            热门产品库
           </button>
         </div>
       </section>
@@ -131,9 +131,9 @@ export function ProductsOverviewPage() {
       <section className="mx-auto mt-16 max-w-[1600px] border-t border-white/6 pt-14 text-white">
         <SectionHeading
           variant="dark-prototype"
-          eyebrow="DISCOVERY ENGINE"
-          subtitle="FILTERED INVENTORY"
-          title="Search the inventory without dropping the exhibition mood."
+          eyebrow="发现引擎"
+          subtitle="筛选产品库"
+          title="在不破坏策展氛围的前提下检索产品。"
           desc="搜索、分类、标签和产品跳转都保持现有数据逻辑，只把信息密度和版式调整到原型图的暗色筛选结果区。"
           right={
             <button
@@ -162,7 +162,7 @@ export function ProductsOverviewPage() {
             onSubmit={() => {}}
             options={safeCategoryOptions}
             variant="dark"
-            placeholder="搜索洞察、产品、案例"
+            placeholder="搜索洞察、产品、案例..."
           />
 
           <div data-testid="products-filter-grid" className="mt-8 grid gap-8 xl:grid-cols-[320px_1fr]">

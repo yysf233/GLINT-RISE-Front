@@ -17,19 +17,9 @@ export function TopNav() {
   const searchFormRef = useRef(null);
   const searchInputRef = useRef(null);
   const isEntry = location.pathname === "/";
-  const isHome = location.pathname === "/home";
   const isPrototypeShell = location.pathname !== "/";
   const isSearchRoute = location.pathname === "/search";
   const desktopNavItems = useMemo(() => navItems.filter((item) => item.path !== "/search"), [navItems]);
-  const homeNavItems = useMemo(
-    () => [
-      { path: "/products", label: "SOLUTIONS" },
-      { path: "/products/hot", label: "PRODUCTS" },
-      { path: "/cases", label: "PARTNERS" },
-      { path: "/case-timeline", label: "COMPANY" },
-    ],
-    [],
-  );
 
   const activePath = useMemo(() => {
     if (location.pathname.startsWith("/case-timeline")) return "/case-timeline";
@@ -56,7 +46,8 @@ export function TopNav() {
   const desktopSearchExpanded = searchOpen || isSearchRoute;
   const desktopSearchCollapsedWidth = isPrototypeShell ? 52 : 164;
   const desktopSearchExpandedWidth = isPrototypeShell ? 288 : 340;
-  const visibleDesktopNavItems = isHome ? homeNavItems : desktopNavItems;
+  const visibleDesktopNavItems = desktopNavItems;
+  const visibleMobileNavItems = isPrototypeShell ? desktopNavItems : navItems;
 
   const buildDesktopSearchRoute = (keyword) => {
     const currentParams = new URLSearchParams(location.search);
@@ -182,7 +173,7 @@ export function TopNav() {
                     : "tracking-[0.18em] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
                 )}
               >
-                {isHome ? "LOGIN" : "登录"}
+                登录
               </button>
             ) : null}
 
@@ -259,7 +250,7 @@ export function TopNav() {
                 onClick={() => navigate("/workspace/dashboard")}
                 className="hidden rounded-full bg-[#bac3ff] px-5 py-2 text-sm font-semibold tracking-[0.16em] text-[#15267b] transition hover:opacity-90 md:block"
               >
-                CONSOLE
+                控制台
               </button>
             ) : (
               <button
@@ -320,7 +311,7 @@ export function TopNav() {
               </div>
 
               <div className="mt-8 grid gap-3">
-                {(isHome ? homeNavItems : navItems).map((item) => {
+                {visibleMobileNavItems.map((item) => {
                   const active = activePath === item.path;
                   return (
                     <button

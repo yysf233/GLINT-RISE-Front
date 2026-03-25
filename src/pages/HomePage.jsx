@@ -15,8 +15,8 @@ const PRODUCT_ICONS = [Cpu, Shield, ScanSearch, Globe2];
 const STORY_METRICS = [
   {
     value: "99.9%",
-    label: "RELIABILITY UPTIME",
-    description: "Our commitment to stability is non-negotiable, ensuring constant operational flow.",
+    label: "稳定性在线率",
+    description: "以持续稳定作为交付底线，确保关键系统长时间可靠运行。",
   },
 ];
 
@@ -263,7 +263,7 @@ export function HomePage() {
           <div className="relative z-10 grid min-h-[680px] items-center lg:grid-cols-[0.78fr_1.22fr]">
             <div className="max-w-[640px] py-12 lg:py-20">
               <div className="flex flex-wrap items-center gap-3 text-[10px] tracking-[0.34em] text-white/60 md:text-[11px]">
-                <span>{siteSettings.homeHero.eyebrow || "FUTURE FORWARD TECHNOLOGY"}</span>
+                <span>{siteSettings.homeHero.eyebrow || "未来前沿科技"}</span>
                 {currentBanner ? (
                   <span
                     className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-white/78"
@@ -302,7 +302,7 @@ export function HomePage() {
                   onSubmit={() => navigate(buildSearchUrl(searchValue, searchCategory))}
                   options={searchOptions}
                   variant="dark"
-                  placeholder="搜索洞察、产品、案例"
+                  placeholder="搜索洞察、产品、案例..."
                 />
               </div>
 
@@ -314,7 +314,7 @@ export function HomePage() {
                     className="rounded-full border border-white/10 bg-[#4453a7] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#5262c2]"
                     data-testid="home-hero-banner-target"
                   >
-                    VIEW SIGNAL
+                    查看专题
                   </button>
                 ) : null}
 
@@ -323,7 +323,7 @@ export function HomePage() {
                   onClick={() => navigate("/cases")}
                   className="rounded-full border border-white/10 bg-white/4 px-5 py-3 text-sm tracking-[0.18em] text-white/78 transition hover:bg-white/10"
                 >
-                  VIEW MORE
+                  浏览更多
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -351,15 +351,15 @@ export function HomePage() {
       <section data-testid="home-case-spotlight" className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white">
         <SectionHeading
           eyebrow="公司案例轮播大图"
-          subtitle="FEATURED SUCCESS STORIES"
-          title="High-signal proof points from enterprise and security transformation."
+          subtitle="精选成功案例"
+          title="企业数字化与安全升级的高信号成果。"
           action={
             <button
               type="button"
               onClick={() => navigate("/cases")}
               className="inline-flex items-center gap-2 text-sm tracking-[0.18em] text-white/72 transition hover:text-white"
             >
-              <span>View More</span>
+              <span>浏览更多</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           }
@@ -378,8 +378,8 @@ export function HomePage() {
       <section data-testid="home-product-carousel" className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white">
         <SectionHeading
           eyebrow="库中产品热门推荐轮播"
-          subtitle="ELITE PRODUCT ECOSYSTEM"
-          title="Modular products presented as a premium four-card recommendation rail."
+          subtitle="精选产品生态"
+          title="以四卡推荐位展示当前热门产品与技术组件。"
           action={
             <div className="flex items-center gap-3">
               <button
@@ -417,7 +417,7 @@ export function HomePage() {
             onClick={() => navigate("/products")}
             className="rounded-full border border-[#9fb1ff] px-7 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#4453a7]"
           >
-            EXPLORE FULL INVENTORY
+            查看完整产品库
           </button>
         </div>
       </section>
@@ -432,7 +432,7 @@ export function HomePage() {
             />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(14,14,14,0.86)_0%,rgba(14,14,14,0.5)_54%,rgba(14,14,14,0.72)_100%)]" />
             <div className="relative z-10 max-w-[560px] p-7 md:p-9">
-              <div className="text-[10px] tracking-[0.32em] text-white/58">CORPORATE VISION</div>
+              <div className="text-[10px] tracking-[0.32em] text-white/58">企业愿景</div>
               <div
                 className="mt-4 text-white"
                 style={{
@@ -443,10 +443,10 @@ export function HomePage() {
                   lineHeight: 0.94,
                 }}
               >
-                Crafting the Digital Infrastructure of Tomorrow.
+                塑造下一代数字基础设施。
               </div>
               <p className="mt-4 max-w-md text-sm leading-7 text-white/70">
-                We do not just build products; we architect the foundations for the next generation of global connectivity.
+                我们不仅构建产品，也为下一阶段的全球连接能力搭建可持续的基础设施。
               </p>
             </div>
           </article>
@@ -465,10 +465,10 @@ export function HomePage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Global Reach
+                  全球覆盖
                 </div>
                 <p className="mt-3 max-w-xs text-sm leading-7 text-white/82">
-                  Serving over 40+ countries with localized digital transformation strategies.
+                  服务覆盖 40 余个国家，以本地化策略推进数字化升级。
                 </p>
               </div>
             </div>
@@ -505,10 +505,10 @@ export function HomePage() {
                   letterSpacing: "-0.04em",
                 }}
               >
-                Partner with {siteSettings.brand.name}
+                与 {siteSettings.brand.name} 携手共建
               </div>
               <p className="mt-3 max-w-xl text-sm leading-7 text-white/68">
-                Join our ecosystem of innovators and leaders building resilient digital systems at global scale.
+                与创新者和行业伙伴共同构建面向全球规模的韧性数字系统。
               </p>
             </div>
 
@@ -517,7 +517,7 @@ export function HomePage() {
               onClick={() => navigate("/login")}
               className="rounded-full bg-white px-6 py-3 text-sm font-semibold tracking-[0.16em] text-[#101114] transition hover:bg-[#dbe2ff]"
             >
-              INQUIRE NOW
+              立即咨询
             </button>
           </article>
         </div>

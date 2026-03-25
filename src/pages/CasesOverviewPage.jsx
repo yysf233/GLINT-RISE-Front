@@ -46,7 +46,7 @@ function CaseFeatureCard({ item, layout = "primary", onClick }) {
         </div>
         <p className="mt-4 max-w-xl text-sm leading-7 text-white/70">{item.summary}</p>
         <div className="mt-6 inline-flex items-center gap-2 text-xs font-semibold tracking-[0.24em] text-[#bac3ff]">
-          <span>EXPLORE CASE</span>
+          <span>查看案例</span>
           <ArrowRight className="h-4 w-4" />
         </div>
       </div>
@@ -64,11 +64,11 @@ export function CasesOverviewPage() {
       <section className="mx-auto max-w-[1600px] text-white" data-case-layout="prototype-dark">
         <SectionHeading
           variant="dark-prototype"
-          eyebrow="CURATED PORTFOLIO"
-          subtitle="CASES OVERVIEW"
+          eyebrow="精选案例矩阵"
+          subtitle="案例总览"
           title={
             <>
-              CASES <span className="text-white/30">OVERVIEW</span>
+              案例<span className="text-white/30">总览</span>
             </>
           }
           desc="案例总览切到原型图的暗色策展结构，突出主案例，再把时间轴和图谱入口嵌进同一层信息体系。"
@@ -81,7 +81,7 @@ export function CasesOverviewPage() {
 
           <div className="grid gap-5 md:col-span-4">
             <div className="rounded-[28px] border border-white/6 bg-[#1c1b1b] p-7" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.22)" }}>
-              <div className="text-[10px] tracking-[0.3em] text-white/40">CASE NAVIGATION</div>
+              <div className="text-[10px] tracking-[0.3em] text-white/40">案例导航</div>
               <p className="mt-4 text-sm leading-7 text-white/68">
                 保留案例总览、时间轴、图谱和详情页的完整跳转链路，只把布局和层次统一到暗色科技策展语言。
               </p>

@@ -14,7 +14,19 @@ describe("HotProductsPage", () => {
 
     expect(html).toContain('data-hot-products-layout="prototype-dark"');
     expect(html).toContain('data-testid="hot-products-featured-rail"');
-    expect(html).toContain("HOT PRODUCTS");
     expect(html).toContain("返回产品总览");
+  });
+
+  it("uses Chinese hot product headings and ctas", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/products/hot"]}>
+        <HotProductsPage />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain("热门产品");
+    expect(html).toContain("精选推荐");
+    expect(html).toContain("查看产品");
+    expect(html).toContain("最新信号");
   });
 });

@@ -16,6 +16,19 @@ describe("SearchPage", () => {
     expect(html).toContain('data-testid="search-filter-panel"');
     expect(html).toContain('data-testid="search-results-grid"');
     expect(html).toContain("共找到");
-    expect(html).toContain("搜索洞察、产品、案例");
+    expect(html).toContain("搜索洞察、产品、案例...");
+  });
+
+  it("uses Chinese search headings and filter labels", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/search?keyword=Hub&category=all&tag=all"]}>
+        <SearchPage />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain("搜索结果");
+    expect(html).toContain("分类");
+    expect(html).toContain("标签");
+    expect(html).toContain("搜索洞察、产品与关联参考。");
   });
 });

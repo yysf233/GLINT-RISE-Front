@@ -17,4 +17,21 @@ describe("TopNav", () => {
     expect(html).toContain('data-testid="top-nav-search-input"');
     expect(html).toContain('data-testid="top-nav-search-submit"');
   });
+
+  it("renders Chinese navigation and action labels on the homepage shell", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/home"]}>
+        <TopNav />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain("首页");
+    expect(html).toContain("产品");
+    expect(html).toContain("案例总览");
+    expect(html).toContain("项目时间轴");
+    expect(html).toContain("登录");
+    expect(html).toContain("控制台");
+    expect(html).not.toContain("SOLUTIONS");
+    expect(html).not.toContain("CONSOLE");
+  });
 });

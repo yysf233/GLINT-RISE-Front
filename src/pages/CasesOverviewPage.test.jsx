@@ -17,4 +17,17 @@ describe("CasesOverviewPage", () => {
     expect(html).toContain("进入时间轴");
     expect(html).toContain("进入图谱");
   });
+
+  it("uses Chinese case overview headings and ctas", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/cases"]}>
+        <CasesOverviewPage />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain("案例总览");
+    expect(html).toContain("精选案例矩阵");
+    expect(html).toContain("查看案例");
+    expect(html).toContain("案例导航");
+  });
 });

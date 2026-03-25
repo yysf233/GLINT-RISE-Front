@@ -50,9 +50,9 @@ export function SearchPage() {
       <section data-search-layout="prototype-dark" className="mx-auto max-w-[1600px] text-white">
         <SectionHeading
           variant="dark-prototype"
-          eyebrow="DISCOVERY ENGINE"
-          subtitle="SEARCH RESULTS"
-          title="Search signals, products and adjacent references in one dense canvas."
+          eyebrow="发现引擎"
+          subtitle="搜索结果"
+          title="搜索洞察、产品与关联参考。"
           desc="保留 URL 参数同步、刷新恢复和分享能力，同时把搜索页结构改到原型图那种左筛选右结果的暗色高密度布局。"
         />
 
@@ -68,7 +68,7 @@ export function SearchPage() {
             onSubmit={() => syncParams({ keyword })}
             options={safeCategoryOptions}
             variant="dark"
-            placeholder="搜索洞察、产品、案例"
+            placeholder="搜索洞察、产品、案例..."
           />
 
           <div className="mt-8 flex flex-col gap-8 xl:flex-row">
@@ -76,7 +76,7 @@ export function SearchPage() {
               data-testid="search-filter-panel"
               className="w-full rounded-[24px] border border-white/6 bg-[#1c1b1b] p-6 xl:w-[320px] xl:shrink-0"
             >
-              <div className="text-[10px] tracking-[0.3em] text-white/40">CATEGORY</div>
+              <div className="text-[10px] tracking-[0.3em] text-white/40">分类</div>
               <div className="mt-5 flex flex-wrap gap-3">
                 {safeCategoryOptions.map((item) => (
                   <Badge key={item} active={category === item} onClick={() => syncParams({ category: item })} variant="prototype-dark">
@@ -85,7 +85,7 @@ export function SearchPage() {
                 ))}
               </div>
 
-              <div className="mt-10 text-[10px] tracking-[0.3em] text-white/40">TAG</div>
+              <div className="mt-10 text-[10px] tracking-[0.3em] text-white/40">标签</div>
               <div className="mt-5 flex flex-wrap gap-3">
                 {safeTagOptions.map((item) => (
                   <Badge key={item} active={tag === item} onClick={() => syncParams({ tag: item })} variant="prototype-dark">
@@ -121,8 +121,8 @@ export function SearchPage() {
                   <div className="mt-2 text-sm text-white/46">共找到 {results.length} 个匹配项</div>
                 </div>
                 <div className="flex gap-4 text-xs font-semibold tracking-[0.22em]">
-                  <span className="text-[#bac3ff]">LATEST</span>
-                  <span className="text-white/36">POPULAR</span>
+                  <span className="text-[#bac3ff]">最新</span>
+                  <span className="text-white/36">热门</span>
                 </div>
               </div>
 

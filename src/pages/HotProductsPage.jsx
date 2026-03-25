@@ -29,11 +29,11 @@ export function HotProductsPage() {
 
         <SectionHeading
           variant="dark-prototype"
-          eyebrow="HOT PRODUCTS"
-          subtitle="THE ELITE SELECTION"
+          eyebrow="热门产品"
+          subtitle="精选推荐"
           title={
             <>
-              THE ELITE <span className="text-white/30">SELECTION</span>
+              精选<span className="text-white/30">推荐</span>
             </>
           }
           desc="热门产品页切换到原型图的精选陈列逻辑，优先展示重点单品，再延展到完整热门库。"
@@ -53,7 +53,7 @@ export function HotProductsPage() {
               </div>
               <div className="p-7">
                 <div className="inline-flex rounded-full border border-white/12 bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-[#bac3ff]">
-                  {index === 0 ? "NEW SIGNAL" : "LIMITED FOCUS"}
+                  {index === 0 ? "最新信号" : "限时聚焦"}
                 </div>
                 <div
                   className="mt-4 text-white"
@@ -70,7 +70,7 @@ export function HotProductsPage() {
                 <div className="mt-6 flex items-center justify-between">
                   <div className="text-sm font-semibold text-[#bac3ff]">{item.price}</div>
                   <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.22em] text-white/62 transition group-hover:text-white">
-                    <span>VIEW PRODUCT</span>
+                    <span>查看产品</span>
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
