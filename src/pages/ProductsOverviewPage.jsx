@@ -10,6 +10,55 @@ import { getPublicProductFilters, listPublicProducts } from "../services/publicP
 import { ALL_PRODUCT_CATEGORY_LABEL, ALL_PRODUCT_TAG_LABEL, filterProducts } from "../utils/productSearch";
 import { cn } from "../utils/cn";
 
+function PrototypeFeatureCard({ item, onClick, layout = "primary" }) {
+  if (!item) {
+    return null;
+  }
+
+  const isPrimary = layout === "primary";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "group relative overflow-hidden border border-white/6 bg-[#1c1b1b] text-left text-white",
+        isPrimary ? "min-h-[620px] rounded-[30px] p-10 md:col-span-8" : "min-h-[300px] rounded-[24px] p-8",
+      )}
+      style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}
+    >
+      <img
+        src={item.hero}
+        alt={item.name}
+        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,11,15,0.18)_0%,rgba(10,11,15,0.54)_48%,rgba(10,11,15,0.94)_100%)]" />
+      <div className="relative z-10 flex h-full flex-col justify-end">
+        <div className="inline-flex w-fit rounded-full border border-white/12 bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-[#bac3ff]">
+          {item.searchCategory || item.tag}
+        </div>
+        <div
+          className="mt-5 text-white"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: isPrimary ? "clamp(2.6rem, 4vw, 4.4rem)" : "2rem",
+            fontWeight: 800,
+            lineHeight: 0.92,
+            letterSpacing: "-0.06em",
+          }}
+        >
+          {isPrimary ? item.name : item.shortName}
+        </div>
+        <p className="mt-4 max-w-xl text-sm leading-7 text-white/70">{item.desc}</p>
+        <div className="mt-6 inline-flex items-center gap-2 text-xs font-semibold tracking-[0.24em] text-[#bac3ff]">
+          <span>EXPLORE DETAILS</span>
+          <ArrowRight className="h-4 w-4" />
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export function ProductsOverviewPage() {
   const navigate = useNavigate();
   const products = listPublicProducts();
@@ -28,8 +77,8 @@ export function ProductsOverviewPage() {
       ),
     [category, keyword, products, safeCategoryOptions, safeTagOptions, tag],
   );
-  const featuredProduct = products[1] ?? products[0] ?? null;
-  const sideProducts = products.slice(2, 5);
+  const featuredProduct = products[0] ?? null;
+  const sideProducts = products.slice(1, 4);
 
   useEffect(() => {
     if (!safeCategoryOptions.includes(category)) {
@@ -45,129 +94,47 @@ export function ProductsOverviewPage() {
 
   return (
     <PageShell>
-      <section data-products-layout="curated" className="mx-auto max-w-[1600px]">
+      <section data-products-layout="prototype-dark" className="mx-auto max-w-[1600px] text-white">
         <SectionHeading
-          eyebrow="产品系列"
-          title="产品总览先做策展陈列，再进入筛选结果。"
-          desc="保留产品概览页首屏策展区和下半段筛选结果区，把原来的深色展示切换成更接近 Stitch 原型的浅底蓝系策展布局。"
+          variant="dark-prototype"
+          eyebrow="COLLECTION 2026 / EXHIBITION"
+          subtitle="PRODUCTS OVERVIEW"
+          title={
+            <>
+              ARCHITECTURAL <span className="text-white/30">PRECISION.</span>
+            </>
+          }
+          desc="以首页同源的深色科技展陈语言重构产品总览，首屏负责建立策展感，下半屏继续承接真实搜索与筛选能力。"
         />
 
-        <div className="grid gap-8 xl:grid-cols-[1.22fr_0.78fr]">
-          {featuredProduct ? (
-            <button
-              type="button"
-              onClick={() => navigate(`/product/${featuredProduct.id}`)}
-              className="group overflow-hidden rounded-[var(--radius-panel)] text-left shadow-[var(--shadow-floating)]"
-              style={{ background: "var(--gradient-card)" }}
-            >
-              <div className="grid h-full gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-                <div className="min-h-[620px] overflow-hidden bg-[var(--color-surface-muted)]">
-                  <img
-                    src={featuredProduct.hero}
-                    alt={featuredProduct.name}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
+        <div data-testid="products-hero-showcase" className="grid gap-5 md:grid-cols-12">
+          <PrototypeFeatureCard item={featuredProduct} onClick={() => navigate(`/product/${featuredProduct?.id}`)} />
 
-                <div className="flex flex-col justify-between p-7 md:p-9">
-                  <div>
-                    <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">精选旗舰</div>
-                    <h2
-                      className="mt-4 text-[var(--color-text-primary)]"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "clamp(2.6rem, 5vw, 4rem)",
-                        fontWeight: 800,
-                        lineHeight: 0.94,
-                        letterSpacing: "-0.06em",
-                      }}
-                    >
-                      {featuredProduct.name}
-                    </h2>
-                    <div
-                      className="mt-6 inline-flex rounded-[var(--radius-pill)] px-4 py-2 text-[11px] tracking-[0.2em] text-[var(--color-accent-primary)]"
-                      style={{ backgroundColor: "var(--color-accent-soft)" }}
-                    >
-                      {featuredProduct.tag}
-                    </div>
-                    <p className="mt-6 text-sm leading-7 text-[var(--color-text-secondary)]">{featuredProduct.desc}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-[11px] tracking-[0.22em] text-[var(--color-text-muted)]">{featuredProduct.shortName}</div>
-                    <div className="inline-flex items-center gap-2 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]">
-                      查看详情
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </button>
-          ) : null}
-
-          <div className="grid gap-5">
-            {sideProducts.map((item, index) => (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => navigate(`/product/${item.id}`)}
-                className={cn(
-                  "group grid overflow-hidden rounded-[var(--radius-card)] text-left shadow-[var(--shadow-panel)] lg:grid-cols-[180px_1fr]",
-                  index === 1 ? "lg:translate-x-8" : "",
-                )}
-                style={{ background: "var(--gradient-card)" }}
-              >
-                <div className="h-full overflow-hidden bg-[var(--color-surface-muted)]">
-                  <img src={item.hero} alt={item.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                </div>
-                <div className="p-6">
-                  <div className="text-[10px] tracking-[0.26em] text-[var(--color-accent-primary)]">
-                    {String(index + 2).padStart(2, "0")}
-                  </div>
-                  <div
-                    className="mt-2 text-[var(--color-text-primary)]"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "1.7rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
-                    }}
-                  >
-                    {item.shortName}
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{item.desc}</p>
-                </div>
-              </button>
+          <div className="grid gap-5 md:col-span-4">
+            {sideProducts.map((item) => (
+              <PrototypeFeatureCard key={item.id} item={item} layout="secondary" onClick={() => navigate(`/product/${item.id}`)} />
             ))}
-
-            <button
-              type="button"
-              onClick={() => navigate("/products/hot")}
-              className="rounded-[var(--radius-card)] px-7 py-8 text-left shadow-[var(--shadow-panel)]"
-              style={{ background: "var(--gradient-accent-muted)" }}
-            >
-              <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">热门入口</div>
-              <div
-                className="mt-3 text-[var(--color-text-primary)]"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "1.75rem",
-                  fontWeight: 700,
-                  letterSpacing: "-0.04em",
-                }}
-              >
-                进入热门产品列表
-              </div>
-            </button>
           </div>
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => navigate("/products/hot")}
+            className="rounded-full border border-[#9fb1ff] px-7 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#4453a7]"
+          >
+            HOT PRODUCTS HUB
+          </button>
         </div>
       </section>
 
-      <section aria-label="产品筛选结果区" className="mx-auto mt-[var(--space-section-gap)] max-w-[1600px]">
+      <section className="mx-auto mt-16 max-w-[1600px] border-t border-white/6 pt-14 text-white">
         <SectionHeading
-          eyebrow="筛选结果区"
-          title="保留当前业务筛选能力，只把结构改成 Stitch 的轻层次结果区。"
-          desc="URL 参数、分类筛选、标签筛选和产品跳转逻辑都不变，筛选后仍然可以直接进入产品详情和热门页。"
+          variant="dark-prototype"
+          eyebrow="DISCOVERY ENGINE"
+          subtitle="FILTERED INVENTORY"
+          title="Search the inventory without dropping the exhibition mood."
+          desc="搜索、分类、标签和产品跳转都保持现有数据逻辑，只把信息密度和版式调整到原型图的暗色筛选结果区。"
           right={
             <button
               type="button"
@@ -176,15 +143,17 @@ export function ProductsOverviewPage() {
                 setCategory(safeCategoryOptions[0]);
                 setTag(safeTagOptions[0]);
               }}
-              className="rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
+              className="rounded-full border border-white/10 bg-white/4 px-5 py-3 text-sm tracking-[0.18em] text-white/72 transition hover:bg-white/10 hover:text-white"
             >
               清空条件
             </button>
           }
         />
 
-        <div className="rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-panel)]" style={{ background: "var(--gradient-card)" }}>
+        <div
+          className="rounded-[30px] border border-white/6 bg-[#131313] p-6 md:p-8"
+          style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}
+        >
           <SearchBar
             value={keyword}
             setValue={setKeyword}
@@ -192,49 +161,58 @@ export function ProductsOverviewPage() {
             setCategory={setCategory}
             onSubmit={() => {}}
             options={safeCategoryOptions}
+            variant="dark"
+            placeholder="搜索洞察、产品、案例"
           />
 
-          <div className="mt-8 grid gap-6 xl:grid-cols-[0.34fr_0.66fr]">
-            <div className="rounded-[var(--radius-card)] p-5" style={{ backgroundColor: "var(--color-surface-secondary)" }}>
-              <div className="text-[10px] tracking-[0.28em] text-[var(--color-accent-primary)]">标签筛选</div>
+          <div data-testid="products-filter-grid" className="mt-8 grid gap-8 xl:grid-cols-[320px_1fr]">
+            <aside className="rounded-[24px] border border-white/6 bg-[#1c1b1b] p-6">
+              <div className="text-[10px] tracking-[0.3em] text-white/40">FILTER SUMMARY</div>
+              <div className="mt-5 space-y-3 text-sm text-white/68">
+                <div>
+                  共找到 <span className="text-[#bac3ff]">{filteredProducts.length}</span> 个产品
+                </div>
+                <div>分类: {category}</div>
+                <div>标签: {tag}</div>
+              </div>
+
+              <div className="mt-10 text-[10px] tracking-[0.3em] text-white/40">TAG FILTERS</div>
               <div className="mt-5 flex flex-wrap gap-3">
                 {safeTagOptions.map((item) => (
-                  <Badge key={item} active={tag === item} onClick={() => setTag(item)}>
+                  <Badge key={item} active={tag === item} onClick={() => setTag(item)} variant="prototype-dark">
                     {item}
                   </Badge>
                 ))}
               </div>
-
-              <div className="mt-8 grid gap-3 text-sm text-[var(--color-text-secondary)]">
-                <div>
-                  共找到 <span className="text-[var(--color-accent-primary)]">{filteredProducts.length}</span> 个产品结果
-                </div>
-                <div className="text-[var(--color-text-muted)]">分类：{category}</div>
-                <div className="text-[var(--color-text-muted)]">标签：{tag}</div>
-              </div>
-            </div>
+            </aside>
 
             {filteredProducts.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((item) => (
-                  <ProductTile key={item.id} item={item} onClick={() => navigate(`/product/${item.id}`)} />
+                {filteredProducts.map((item, index) => (
+                  <ProductTile
+                    key={item.id}
+                    item={item}
+                    onClick={() => navigate(`/product/${item.id}`)}
+                    variant="prototype-dark"
+                    highlight={index % 3 === 1}
+                  />
                 ))}
               </div>
             ) : (
-              <div className="rounded-[var(--radius-card)] p-8" style={{ backgroundColor: "var(--color-surface-secondary)" }}>
+              <div className="rounded-[24px] border border-white/6 bg-[#1c1b1b] p-8">
                 <div
-                  className="text-[var(--color-text-primary)]"
+                  className="text-white"
                   style={{
                     fontFamily: "var(--font-display)",
-                    fontSize: "2rem",
+                    fontSize: "2.2rem",
                     fontWeight: 700,
                     letterSpacing: "-0.04em",
                   }}
                 >
                   暂无匹配产品
                 </div>
-                <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)]">
-                  可以尝试放宽分类或标签条件，或者直接切换到热门产品继续浏览。
+                <p className="mt-4 max-w-xl text-sm leading-7 text-white/66">
+                  可以放宽筛选条件，或者直接进入热门产品列表继续浏览当前公开库中的精选内容。
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <button
@@ -244,16 +222,14 @@ export function ProductsOverviewPage() {
                       setCategory(safeCategoryOptions[0]);
                       setTag(safeTagOptions[0]);
                     }}
-                    className="rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-                    style={{ backgroundColor: "var(--color-surface-primary)" }}
+                    className="rounded-full border border-white/10 bg-white/4 px-5 py-3 text-sm tracking-[0.18em] text-white/72 transition hover:bg-white/10 hover:text-white"
                   >
                     重置筛选
                   </button>
                   <button
                     type="button"
                     onClick={() => navigate("/products/hot")}
-                    className="rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-on-accent)]"
-                    style={{ background: "var(--gradient-accent)" }}
+                    className="rounded-full bg-[#4453a7] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#5262c2]"
                   >
                     前往热门产品
                   </button>

@@ -7,27 +7,30 @@ export function Footer() {
   const siteSettings = readPublicSiteSettings();
   const { brand, footer } = siteSettings;
   const location = useLocation();
-  const isHome = location.pathname === "/home";
-  const homeFooterLinks = ["PRIVACY", "TERMS", "COMPLIANCE", "SITEMAP"];
+  const isHome = location.pathname !== "/";
+  const darkFooterLinks = footer.links.length > 0 ? footer.links : ["PRIVACY", "TERMS", "COMPLIANCE", "SITEMAP"];
 
   if (isHome) {
     return (
       <footer className="border-t border-white/5 bg-[#0e0e0e] px-[var(--space-page-x)] py-14 text-white">
         <div className="mx-auto max-w-[1600px]">
-          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <div
-              className="text-lg uppercase text-white/28"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 800,
-                letterSpacing: "0.28em",
-              }}
-            >
-              {brand.name}
+          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div
+                className="text-lg uppercase text-white/28"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 800,
+                  letterSpacing: "0.28em",
+                }}
+              >
+                {brand.name}
+              </div>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/42">{footer.description}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-[11px] tracking-[0.24em] text-white/42">
-              {homeFooterLinks.map((item) => (
+              {darkFooterLinks.map((item) => (
                 <span key={item}>{item}</span>
               ))}
             </div>

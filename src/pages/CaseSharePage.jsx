@@ -21,25 +21,23 @@ export function CaseSharePage() {
 
   return (
     <PageShell>
-      <section className="mx-auto max-w-[1080px]" data-case-share-layout="share" aria-label="案例分享落地页">
-        <div className="overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-border-muted)] bg-[var(--color-surface-glass)] shadow-[var(--shadow-panel)] backdrop-blur-xl">
+      <section className="mx-auto max-w-[1080px] text-white" data-case-share-layout="prototype-dark" aria-label="案例分享落地页">
+        <div className="overflow-hidden rounded-[30px] border border-white/6 bg-[#1c1b1b]" style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}>
           <div className="grid lg:grid-cols-[1.02fr_0.98fr]">
             <div className="relative min-h-[360px] overflow-hidden">
               <img src={item.hero} alt={item.title} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,38,78,0.05)_0%,rgba(8,38,78,0.28)_100%)]" />
-              <div className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-white/88 px-4 py-2 text-xs tracking-[0.2em] text-[var(--color-accent-primary)] backdrop-blur-xl">
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,11,15,0.08)_0%,rgba(10,11,15,0.58)_100%)]" />
+              <div className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs tracking-[0.2em] text-[#bac3ff] backdrop-blur-xl">
                 <Orbit className="h-3.5 w-3.5" />
                 分享项目卡
               </div>
             </div>
 
             <div className="p-6 md:p-8">
-              <div className="text-xs tracking-[0.3em] text-[var(--color-accent-primary)]">案例分享页</div>
-              <div className="mt-4 inline-flex rounded-[var(--radius-pill)] bg-[var(--color-accent-soft)] px-4 py-2 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]">
-                {getCaseTimelineLabel(item)}
-              </div>
+              <div className="text-xs tracking-[0.3em] text-[#bac3ff]">案例分享页</div>
+              <div className="mt-4 inline-flex rounded-full bg-white/6 px-4 py-2 text-sm tracking-[0.18em] text-[#bac3ff]">{getCaseTimelineLabel(item)}</div>
               <h1
-                className="mt-4 text-[var(--color-text-primary)]"
+                className="mt-4 text-white"
                 style={{
                   fontFamily: "var(--font-display)",
                   fontSize: "clamp(2.3rem, 5vw, 3.4rem)",
@@ -50,27 +48,25 @@ export function CaseSharePage() {
               >
                 {item.title}
               </h1>
-              <p className="mt-6 text-base leading-8 text-[var(--color-text-secondary)]">{item.summary}</p>
+              <p className="mt-6 text-base leading-8 text-white/68">{item.summary}</p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <MetaTile label="项目时间" value={item.year} />
-                <MetaTile label="行业类型" value={item.industry} />
-                <MetaTile label="项目类别" value={item.category} />
-                <MetaTile label="公开标签" value={item.subTags.join(" / ")} />
+                <MetaTile label="项目时间" value={item.year} variant="prototype-dark" />
+                <MetaTile label="行业类型" value={item.industry} variant="prototype-dark" />
+                <MetaTile label="项目类别" value={item.category} variant="prototype-dark" />
+                <MetaTile label="公开标签" value={item.subTags.join(" / ")} variant="prototype-dark" />
               </div>
 
-              <div className="mt-8 grid gap-3 rounded-[var(--radius-card)] border border-[var(--color-border-muted)] bg-white/80 p-5 shadow-[var(--shadow-panel)]">
-                <div className="text-xs tracking-[0.28em] text-[var(--color-accent-primary)]">分享提示</div>
-                <p className="text-sm leading-7 text-[var(--color-text-secondary)]">
-                  当前页面适合作为客户转发的轻量入口，保留项目摘要、分享和跳转详情的完整链路。
-                </p>
+              <div className="mt-8 grid gap-3 rounded-[24px] border border-white/6 bg-[#101114] p-5">
+                <div className="text-xs tracking-[0.28em] text-white/40">分享提示</div>
+                <p className="text-sm leading-7 text-white/62">当前页面适合作为客户转发的轻量入口，保留项目摘要、分享和跳转详情的完整链路。</p>
               </div>
 
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <button
                   type="button"
                   onClick={() => navigate(getCaseDetailRoute(item.id))}
-                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] border border-[var(--color-border-muted)] bg-[var(--color-background-canvas)] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-primary)] transition hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-3 text-sm font-semibold tracking-[0.18em] text-white/78 transition hover:bg-white/10 hover:text-white"
                 >
                   进入官网详情
                   <ArrowRight className="h-4 w-4" />
@@ -78,8 +74,7 @@ export function CaseSharePage() {
                 <button
                   type="button"
                   onClick={() => shareCurrentPage(`${item.title} 项目卡`, showNotice, getCaseShareRoute(item.id))}
-                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-on-accent)] shadow-[var(--shadow-accent)] transition hover:-translate-y-0.5"
-                  style={{ background: "var(--gradient-accent)" }}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#4453a7] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-white transition hover:bg-[#5262c2]"
                   aria-label="分享项目卡"
                 >
                   <Share2 className="h-4 w-4" />
@@ -93,3 +88,5 @@ export function CaseSharePage() {
     </PageShell>
   );
 }
+
+export default CaseSharePage;

@@ -18,6 +18,7 @@ export function TopNav() {
   const searchInputRef = useRef(null);
   const isEntry = location.pathname === "/";
   const isHome = location.pathname === "/home";
+  const isPrototypeShell = location.pathname !== "/";
   const isSearchRoute = location.pathname === "/search";
   const desktopNavItems = useMemo(() => navItems.filter((item) => item.path !== "/search"), [navItems]);
   const homeNavItems = useMemo(
@@ -53,8 +54,8 @@ export function TopNav() {
   }, [isSearchRoute]);
 
   const desktopSearchExpanded = searchOpen || isSearchRoute;
-  const desktopSearchCollapsedWidth = isHome ? 52 : 164;
-  const desktopSearchExpandedWidth = isHome ? 288 : 340;
+  const desktopSearchCollapsedWidth = isPrototypeShell ? 52 : 164;
+  const desktopSearchExpandedWidth = isPrototypeShell ? 288 : 340;
   const visibleDesktopNavItems = isHome ? homeNavItems : desktopNavItems;
 
   const buildDesktopSearchRoute = (keyword) => {
@@ -94,14 +95,14 @@ export function TopNav() {
     <>
       <div className="fixed inset-x-0 top-0 z-50 px-[var(--space-page-x)] pt-4">
         <div
-          data-nav-appearance={isHome ? "dark-prototype" : "glass"}
+          data-nav-appearance={isPrototypeShell ? "dark-prototype" : "glass"}
           className={cn(
             "mx-auto flex h-[76px] w-full max-w-[1600px] items-center justify-between rounded-[var(--radius-pill)] px-4 backdrop-blur-[20px] md:px-6",
-            isHome
+            isPrototypeShell
               ? "border border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.28)]"
               : "border border-[color:var(--color-border-subtle)] shadow-[var(--shadow-floating)]",
           )}
-          style={{ background: isHome ? "rgba(14, 14, 14, 0.72)" : "var(--gradient-glass)" }}
+          style={{ background: isPrototypeShell ? "rgba(14, 14, 14, 0.72)" : "var(--gradient-glass)" }}
         >
           <div className="flex items-center gap-3">
             <button
@@ -109,7 +110,7 @@ export function TopNav() {
               onClick={() => setMenuOpen(true)}
               className={cn(
                 "grid h-11 w-11 place-items-center rounded-[var(--radius-pill)] md:hidden",
-                isHome ? "bg-white/8 text-white" : "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]",
+                isPrototypeShell ? "bg-white/8 text-white" : "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]",
               )}
               aria-label="打开导航菜单"
             >
@@ -118,23 +119,23 @@ export function TopNav() {
 
             <button type="button" onClick={() => navigate("/home")} className="text-left">
               <div
-                className={cn(isHome ? "text-[#eef2ff]" : "text-[var(--color-text-primary)]")}
+                className={cn(isPrototypeShell ? "text-[#eef2ff]" : "text-[var(--color-text-primary)]")}
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: isHome ? "1.2rem" : "1.6rem",
+                  fontSize: isPrototypeShell ? "1.2rem" : "1.6rem",
                   fontWeight: 800,
-                  letterSpacing: isHome ? "-0.03em" : "-0.06em",
+                  letterSpacing: isPrototypeShell ? "-0.03em" : "-0.06em",
                 }}
               >
                 {brand.name}
               </div>
-              {!isHome ? (
+              {!isPrototypeShell ? (
                 <div className="text-[10px] tracking-[0.28em] text-[var(--color-text-muted)]">{brand.cnName}</div>
               ) : null}
             </button>
           </div>
 
-          <div className={cn("hidden items-center lg:flex", isHome ? "gap-10" : "gap-8")}>
+          <div className={cn("hidden items-center lg:flex", isPrototypeShell ? "gap-10" : "gap-8")}>
             {visibleDesktopNavItems.map((item) => {
               const active = activePath === item.path;
               return (
@@ -144,14 +145,14 @@ export function TopNav() {
                   onClick={() => navigate(item.path)}
                   className={cn(
                     "relative pb-1 text-sm transition-colors",
-                    isHome ? "font-semibold tracking-[0.14em]" : "tracking-[0.18em]",
+                    isPrototypeShell ? "font-semibold tracking-[0.14em]" : "tracking-[0.18em]",
                   )}
                   style={{
                     color: active
-                      ? isHome
+                      ? isPrototypeShell
                         ? "#eef2ff"
                         : "var(--color-accent-primary)"
-                      : isHome
+                      : isPrototypeShell
                         ? "rgba(229, 226, 225, 0.7)"
                         : "var(--color-text-secondary)",
                   }}
@@ -162,7 +163,7 @@ export function TopNav() {
                       "absolute inset-x-0 -bottom-1 h-0.5 rounded-full transition-opacity duration-300",
                       active ? "opacity-100" : "opacity-0",
                     )}
-                    style={{ background: isHome ? "#bac3ff" : "var(--gradient-accent)" }}
+                    style={{ background: isPrototypeShell ? "#bac3ff" : "var(--gradient-accent)" }}
                   />
                 </button>
               );
@@ -176,7 +177,7 @@ export function TopNav() {
                 onClick={() => navigate("/login")}
                 className={cn(
                   "hidden text-sm transition md:block",
-                  isHome
+                  isPrototypeShell
                     ? "tracking-[0.14em] text-white/72 hover:text-white"
                     : "tracking-[0.18em] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
                 )}
@@ -203,7 +204,7 @@ export function TopNav() {
                 }
               }}
               className="hidden h-12 items-center overflow-hidden rounded-[var(--radius-pill)] md:flex"
-              style={{ backgroundColor: isHome ? "rgba(255,255,255,0.08)" : "var(--color-surface-secondary)" }}
+              style={{ backgroundColor: isPrototypeShell ? "rgba(255,255,255,0.08)" : "var(--color-surface-secondary)" }}
               aria-label="顶部搜索框"
               data-testid="top-nav-search-form"
             >
@@ -220,7 +221,7 @@ export function TopNav() {
                 placeholder={navigation.searchPlaceholder}
                 className={cn(
                   "min-w-0 bg-transparent text-sm outline-none transition-all duration-200",
-                  isHome ? "text-white placeholder:text-white/45" : "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
+                  isPrototypeShell ? "text-white placeholder:text-white/45" : "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
                   desktopSearchExpanded ? "w-full px-4 opacity-100" : "pointer-events-none w-0 px-0 opacity-0",
                 )}
                 aria-label="顶部搜索输入"
@@ -229,8 +230,8 @@ export function TopNav() {
               <span
                 className={cn(
                   "overflow-hidden whitespace-nowrap text-sm transition-all duration-200",
-                  isHome ? "text-white/0" : "text-[var(--color-text-secondary)]",
-                  desktopSearchExpanded ? "w-0 px-0 opacity-0" : isHome ? "w-0 px-0 opacity-0" : "w-auto px-3 opacity-100",
+                  isPrototypeShell ? "text-white/0" : "text-[var(--color-text-secondary)]",
+                  desktopSearchExpanded ? "w-0 px-0 opacity-0" : isPrototypeShell ? "w-0 px-0 opacity-0" : "w-auto px-3 opacity-100",
                 )}
               >
                 搜索
@@ -244,7 +245,7 @@ export function TopNav() {
                   }
                 }}
                 className="mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-pill)] text-[var(--color-text-on-accent)]"
-                style={{ background: isHome ? "#4453a7" : "var(--gradient-accent)" }}
+                style={{ background: isPrototypeShell ? "#4453a7" : "var(--gradient-accent)" }}
                 aria-label={desktopSearchExpanded ? "提交顶部搜索" : "展开顶部搜索"}
                 data-testid="top-nav-search-submit"
               >
@@ -252,7 +253,7 @@ export function TopNav() {
               </button>
             </motion.form>
 
-            {isHome ? (
+            {isPrototypeShell ? (
               <button
                 type="button"
                 onClick={() => navigate("/workspace/dashboard")}
@@ -281,17 +282,17 @@ export function TopNav() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[70] bg-[rgba(18,24,36,0.18)] backdrop-blur-xl md:hidden"
           >
-            <motion.div
-              initial={{ x: -32, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -32, opacity: 0 }}
-              className="h-full w-[86%] max-w-sm p-6"
-              style={{ backgroundColor: isHome ? "#111317" : "var(--color-surface-primary)" }}
+              <motion.div
+                initial={{ x: -32, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -32, opacity: 0 }}
+                className="h-full w-[86%] max-w-sm p-6"
+              style={{ backgroundColor: isPrototypeShell ? "#111317" : "var(--color-surface-primary)" }}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <div
-                    className={cn(isHome ? "text-white" : "text-[var(--color-text-primary)]")}
+                    className={cn(isPrototypeShell ? "text-white" : "text-[var(--color-text-primary)]")}
                     style={{
                       fontFamily: "var(--font-display)",
                       fontSize: "1.45rem",
@@ -301,7 +302,7 @@ export function TopNav() {
                   >
                     {brand.name}
                   </div>
-                  <div className={cn("mt-1 text-[10px] tracking-[0.28em]", isHome ? "text-white/50" : "text-[var(--color-text-muted)]")}>
+                  <div className={cn("mt-1 text-[10px] tracking-[0.28em]", isPrototypeShell ? "text-white/50" : "text-[var(--color-text-muted)]")}>
                     {brand.cnName}
                   </div>
                 </div>
@@ -310,7 +311,7 @@ export function TopNav() {
                   onClick={() => setMenuOpen(false)}
                   className={cn(
                     "grid h-10 w-10 place-items-center rounded-[var(--radius-pill)]",
-                    isHome ? "bg-white/8 text-white" : "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]",
+                    isPrototypeShell ? "bg-white/8 text-white" : "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]",
                   )}
                   aria-label="关闭导航菜单"
                 >
@@ -332,21 +333,21 @@ export function TopNav() {
                       className="flex items-center justify-between rounded-[var(--radius-card)] px-4 py-4 text-left transition"
                       style={{
                         backgroundColor: active
-                          ? isHome
+                          ? isPrototypeShell
                             ? "rgba(255,255,255,0.08)"
                             : "var(--color-surface-secondary)"
                           : "transparent",
                       }}
                     >
-                      <span className={cn(isHome ? "text-white" : "text-[var(--color-text-primary)]")}>{item.label}</span>
-                      <ArrowRight className={cn("h-4 w-4", isHome ? "text-white/45" : "text-[var(--color-text-muted)]")} />
+                      <span className={cn(isPrototypeShell ? "text-white" : "text-[var(--color-text-primary)]")}>{item.label}</span>
+                      <ArrowRight className={cn("h-4 w-4", isPrototypeShell ? "text-white/45" : "text-[var(--color-text-muted)]")} />
                     </button>
                   );
                 })}
               </div>
 
               <div className="mt-10">
-                <div className={cn("text-[11px] tracking-[0.28em]", isHome ? "text-white/42" : "text-[var(--color-text-muted)]")}>站内搜索</div>
+                <div className={cn("text-[11px] tracking-[0.28em]", isPrototypeShell ? "text-white/42" : "text-[var(--color-text-muted)]")}>站内搜索</div>
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();
@@ -355,17 +356,17 @@ export function TopNav() {
                   }}
                   className={cn(
                     "mt-8 flex items-center gap-2 rounded-[var(--radius-card)] p-2",
-                    isHome ? "bg-white/8" : "bg-[var(--color-surface-secondary)]",
+                    isPrototypeShell ? "bg-white/8" : "bg-[var(--color-surface-secondary)]",
                   )}
                 >
-                  <Search className={cn("ml-2 h-4 w-4", isHome ? "text-white/42" : "text-[var(--color-text-muted)]")} />
+                  <Search className={cn("ml-2 h-4 w-4", isPrototypeShell ? "text-white/42" : "text-[var(--color-text-muted)]")} />
                   <input
                     value={searchValue}
                     onChange={(event) => setSearchValue(event.target.value)}
                     placeholder={navigation.searchPlaceholder}
                     className={cn(
                       "min-w-0 flex-1 bg-transparent text-sm outline-none",
-                      isHome ? "text-white placeholder:text-white/40" : "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
+                      isPrototypeShell ? "text-white placeholder:text-white/40" : "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
                     )}
                   />
                 </form>

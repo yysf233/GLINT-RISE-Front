@@ -7,7 +7,7 @@ import { AuthContext } from "../context/AuthContext";
 import { LoginPage } from "./LoginPage";
 
 describe("LoginPage", () => {
-  it("renders the login form with quick-fill cards and fixed mock password hint", () => {
+  it("renders the dark prototype login form with quick-fill cards and fixed mock password hint", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <AuthContext.Provider
@@ -28,6 +28,7 @@ describe("LoginPage", () => {
       </NoticeProvider>,
     );
 
+    expect(html).toContain('data-login-layout="prototype-dark"');
     expect(html).toContain("账号登录");
     expect(html).toContain("邮箱 / 用户名");
     expect(html).toContain("glintrise-123");

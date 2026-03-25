@@ -1,134 +1,91 @@
 import React from "react";
-import { ArrowLeft, ArrowRight, Filter } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PageShell } from "../components/layout/PageShell";
+import { ProductTile } from "../components/common/ProductTile";
 import { SectionHeading } from "../components/common/SectionHeading";
+import { PageShell } from "../components/layout/PageShell";
 import { getHotPublicProducts, listPublicProducts } from "../services/publicProductsCatalog";
 
 export function HotProductsPage() {
   const navigate = useNavigate();
   const hotProducts = getHotPublicProducts();
   const displayProducts = hotProducts.length > 0 ? hotProducts : listPublicProducts().slice(0, 6);
+  const featuredProducts = displayProducts.slice(0, 2);
+  const remainingProducts = displayProducts.slice(2);
 
   return (
     <PageShell>
-      <section className="mx-auto max-w-[1600px]">
-        <SectionHeading
-          eyebrow="热门精选"
-          title="热门产品列表延续策展感，但仍然直接走现有公开产品数据。"
-          desc="热门产品页继续优先读取后台已发布且被标记为热门精选的产品，没有热门项时再回退到公开产品前六项。"
-          right={
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-              style={{ backgroundColor: "var(--color-surface-secondary)" }}
-            >
-              <Filter className="h-4 w-4" />
-              热门清单
-            </button>
-          }
-        />
-
-        <div className="mb-8 grid gap-6 xl:grid-cols-[0.42fr_0.58fr]">
-          <div className="rounded-[var(--radius-panel)] p-6 shadow-[var(--shadow-panel)]" style={{ background: "var(--gradient-card)" }}>
-            <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">热门说明</div>
-            <div
-              className="mt-3 text-[var(--color-text-primary)]"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "2rem",
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-              }}
-            >
-              热门产品页保持高密度陈列，方便快速浏览与跳转。
-            </div>
-            <p className="mt-4 text-sm leading-7 text-[var(--color-text-secondary)]">
-              页面只改视觉，不改热门产品的判定来源和产品详情跳转逻辑。
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {displayProducts.slice(0, 3).map((item) => (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => navigate(`/product/${item.id}`)}
-                className="group overflow-hidden rounded-[var(--radius-card)] text-left shadow-[var(--shadow-panel)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-floating)]"
-                style={{ background: "var(--gradient-card)" }}
-              >
-                <div className="aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
-                  <img src={item.hero} alt={item.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                </div>
-                <div className="p-5">
-                  <div className="text-[10px] tracking-[0.26em] text-[var(--color-accent-primary)]">{item.shortName}</div>
-                  <div className="mt-2 flex items-start justify-between gap-4">
-                    <h3
-                      className="text-[var(--color-text-primary)]"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontSize: "1.7rem",
-                        fontWeight: 700,
-                        letterSpacing: "-0.04em",
-                      }}
-                    >
-                      {item.name}
-                    </h3>
-                    <ArrowRight className="mt-1 h-4 w-4 text-[var(--color-accent-primary)]" />
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{item.desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {displayProducts.slice(3).map((item) => (
-            <button
-              type="button"
-              key={item.id}
-              onClick={() => navigate(`/product/${item.id}`)}
-              className="group overflow-hidden rounded-[var(--radius-card)] text-left shadow-[var(--shadow-panel)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-floating)]"
-              style={{ background: "var(--gradient-card)" }}
-            >
-              <div className="aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
-                <img src={item.hero} alt={item.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-              </div>
-              <div className="p-5">
-                <div className="text-[10px] tracking-[0.26em] text-[var(--color-accent-primary)]">{item.shortName}</div>
-                <div className="mt-2 flex items-start justify-between gap-4">
-                  <h3
-                    className="text-[var(--color-text-primary)]"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "1.7rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
-                    }}
-                  >
-                    {item.name}
-                  </h3>
-                  <ArrowRight className="mt-1 h-4 w-4 text-[var(--color-accent-primary)]" />
-                </div>
-                <p className="mt-3 text-sm leading-6 text-[var(--color-text-secondary)]">{item.desc}</p>
-                <div className="mt-5 text-sm font-semibold text-[var(--color-accent-primary)]">{item.price}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-10">
+      <section data-hot-products-layout="prototype-dark" className="mx-auto max-w-[1600px] text-white">
+        <div className="mb-8">
           <button
             type="button"
             onClick={() => navigate("/products")}
-            className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm tracking-[0.18em] text-[var(--color-accent-primary)]"
-            style={{ backgroundColor: "var(--color-surface-secondary)" }}
+            className="inline-flex items-center gap-2 text-sm tracking-[0.22em] text-white/62 transition hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             返回产品总览
           </button>
         </div>
+
+        <SectionHeading
+          variant="dark-prototype"
+          eyebrow="HOT PRODUCTS"
+          subtitle="THE ELITE SELECTION"
+          title={
+            <>
+              THE ELITE <span className="text-white/30">SELECTION</span>
+            </>
+          }
+          desc="热门产品页切换到原型图的精选陈列逻辑，优先展示重点单品，再延展到完整热门库。"
+        />
+
+        <div data-testid="hot-products-featured-rail" className="grid gap-5 lg:grid-cols-2">
+          {featuredProducts.map((item, index) => (
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => navigate(`/product/${item.id}`)}
+              className="group overflow-hidden rounded-[28px] border border-white/6 bg-[#1c1b1b] text-left text-white"
+              style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}
+            >
+              <div className="overflow-hidden bg-[#101114]">
+                <img src={item.hero} alt={item.name} className="aspect-[4/5] w-full object-cover transition duration-700 group-hover:scale-[1.05]" />
+              </div>
+              <div className="p-7">
+                <div className="inline-flex rounded-full border border-white/12 bg-white/6 px-3 py-1 text-[10px] tracking-[0.22em] text-[#bac3ff]">
+                  {index === 0 ? "NEW SIGNAL" : "LIMITED FOCUS"}
+                </div>
+                <div
+                  className="mt-4 text-white"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.05em",
+                  }}
+                >
+                  {item.name}
+                </div>
+                <p className="mt-4 text-sm leading-7 text-white/68">{item.desc}</p>
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="text-sm font-semibold text-[#bac3ff]">{item.price}</div>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.22em] text-white/62 transition group-hover:text-white">
+                    <span>VIEW PRODUCT</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {remainingProducts.length > 0 ? (
+          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {remainingProducts.map((item) => (
+              <ProductTile key={item.id} item={item} onClick={() => navigate(`/product/${item.id}`)} variant="prototype-dark" />
+            ))}
+          </div>
+        ) : null}
       </section>
     </PageShell>
   );

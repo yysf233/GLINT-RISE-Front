@@ -5,14 +5,15 @@ import { MemoryRouter } from "react-router-dom";
 import { CaseTimelinePage } from "./CaseTimelinePage";
 
 describe("CaseTimelinePage", () => {
-  it("renders the timeline layout with zoom controls intact", () => {
+  it("renders the dark prototype timeline layout with zoom controls intact", () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={["/case-timeline"]}>
         <CaseTimelinePage />
       </MemoryRouter>,
     );
 
-    expect(html).toContain('data-case-timeline-layout="timeline"');
+    expect(html).toContain('data-case-timeline-layout="prototype-dark"');
+    expect(html).toContain('data-testid="case-timeline-rail"');
     expect(html).toContain("缩小图谱");
     expect(html).toContain("放大图谱");
     expect(html).toContain("重置图谱缩放");

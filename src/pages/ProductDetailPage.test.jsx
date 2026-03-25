@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { ProductDetailPage } from "./ProductDetailPage";
 
 describe("ProductDetailPage", () => {
-  it("renders the editorial stitch detail layout without dropping share actions", () => {
+  it("renders the dark prototype detail layout without dropping share actions", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/product/lumina-arc"]}>
@@ -17,7 +17,9 @@ describe("ProductDetailPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain('data-product-detail-layout="editorial"');
+    expect(html).toContain('data-product-detail-layout="prototype-dark"');
+    expect(html).toContain('data-testid="product-detail-media-rail"');
+    expect(html).toContain('data-testid="product-detail-meta-grid"');
     expect(html).toContain("分享页面");
     expect(html).toContain("查看第 1 张产品图");
   });

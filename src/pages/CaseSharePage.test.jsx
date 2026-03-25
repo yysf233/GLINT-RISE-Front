@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { CaseSharePage } from "./CaseSharePage";
 
 describe("CaseSharePage", () => {
-  it("renders the share landing layout with detail and share ctas", () => {
+  it("renders the dark prototype share landing layout with detail and share ctas", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/share/case/quantum-security-protocol"]}>
@@ -17,7 +17,7 @@ describe("CaseSharePage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain('data-case-share-layout="share"');
+    expect(html).toContain('data-case-share-layout="prototype-dark"');
     expect(html).toContain("进入官网详情");
     expect(html).toContain("分享项目卡");
   });

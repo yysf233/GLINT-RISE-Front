@@ -5,14 +5,15 @@ import { MemoryRouter } from "react-router-dom";
 import { CasesOverviewPage } from "./CasesOverviewPage";
 
 describe("CasesOverviewPage", () => {
-  it("renders the curated cases overview with timeline and map entry points", () => {
+  it("renders the dark prototype cases overview with timeline and map entry points", () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={["/cases"]}>
         <CasesOverviewPage />
       </MemoryRouter>,
     );
 
-    expect(html).toContain('data-case-layout="curated"');
+    expect(html).toContain('data-case-layout="prototype-dark"');
+    expect(html).toContain('data-testid="cases-feature-grid"');
     expect(html).toContain("进入时间轴");
     expect(html).toContain("进入图谱");
   });

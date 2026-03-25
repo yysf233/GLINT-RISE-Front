@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { CaseMapPage } from "./CaseMapPage";
 
 describe("CaseMapPage", () => {
-  it("renders the map layout with zoom controls and share action", () => {
+  it("renders the dark prototype map layout with zoom controls and share action", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/case-map"]}>
@@ -15,7 +15,8 @@ describe("CaseMapPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain('data-case-map-layout="map"');
+    expect(html).toContain('data-case-map-layout="prototype-dark"');
+    expect(html).toContain('data-testid="case-map-canvas"');
     expect(html).toContain("缩小图谱");
     expect(html).toContain("放大图谱");
     expect(html).toContain("分享页面");
