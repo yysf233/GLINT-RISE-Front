@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  color: var(--color-text-primary);
-  background: var(--color-background-canvas);
-  font-family: var(--font-body);
+  color: #1b1c1c;
+  background: #f5f7fb;
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 * {
@@ -15,7 +15,7 @@ body,
 #root {
   margin: 0;
   min-height: 100%;
-  background: var(--color-background-canvas);
+  background: #f5f7fb;
 }
 
 html {
@@ -24,10 +24,10 @@ html {
 
 body {
   min-width: 320px;
-  color: var(--color-text-primary);
-  font-family: var(--font-body);
-  line-height: var(--line-height-body);
-  background: var(--color-background-canvas);
+  color: #1b1c1c;
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.8;
+  background: #f5f7fb;
 }
 
 button,
@@ -44,7 +44,7 @@ button {
 input,
 select,
 textarea {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 img {

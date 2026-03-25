@@ -17,28 +17,25 @@ export function ProductSharePage() {
 
   return (
     <PageShell>
-      <section className="mx-auto max-w-[1080px]" aria-label="产品分享落地页">
-        <div
-          className="overflow-hidden rounded-[var(--radius-hero)]"
-          style={{ backgroundColor: "var(--color-surface-primary)", boxShadow: "var(--shadow-panel)" }}
-        >
+      <section className="mx-auto max-w-[1180px]" aria-label="产品分享落地页">
+        <div className="overflow-hidden rounded-[var(--radius-hero)] shadow-[var(--shadow-floating)]" style={{ background: "var(--gradient-card)" }}>
           <div className="grid lg:grid-cols-[1.02fr_0.98fr]">
-            <div className="relative min-h-[360px] overflow-hidden">
+            <div className="relative min-h-[420px] overflow-hidden">
               <img src={item.hero} alt={item.name} className="h-full w-full object-cover" />
-              <div className="absolute inset-0" style={{ background: "var(--gradient-hero-fade)" }} />
-              <div className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-black/45 px-4 py-2 text-xs tracking-[0.2em] text-white backdrop-blur-xl">
+              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(13,23,41,0.08), rgba(13,23,41,0.46))" }} />
+              <div className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-white/72 px-4 py-2 text-xs tracking-[0.2em] text-[var(--color-accent-primary)] backdrop-blur-xl">
                 <Share2 className="h-3.5 w-3.5" />
                 分享产品卡
               </div>
             </div>
 
             <div className="p-6 md:p-8">
-              <div className="text-xs tracking-[0.3em] text-[var(--color-accent-primary)]">GLINT RISE PUBLIC SHARE</div>
+              <div className="text-[10px] tracking-[0.3em] text-[var(--color-accent-primary)]">产品分享页</div>
               <h1
                 className="mt-4 text-[var(--color-text-primary)]"
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: "clamp(2.3rem, 5vw, 3.4rem)",
+                  fontSize: "clamp(2.4rem, 5vw, 3.5rem)",
                   fontWeight: 800,
                   letterSpacing: "-0.05em",
                   lineHeight: 0.96,
@@ -61,7 +58,7 @@ export function ProductSharePage() {
                 <button
                   type="button"
                   onClick={() => navigate(getProductDetailRoute(item.id))}
-                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-bold tracking-[0.18em] text-[var(--color-text-on-accent)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] px-5 py-3 text-sm font-semibold tracking-[0.18em] text-[var(--color-text-on-accent)]"
                   style={{ background: "var(--gradient-accent)" }}
                 >
                   进入官网详情
