@@ -1,5 +1,6 @@
 import {
   brand as legacyBrand,
+  cases as legacyPublicCases,
   footerLinks as legacyFooterLinks,
   navItems as legacyNavItems,
   products as legacyPublicProductSeeds,
@@ -9,11 +10,13 @@ import workspaceProductSeeds from "../data/workspace/workspaceProductSeeds";
 import workspaceProjectSeeds from "../data/workspace/workspaceProjectSeeds";
 import workspaceSiteSettingsSeeds from "../data/workspace/workspaceSiteSettingsSeeds";
 import { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } from "./mock/workspaceStorage";
+import { derivePublicTimelineOrder } from "../utils/publicCaseTimeline";
 
 const PUBLISHED_STATUSES = new Set(["published", "active", "online"]);
 const LEGACY_PUBLIC_PRODUCTS_BY_ID = new Map(
   legacyPublicProductSeeds.map((item) => [String(item.id ?? "").trim(), clone(item)]),
 );
+const LEGACY_PUBLIC_CASE_IDS = new Set(legacyPublicCases.map((item) => text(item?.id)));
 
 function clone(value) {
   return typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value));
@@ -129,6 +132,48 @@ function toPublicCase(item) {
     hero: text(item.hero ?? item.cover),
     images: toArray(item.images ?? item.thumbs),
   };
+}
+
+function toPublicTimelineProject(item) {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+
+  return {
+    id: text(item.id),
+    title: text(item.title ?? item.name),
+    category: text(item.category),
+    industry: text(item.industry),
+    publicCaseId: text(item.publicCaseId),
+    timelineYear: text(item.timelineYear),
+    timelineQuarter: text(item.timelineQuarter),
+    timelineOrder: Number(item.timelineOrder ?? 0),
+    timelineCardSide: text(item.timelineCardSide),
+    timelineAccent: text(item.timelineAccent),
+    summary: text(item.summary),
+    short: text(item.short ?? item.desc),
+  };
+}
+
+function isTimelineProjectDemoReady(item) {
+  const publicCaseId = text(item?.publicCaseId);
+  return derivePublicTimelineOrder(item) > 0 && LEGACY_PUBLIC_CASE_IDS.has(publicCaseId);
+}
+
+function resolvePublicTimelineProjects(items) {
+  const persistedProjects = toArray(items)
+    .filter(isPublished)
+    .map(toPublicTimelineProject)
+    .filter(Boolean);
+
+  if (persistedProjects.some(isTimelineProjectDemoReady)) {
+    return persistedProjects;
+  }
+
+  return workspaceProjectSeeds
+    .filter(isPublished)
+    .map(toPublicTimelineProject)
+    .filter(Boolean);
 }
 
 function toPublicBanner(item) {
@@ -257,6 +302,10 @@ export function readPublishedCases() {
     .filter(Boolean);
 }
 
+export function readPublishedTimelineProjects() {
+  return resolvePublicTimelineProjects(caseStorage.read().items);
+}
+
 export function readPublishedHomeBanners() {
   return bannerStorage
     .read()
@@ -269,6 +318,7 @@ export const publicSiteContent = {
   readPublicSiteSettings,
   readPublishedProducts,
   readPublishedCases,
+  readPublishedTimelineProjects,
   readPublishedHomeBanners,
 };
 

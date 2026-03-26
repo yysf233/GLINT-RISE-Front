@@ -139,6 +139,141 @@ describe("publicSiteContent", () => {
     ]);
   });
 
+  it("reads published workspace projects for the public timeline adapter", async () => {
+    const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
+
+    createWorkspaceStorage({
+      key: WORKSPACE_STORAGE_KEYS.projects,
+      seed: { version: 1, items: [] },
+    }).write({
+      version: 1,
+      items: [
+        {
+          id: "project-live",
+          status: "active",
+          title: "Live Timeline Project",
+          category: "Case Study",
+          industry: "Retail",
+          publicCaseId: "bosideng-aerospace",
+          timelineYear: "2024",
+          timelineQuarter: "Q4",
+          timelineOrder: 202404,
+          timelineCardSide: "below",
+          timelineAccent: "featured",
+          summary: "Visible on the public timeline",
+          short: "Visible summary",
+        },
+        {
+          id: "project-draft",
+          status: "draft",
+          title: "Draft Timeline Project",
+          category: "Case Study",
+          industry: "Retail",
+          publicCaseId: "hidden",
+          timelineYear: "2024",
+          timelineQuarter: "Q1",
+          timelineOrder: 202401,
+          timelineCardSide: "above",
+          timelineAccent: "normal",
+          summary: "Hidden",
+        },
+      ],
+    });
+
+    const { readPublishedTimelineProjects } = await import("./publicSiteContent");
+
+    expect(readPublishedTimelineProjects()).toEqual([
+      {
+        id: "project-live",
+        title: "Live Timeline Project",
+        category: "Case Study",
+        industry: "Retail",
+        publicCaseId: "bosideng-aerospace",
+        timelineYear: "2024",
+        timelineQuarter: "Q4",
+        timelineOrder: 202404,
+        timelineCardSide: "below",
+        timelineAccent: "featured",
+        summary: "Visible on the public timeline",
+        short: "Visible summary",
+      },
+    ]);
+  });
+
+  it("falls back to seeded public timeline projects when persisted projects cannot drive the public timeline", async () => {
+    const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
+
+    createWorkspaceStorage({
+      key: WORKSPACE_STORAGE_KEYS.projects,
+      seed: { version: 1, items: [] },
+    }).write({
+      version: 1,
+      items: [
+        {
+          id: "project-empty",
+          status: "active",
+          title: "Stored But Not Public Timeline Ready",
+          category: "Case Study",
+          industry: "Retail",
+          publicCaseId: "",
+          timelineYear: "",
+          timelineQuarter: "",
+          timelineOrder: 0,
+          timelineCardSide: "above",
+          timelineAccent: "normal",
+          summary: "Missing route and timeline placement metadata.",
+        },
+      ],
+    });
+
+    const { readPublishedTimelineProjects } = await import("./publicSiteContent");
+
+    expect(readPublishedTimelineProjects()).toEqual([
+      {
+        id: "wp-case-001",
+        title: "The Monolith HQ",
+        category: "Case Study",
+        industry: "Culture",
+        publicCaseId: "tea-brand-crossover",
+        timelineYear: "2023",
+        timelineQuarter: "Q1",
+        timelineOrder: 202301,
+        timelineCardSide: "below",
+        timelineAccent: "normal",
+        summary: "Brutalist glass and concrete structure designed to anchor a flagship brand archive.",
+        short: "Anchor project for the early public timeline range.",
+      },
+      {
+        id: "wp-case-002",
+        title: "Neural Nexus v4",
+        category: "Case Study",
+        industry: "Technology",
+        publicCaseId: "enterprise-data-synergy",
+        timelineYear: "2024",
+        timelineQuarter: "Q3",
+        timelineOrder: 202403,
+        timelineCardSide: "above",
+        timelineAccent: "featured",
+        summary: "Distributed cognitive processing rollout across regional hubs for the GLINT RISE ecosystem.",
+        short: "Featured AI infrastructure timeline item.",
+      },
+      {
+        id: "wp-case-003",
+        title: "Quantum Security Grid",
+        category: "Case Study",
+        industry: "Security",
+        publicCaseId: "quantum-security-protocol",
+        timelineYear: "2024",
+        timelineQuarter: "Q4",
+        timelineOrder: 202404,
+        timelineCardSide: "below",
+        timelineAccent: "normal",
+        summary: "Security narrative rollout for a next-generation encryption platform across enterprise facilities.",
+        short: "Published security timeline project.",
+      },
+    ]);
+  });
+
   it("maps workspace product schema into the public product model", async () => {
     const { createWorkspaceStorage, WORKSPACE_STORAGE_KEYS } = await import("./mock/workspaceStorage");
 
