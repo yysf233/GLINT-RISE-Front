@@ -34,4 +34,16 @@ describe("TopNav", () => {
     expect(html).not.toContain("SOLUTIONS");
     expect(html).not.toContain("CONSOLE");
   });
+
+  it("renders a shared active-nav indicator with a bezier transition", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/case-timeline"]}>
+        <TopNav />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain('data-testid="top-nav-active-indicator"');
+    expect(html).toContain('data-nav-active="true"');
+    expect(html).toContain('data-nav-transition="cubic-bezier(0.22, 1, 0.36, 1)"');
+  });
 });

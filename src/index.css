@@ -20,6 +20,9 @@ body,
 
 html {
   scroll-behavior: smooth;
+  overflow-y: scroll;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: none;
 }
 
 body {
@@ -28,6 +31,14 @@ body {
   font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   line-height: 1.8;
   background: #f5f7fb;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 button,

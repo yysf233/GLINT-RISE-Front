@@ -5,6 +5,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { readPublicSiteSettings } from "../../services/publicSiteContent";
 import { cn } from "../../utils/cn";
 
+const NAV_ROUTE_BEZIER = "cubic-bezier(0.22, 1, 0.36, 1)";
+const NAV_ROUTE_TRANSITION = {
+  duration: 0.38,
+  ease: [0.22, 1, 0.36, 1],
+};
+
 export function TopNav() {
   const siteSettings = readPublicSiteSettings();
   const { brand, navigation } = siteSettings;
@@ -134,6 +140,7 @@ export function TopNav() {
                   type="button"
                   key={item.path}
                   onClick={() => navigate(item.path)}
+                  data-nav-active={active ? "true" : "false"}
                   className={cn(
                     "relative pb-1 text-sm transition-colors",
                     isPrototypeShell ? "font-semibold tracking-[0.14em]" : "tracking-[0.18em]",
@@ -148,14 +155,17 @@ export function TopNav() {
                         : "var(--color-text-secondary)",
                   }}
                 >
-                  {item.label}
-                  <span
-                    className={cn(
-                      "absolute inset-x-0 -bottom-1 h-0.5 rounded-full transition-opacity duration-300",
-                      active ? "opacity-100" : "opacity-0",
-                    )}
-                    style={{ background: isPrototypeShell ? "#bac3ff" : "var(--gradient-accent)" }}
-                  />
+                  <span className="relative z-10">{item.label}</span>
+                  {active ? (
+                    <motion.span
+                      layoutId="top-nav-active-indicator"
+                      data-testid="top-nav-active-indicator"
+                      data-nav-transition={NAV_ROUTE_BEZIER}
+                      className="absolute inset-x-0 -bottom-1 h-0.5 rounded-full"
+                      transition={NAV_ROUTE_TRANSITION}
+                      style={{ background: isPrototypeShell ? "#bac3ff" : "var(--gradient-accent)" }}
+                    />
+                  ) : null}
                 </button>
               );
             })}
