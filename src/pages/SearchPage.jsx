@@ -126,7 +126,7 @@ export function SearchPage() {
             </div>
           </aside>
 
-          <div className="min-w-0 flex-1">
+          <div data-testid="search-results-grid" className="min-w-0 flex-1">
             <div
               className="mb-6 flex flex-col gap-4 border-b border-white/6 pb-4 md:flex-row md:items-end md:justify-between"
               data-testid="search-results-summary"
@@ -152,7 +152,7 @@ export function SearchPage() {
             </div>
 
             {results.length > 0 ? (
-              <div data-testid="search-results-grid" className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {results.map((item) => (
                   <ProductTile key={item.id} item={item} onClick={() => navigate(`/product/${item.id}`)} variant="prototype-dark" />
                 ))}

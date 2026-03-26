@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { CaseDetailPage } from "./CaseDetailPage";
 
 describe("CaseDetailPage", () => {
-  it("renders the desktop prototype case detail layout with showcase, aside, and film panel", () => {
+  it("renders the unified industrial Chinese case-detail layout", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/case/quantum-security-protocol"]}>
@@ -17,14 +17,19 @@ describe("CaseDetailPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain('data-case-detail-layout="prototype-dark"');
-    expect(html).toContain('data-testid="case-detail-header"');
-    expect(html).toContain('data-testid="case-detail-showcase-grid"');
-    expect(html).toContain('data-testid="case-detail-film-panel"');
-    expect(html).toContain('data-testid="case-detail-meta-grid"');
+    expect(html).toContain('data-case-detail-layout="industrial-cn"');
+    expect(html).toContain('data-testid="case-detail-shell"');
+    expect(html).toContain('data-testid="case-detail-sidebar"');
+    expect(html).toContain('data-testid="case-detail-hero"');
+    expect(html).toContain('data-testid="case-detail-summary-grid"');
+    expect(html).toContain('data-testid="case-detail-stage-grid"');
+    expect(html).toContain('data-testid="case-detail-deliverables"');
+    expect(html).toContain('data-testid="case-detail-results-grid"');
+    expect(html).toContain('data-testid="case-detail-support-grid"');
+    expect(html).not.toContain('data-testid="page-shell-root"');
   });
 
-  it("uses Chinese archival labels while preserving share and archive entry points", () => {
+  it("uses Chinese case architecture labels and seeded Chinese case content", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/case/quantum-security-protocol"]}>
@@ -35,10 +40,12 @@ describe("CaseDetailPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain("分享当前案例");
-    expect(html).toContain("进入视觉档案");
-    expect(html).toContain("行业领域");
-    expect(html).toContain("材质完整性");
-    expect(html).toContain("观看项目短片");
+    expect(html).toContain("返回案例矩阵");
+    expect(html).toContain("项目概览");
+    expect(html).toContain("服务范围");
+    expect(html).toContain("执行节点");
+    expect(html).toContain("交付成果");
+    expect(html).toContain("结果数据");
+    expect(html).toContain("量子安防网络");
   });
 });

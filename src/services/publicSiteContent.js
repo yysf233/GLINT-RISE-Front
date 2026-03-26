@@ -92,8 +92,10 @@ function toPublicProduct(item) {
   const mediaList = toArray(item.media);
   const mediaUrls = mediaList.map((entry) => text(entry?.url)).filter(Boolean);
   const coverUrl = mediaList.find((entry) => entry?.isCover)?.url;
+  const detailSource = item.detail ?? legacy?.detail;
+  const versionText = text(item.version ?? legacy?.version);
 
-  return {
+  const next = {
     id: publicId,
     name: text(item.name ?? item.title ?? legacy?.name),
     shortName: text(item.shortName ?? legacy?.shortName ?? item.name ?? item.title),
@@ -104,6 +106,16 @@ function toPublicProduct(item) {
     thumbs: mediaUrls.length > 0 ? mediaUrls : toArray(item.thumbs ?? item.images ?? legacy?.thumbs),
     meta: normalizePublicMeta(item.publicMeta ?? item.meta, legacy?.meta),
   };
+
+  if (versionText) {
+    next.version = versionText;
+  }
+
+  if (detailSource && typeof detailSource === "object") {
+    next.detail = clone(detailSource);
+  }
+
+  return next;
 }
 
 function toPublicCase(item) {
@@ -117,7 +129,7 @@ function toPublicCase(item) {
 
   const publicId = text(item.publicCaseId ?? item.id);
 
-  return {
+  const next = {
     id: publicId,
     title: text(item.title ?? item.name),
     eyebrow: text(item.eyebrow),
@@ -132,6 +144,12 @@ function toPublicCase(item) {
     hero: text(item.hero ?? item.cover),
     images: toArray(item.images ?? item.thumbs),
   };
+
+  if (item.detail && typeof item.detail === "object") {
+    next.detail = clone(item.detail);
+  }
+
+  return next;
 }
 
 function toPublicTimelineProject(item) {

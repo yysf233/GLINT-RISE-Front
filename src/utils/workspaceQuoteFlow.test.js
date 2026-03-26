@@ -26,7 +26,7 @@ describe("workspaceQuoteFlow", () => {
       {
         id: "req-smart-hub",
         name: "智能中控升级",
-        keywords: ["smart hub", "device"],
+        keywords: ["智能中枢", "企业中枢"],
         quantity: 100,
         targetLeadDays: 18,
         targetPriceBand: "中",
@@ -92,7 +92,7 @@ describe("workspaceQuoteFlow", () => {
       {
         id: "req-smart-hub",
         name: "智能中控升级",
-        keywords: ["smart hub"],
+        keywords: ["智能中枢"],
         quantity: 100,
         targetLeadDays: 18,
         targetPriceBand: "中",
@@ -173,7 +173,7 @@ describe("workspaceQuoteFlow", () => {
     );
 
     expect(employeeArtifact.filename).toBe("workspace-quote-001-quote.xlsx");
-    expect(employeeArtifact.content).toContain("Smart Hub");
+    expect(employeeArtifact.content).toContain("智能中枢");
     expect(employeeArtifact.content).not.toContain("内部成本");
 
     const directorArtifact = buildWorkspaceQuoteSheetArtifact(

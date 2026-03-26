@@ -6,7 +6,7 @@ import { NoticeProvider } from "../context/NoticeContext";
 import { ProductDetailPage } from "./ProductDetailPage";
 
 describe("ProductDetailPage", () => {
-  it("renders the desktop prototype product-detail layout with an apple-style gallery track", () => {
+  it("renders the unified industrial Chinese product-detail layout", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/product/lumina-arc"]}>
@@ -17,18 +17,19 @@ describe("ProductDetailPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain('data-product-detail-layout="prototype-dark"');
-    expect(html).toContain('data-testid="product-detail-gallery-grid"');
-    expect(html).toContain('data-testid="product-detail-gallery-track"');
-    expect(html).toContain('data-testid="product-detail-gallery-bottom-strip"');
-    expect(html).not.toContain('data-testid="product-detail-gallery-side-rail"');
-    expect(html).toContain('data-testid="product-detail-spec-panel"');
-    expect(html).toContain('data-testid="product-detail-ecosystem-panel"');
-    expect(html).toContain('data-testid="product-detail-meta-grid"');
-    expect(html).toContain('data-carousel-style="apple-product"');
+    expect(html).toContain('data-product-detail-layout="industrial-cn"');
+    expect(html).toContain('data-testid="product-detail-shell"');
+    expect(html).toContain('data-testid="product-detail-sidebar"');
+    expect(html).toContain('data-testid="product-detail-hero"');
+    expect(html).toContain('data-testid="product-detail-capability-strip"');
+    expect(html).toContain('data-testid="product-detail-spec-grid"');
+    expect(html).toContain('data-testid="product-detail-supply-grid"');
+    expect(html).toContain('data-testid="product-detail-packaging-panel"');
+    expect(html).toContain('data-testid="product-detail-support-grid"');
+    expect(html).not.toContain('data-testid="page-shell-root"');
   });
 
-  it("uses Chinese product-detail labels matching the prototype rhythm", () => {
+  it("uses Chinese industrial labels and seeded Chinese product content", () => {
     const html = renderToStaticMarkup(
       <NoticeProvider>
         <MemoryRouter initialEntries={["/product/lumina-arc"]}>
@@ -39,11 +40,13 @@ describe("ProductDetailPage", () => {
       </NoticeProvider>,
     );
 
-    expect(html).toContain("返回热门产品");
-    expect(html).toContain("分享当前产品");
-    expect(html).toContain("展陈系列");
-    expect(html).toContain("参数规格");
-    expect(html).toContain("生态联动");
-    expect(html).toContain("返回产品总览");
+    expect(html).toContain("返回产品矩阵");
+    expect(html).toContain("立即配置");
+    expect(html).toContain("下载资料");
+    expect(html).toContain("商品参数");
+    expect(html).toContain("模具信息");
+    expect(html).toContain("包装形式");
+    expect(html).toContain("企业支持");
+    expect(html).toContain("星穹七号处理器");
   });
 });

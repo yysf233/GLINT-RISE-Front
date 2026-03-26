@@ -62,7 +62,7 @@ describe("mockWorkspaceQuotesService", () => {
         requirements: [
           {
             name: "智能中控升级",
-            keywords: ["smart hub", "device"],
+            keywords: ["智能中枢", "企业中枢"],
             quantity: 100,
             targetLeadDays: 18,
             targetPriceBand: "中",
@@ -95,7 +95,7 @@ describe("mockWorkspaceQuotesService", () => {
         requirements: [
           {
             name: "智能中控升级",
-            keywords: ["smart hub"],
+            keywords: ["智能中枢"],
             quantity: 100,
             targetLeadDays: 18,
             targetPriceBand: "中",
@@ -136,7 +136,7 @@ describe("mockWorkspaceQuotesService", () => {
     const sheet = await generateWorkspaceQuoteSheet(created.quote.id, EMPLOYEE_VIEWER);
     expect(sheet.quote.status).toBe("quoted");
     expect(sheet.download.filename).toMatch(/quote\.xlsx$/);
-    expect(sheet.download.content).toContain("Smart Hub");
+    expect(sheet.download.content).toContain("智能中枢");
     expect(sheet.download.content).not.toContain("内部成本");
   });
 
@@ -206,7 +206,7 @@ describe("mockWorkspaceQuotesService", () => {
         requirements: [
           {
             name: "测试需求",
-            keywords: ["smart hub"],
+            keywords: ["智能中枢"],
             quantity: 10,
             targetLeadDays: 10,
             targetPriceBand: "中",
