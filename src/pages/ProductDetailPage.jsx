@@ -340,7 +340,7 @@ export function ProductDetailPage() {
   return (
     <div data-product-detail-layout="industrial-cn" className="min-h-screen bg-[#111111] text-white">
       <div className="mx-auto max-w-[1600px] px-5 py-5 md:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/6 pb-4">
+        <header className="flex items-center justify-between gap-4 border-b border-white/6 pb-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -350,16 +350,6 @@ export function ProductDetailPage() {
               <ArrowLeft className="h-4 w-4" />
               返回产品矩阵
             </button>
-            <div className="hidden h-4 w-px bg-white/10 md:block" />
-            <div className="text-sm font-semibold text-[#d5dbff]">光速上升工业目录</div>
-          </div>
-
-          <div className="hidden items-center gap-8 text-sm text-white/54 lg:flex">
-            {detail.headerTabs.map((label, index) => (
-              <span key={label} className={index === 0 ? "text-[#d5dbff]" : ""}>
-                {label}
-              </span>
-            ))}
           </div>
 
           <button
@@ -414,21 +404,47 @@ export function ProductDetailPage() {
                     </div>
                   </div>
 
-                  <div className="absolute inset-x-8 bottom-7 flex flex-wrap items-center justify-center gap-3">
-                    {galleryImages.map((thumb, index) => (
-                      <button
-                        key={`${thumb}-${index}`}
-                        type="button"
-                        onClick={() => setActiveImageIndex(index)}
-                        className={cn(
-                          "overflow-hidden rounded-[16px] border transition",
-                          activeImageIndex === index ? "border-[#d5dbff]/70 bg-[#d5dbff]/16" : "border-white/10 bg-white/4 hover:border-white/18",
-                        )}
-                        aria-label={`查看第 ${index + 1} 张产品图`}
-                      >
-                        <img src={thumb} alt={`${item.name} 缩略图 ${index + 1}`} className="h-14 w-14 object-cover opacity-80" />
-                      </button>
-                    ))}
+                  <div className="absolute inset-x-6 bottom-7 flex flex-col items-center gap-3">
+                    <div
+                      data-testid="product-detail-carousel-rail"
+                      data-product-carousel-style="apple-like"
+                      className="flex max-w-full items-center gap-4 overflow-x-auto rounded-[28px] border border-white/10 bg-[rgba(10,10,12,0.72)] px-4 py-3 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.42)] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    >
+                      {galleryImages.map((thumb, index) => (
+                        <button
+                          key={`${thumb}-${index}`}
+                          type="button"
+                          onClick={() => setActiveImageIndex(index)}
+                          data-carousel-thumb-state={activeImageIndex === index ? "active" : "inactive"}
+                          className={cn(
+                            "group relative shrink-0 overflow-hidden rounded-[18px] border p-0 transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                            activeImageIndex === index
+                              ? "scale-[1.06] border-white/30 bg-white/10 shadow-[0_16px_36px_rgba(0,0,0,0.32)]"
+                              : "border-white/8 bg-white/[0.03] opacity-60 hover:scale-[1.02] hover:border-white/16 hover:opacity-90",
+                          )}
+                          aria-label={`查看第 ${index + 1} 张产品图`}
+                        >
+                          <img
+                            src={thumb}
+                            alt={`${item.name} 缩略图 ${index + 1}`}
+                            className="h-[68px] w-[92px] object-cover transition duration-300 group-hover:scale-[1.03]"
+                          />
+                          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0)_36%,rgba(0,0,0,0.24)_100%)]" />
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {galleryImages.map((thumb, index) => (
+                        <span
+                          key={`dot-${thumb}-${index}`}
+                          className={cn(
+                            "h-1.5 rounded-full bg-white/26 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                            activeImageIndex === index ? "w-6 bg-white/80" : "w-1.5",
+                          )}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
