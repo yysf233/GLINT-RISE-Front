@@ -31,40 +31,28 @@ export const productSearchCategoryMap = {
 };
 
 const DEFAULT_PRODUCT_NAV = [
-  { id: "product-overview", label: "产品概览" },
-  { id: "product-specs", label: "商品参数" },
-  { id: "product-supply", label: "供应形态" },
-  { id: "product-packaging", label: "包装形式" },
-  { id: "product-support", label: "企业支持" },
-];
-
-const DEFAULT_PRODUCT_CAPABILITIES = [
-  { icon: "cpu", label: "算力调度", value: "跨场景稳定分配" },
-  { icon: "shield", label: "安全隔离", value: "核心链路分层保护" },
-  { icon: "scan", label: "热域监测", value: "实时校准温控策略" },
-  { icon: "tooling", label: "模组维护", value: "面向企业长期迭代" },
-  { icon: "package", label: "封装一致性", value: "适配量产交付规范" },
-  { icon: "logistics", label: "部署运输", value: "支持整批次发货" },
+  { id: "product-overview", label: "产品总览" },
+  { id: "product-basics", label: "基础参数" },
+  { id: "product-pricing", label: "供货与定制" },
+  { id: "product-tooling", label: "模具与交期" },
+  { id: "product-packaging", label: "包装样式" },
 ];
 
 const DEFAULT_PRODUCT_DETAIL = {
   headerTabs: ["产品", "解决方案", "技术支持", "企业采购"],
   eyebrow: "企业级工业核心",
   nav: DEFAULT_PRODUCT_NAV,
-  primaryActionLabel: "立即配置",
+  primaryActionLabel: "提交询价",
   secondaryActionLabel: "下载资料",
-  capabilityItems: DEFAULT_PRODUCT_CAPABILITIES,
-  specTableBadge: "技术细节",
   tooling: {
     title: "模具信息",
-    summary: "适配高一致性量产工艺与企业级交付节奏。",
-    cards: [
-      { label: "模具费用", value: "¥45,000.00" },
-      { label: "标准交期", value: "21 天" },
-    ],
+    summary: "如涉及开模与专用结构件，可按项目节奏提供对外参考报价与工期。",
+    quote: "¥45,000.00",
+    leadTime: "21 天",
   },
   stock: {
-    title: "现货形式",
+    title: "现采形式",
+    summary: "适用于标准配置的快速对外供货与项目补货。",
     moq: "10 套",
     leadTime: "3-5 个工作日",
     tiers: [
@@ -75,26 +63,20 @@ const DEFAULT_PRODUCT_DETAIL = {
   },
   custom: {
     title: "定制形式",
+    summary: "适用于品牌联名、工艺调整与项目化结构改造。",
     range: "激光雕刻、时钟校准、封装组件",
     minimum: "500 套",
     leadTime: "45-60 天",
-    basePrice: "¥12,400 / 套起",
+    tiers: [
+      { range: "500 - 999 套", value: "¥13,600 / 套" },
+      { range: "1000 - 1999 套", value: "¥12,900 / 套" },
+      { range: "2000+ 套", value: "¥12,400 / 套" },
+    ],
   },
   packaging: {
-    title: "包装形式",
+    title: "标配包装样式",
     summary: "采用企业级托盘与防静电缓冲层，支持整机封签、恒温运输和项目交付资料联装。",
     bullets: ["防静电保护", "密封流转", "恒温控制"],
-  },
-  documents: [
-    { icon: "document", title: "产品手册.pdf", caption: "部署与维护说明" },
-    { icon: "shield", title: "合规证书.pdf", caption: "材料与安全说明" },
-    { icon: "boxes", title: "封装模型.step", caption: "装配结构参考" },
-  ],
-  supportLinks: ["部署门户", "接口对接指南", "固件更新说明"],
-  sales: {
-    title: "企业采购",
-    summary: "支持批量采购、项目排产与物流协同，适合企业级长期部署计划。",
-    email: "solutions@glint-rise.com",
   },
 };
 
@@ -149,24 +131,16 @@ function buildProductDetail(overrides = {}) {
     ...DEFAULT_PRODUCT_DETAIL,
     ...overrides,
     nav: overrides.nav ?? DEFAULT_PRODUCT_DETAIL.nav,
-    capabilityItems: overrides.capabilityItems ?? DEFAULT_PRODUCT_DETAIL.capabilityItems,
-    specTableRows:
-      overrides.specTableRows ??
+    summaryRows:
+      overrides.summaryRows ??
       [
-        { label: "产品编号", value: overrides.sku ?? "—" },
-        { label: "品牌", value: overrides.brand ?? brand.name },
-        { label: "价格区间", value: overrides.priceRange ?? "—" },
-        { label: "峰值频率", value: overrides.capacity ?? "—" },
-        { label: "热设计功耗", value: overrides.tdp ?? "—" },
-        { label: "核心 / 线程", value: overrides.coreCount ?? "—" },
+        { label: "产品尺寸", value: overrides.size ?? "—" },
+        { label: "材质", value: overrides.material ?? "—" },
       ],
     tooling: overrides.tooling ?? DEFAULT_PRODUCT_DETAIL.tooling,
     stock: overrides.stock ?? DEFAULT_PRODUCT_DETAIL.stock,
     custom: overrides.custom ?? DEFAULT_PRODUCT_DETAIL.custom,
     packaging: overrides.packaging ?? DEFAULT_PRODUCT_DETAIL.packaging,
-    documents: overrides.documents ?? DEFAULT_PRODUCT_DETAIL.documents,
-    supportLinks: overrides.supportLinks ?? DEFAULT_PRODUCT_DETAIL.supportLinks,
-    sales: overrides.sales ?? DEFAULT_PRODUCT_DETAIL.sales,
   };
 }
 
@@ -224,7 +198,7 @@ function buildCaseDetail(overrides = {}) {
   };
 }
 
-const luminaArcMedia = createVisualSet("光弧主机", "旗舰展陈中枢", "#c6cdfd", "#111317");
+const luminaArcMedia = createVisualSet("星穹七号处理器", "企业旗舰处理器", "#c6cdfd", "#111317");
 const smartHubMedia = createVisualSet("智能中枢", "企业协同控制", "#8fd3ff", "#101216");
 const interfaceNeoMedia = createVisualSet("沉浸界面", "空间交互系统", "#e9c5ff", "#121218");
 const acousticVoidMedia = createVisualSet("静域声舱", "声学体验模块", "#b7f3d1", "#0f1214");
@@ -451,14 +425,13 @@ export const products = [
       material: "单晶硅复合基板",
       tooling: {
         title: "模具信息",
-        summary: "适配高一致性量产工艺与企业级交付节奏。",
-        cards: [
-          { label: "模具费用", value: "¥45,000.00" },
-          { label: "标准交期", value: "21 天" },
-        ],
+        summary: "如涉及开模与专用结构件，可按项目节奏提供对外参考报价与工期。",
+        quote: "¥45,000.00",
+        leadTime: "21 天",
       },
       stock: {
         title: "现采形式",
+        summary: "适用于标准配置的快速对外供货与项目补货。",
         moq: "10 套",
         leadTime: "3-5 个工作日",
         tiers: [
@@ -469,10 +442,20 @@ export const products = [
       },
       custom: {
         title: "定制形式",
+        summary: "适用于品牌联名、工艺调整与项目化结构改造。",
         range: "激光雕刻、时钟校准、封装组件",
         minimum: "500 套",
         leadTime: "45-60 天",
-        basePrice: "¥12,400 / 套起",
+        tiers: [
+          { range: "500 - 999 套", value: "¥13,600 / 套" },
+          { range: "1000 - 1999 套", value: "¥12,900 / 套" },
+          { range: "2000+ 套", value: "¥12,400 / 套" },
+        ],
+      },
+      packaging: {
+        title: "标配包装样式",
+        summary: "采用企业级托盘与防静电缓冲层，支持整机封签、恒温运输和项目交付资料联装。",
+        bullets: ["防静电保护", "密封流转", "恒温控制"],
       },
     }),
   },

@@ -1,36 +1,11 @@
 import React, { useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  Boxes,
-  ChevronRight,
-  Cpu,
-  Download,
-  FileText,
-  Package,
-  ScanSearch,
-  Share2,
-  Shield,
-  Truck,
-  Wrench,
-} from "lucide-react";
+import { ArrowLeft, ChevronRight, Download, Share2, Shield } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useNotice } from "../context/useNotice";
 import { getPublicProductById } from "../services/publicProductsCatalog";
 import { cn } from "../utils/cn";
 import { shareCurrentPage } from "../utils/shareCurrentPage";
 import { getProductShareRoute } from "../utils/shareRoutes";
-
-const PRODUCT_DETAIL_ICON_MAP = {
-  cpu: Cpu,
-  shield: Shield,
-  scan: ScanSearch,
-  tooling: Wrench,
-  package: Package,
-  logistics: Truck,
-  document: FileText,
-  boxes: Boxes,
-};
 
 function text(value) {
   return String(value ?? "").trim();
@@ -48,10 +23,6 @@ function readMetaValue(metaEntries, ...labels) {
   return "";
 }
 
-function getIconComponent(icon) {
-  return PRODUCT_DETAIL_ICON_MAP[icon] ?? Cpu;
-}
-
 function navigateToSection(sectionId, setActiveSection) {
   setActiveSection(sectionId);
   if (typeof document === "undefined") {
@@ -61,10 +32,50 @@ function navigateToSection(sectionId, setActiveSection) {
   document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function normalizeTierList(value, fallbackRange = "", fallbackPrice = "") {
+  const tiers = Array.isArray(value)
+    ? value
+        .map((entry) => ({
+          range: text(entry?.range),
+          value: text(entry?.value),
+        }))
+        .filter((entry) => entry.range && entry.value)
+    : [];
+
+  if (tiers.length > 0) {
+    return tiers;
+  }
+
+  const price = text(fallbackPrice);
+  if (!price) {
+    return [];
+  }
+
+  return [
+    {
+      range: text(fallbackRange) || "项目参考价",
+      value: price,
+    },
+  ];
+}
+
+function readCardValue(cards, ...labels) {
+  const entries = Array.isArray(cards) ? cards : [];
+  for (const label of labels) {
+    const matched = entries.find((entry) => text(entry?.label).includes(label));
+    const value = text(matched?.value);
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
 function buildFallbackDetail(item) {
   const size =
     text(item?.detail?.size) ||
-    readMetaValue(item?.meta, "尺寸", "封装规格", "规格") ||
+    readMetaValue(item?.meta, "产品尺寸", "尺寸", "封装规格", "规格") ||
     "45mm × 45mm × 4.2mm";
   const material =
     text(item?.detail?.material) ||
@@ -80,46 +91,27 @@ function buildFallbackDetail(item) {
     sidebarTitle: item.name,
     sidebarSubtitle: item.tag,
     nav: [
-      { id: "product-overview", label: "产品概览" },
-      { id: "product-specs", label: "商品参数" },
-      { id: "product-supply", label: "供应方案" },
-      { id: "product-packaging", label: "包装形式" },
-      { id: "product-support", label: "企业支持" },
+      { id: "product-overview", label: "产品总览" },
+      { id: "product-basics", label: "基础参数" },
+      { id: "product-pricing", label: "供货与定制" },
+      { id: "product-tooling", label: "模具与交期" },
+      { id: "product-packaging", label: "包装样式" },
     ],
     summaryRows: [
-      { label: "尺寸", value: size },
+      { label: "产品尺寸", value: size },
       { label: "材质", value: material },
     ],
-    primaryActionLabel: "立即配置",
+    primaryActionLabel: "提交询价",
     secondaryActionLabel: "下载资料",
-    capabilityItems: [
-      { icon: "cpu", label: "算力调度", value: "跨场景稳定分配" },
-      { icon: "shield", label: "安全隔离", value: "核心链路分层保护" },
-      { icon: "scan", label: "热域监测", value: "实时校准温控策略" },
-      { icon: "tooling", label: "模组维护", value: "面向企业长期迭代" },
-      { icon: "package", label: "封装一致性", value: "适配量产交付规范" },
-      { icon: "logistics", label: "部署运输", value: "支持整批次发货" },
-    ],
-    specTableTitle: "商品参数",
-    specTableBadge: "技术细节",
-    specTableRows: [
-      { label: "产品编号", value: text(item?.detail?.sku) || text(item?.id).toUpperCase() },
-      { label: "品牌", value: text(item?.detail?.brand) || "GLINT RISE" },
-      { label: "价格区间", value: text(item?.detail?.priceRange) || text(item?.price) || "待询价" },
-      { label: "峰值频率", value: text(item?.detail?.capacity) || "5.4 GHz 稳态调度" },
-      { label: "热设计功耗", value: text(item?.detail?.tdp) || "170W" },
-      { label: "核心 / 线程", value: text(item?.detail?.coreCount) || "16 / 32" },
-    ],
     tooling: {
       title: "模具信息",
-      summary: "适配高一致性量产工艺与企业级交付节奏。",
-      cards: [
-        { label: "模具费用", value: "¥45,000.00" },
-        { label: "标准交期", value: "21 天" },
-      ],
+      summary: "如涉及开模与专用结构件，可按项目节奏提供对外参考报价与工期。",
+      quote: "¥45,000.00",
+      leadTime: "21 天",
     },
     stock: {
-      title: "现货形式",
+      title: "现采形式",
+      summary: "适用于标准配置的快速对外供货与项目补货。",
       moq: "10 套",
       leadTime: "3-5 个工作日",
       tiers: [
@@ -130,26 +122,20 @@ function buildFallbackDetail(item) {
     },
     custom: {
       title: "定制形式",
+      summary: "适用于品牌联名、工艺调整与项目化结构改造。",
       range: "激光雕刻、时钟校准、封装组件",
       minimum: "500 套",
       leadTime: "45-60 天",
-      basePrice: "¥12,400 / 套起",
+      tiers: [
+        { range: "500 - 999 套", value: "¥13,600 / 套" },
+        { range: "1000 - 1999 套", value: "¥12,900 / 套" },
+        { range: "2000+ 套", value: "¥12,400 / 套" },
+      ],
     },
     packaging: {
-      title: "包装形式",
+      title: "标配包装样式",
       summary: "采用企业级托盘与防静电缓冲层，支持整机封签、恒温运输和项目交付资料联装。",
       bullets: ["防静电保护", "密封流转", "恒温控制"],
-    },
-    documents: [
-      { icon: "document", title: "产品手册.pdf", caption: "部署与维护说明" },
-      { icon: "shield", title: "合规证书.pdf", caption: "材料与安全说明" },
-      { icon: "boxes", title: "封装模型.step", caption: "装配结构参考" },
-    ],
-    supportLinks: ["部署门户", "接口对接指南", "固件更新说明"],
-    sales: {
-      title: "企业采购",
-      summary: "支持批量采购、项目排产与物流协同，适合企业级长期部署计划。",
-      email: "solutions@glint-rise.com",
     },
   };
 }
@@ -157,6 +143,15 @@ function buildFallbackDetail(item) {
 function resolveProductDetail(item) {
   const fallback = buildFallbackDetail(item);
   const detail = item?.detail && typeof item.detail === "object" ? item.detail : {};
+  const stock = detail.stock && typeof detail.stock === "object" ? { ...fallback.stock, ...detail.stock } : fallback.stock;
+  const custom =
+    detail.custom && typeof detail.custom === "object" ? { ...fallback.custom, ...detail.custom } : fallback.custom;
+  const tooling =
+    detail.tooling && typeof detail.tooling === "object" ? { ...fallback.tooling, ...detail.tooling } : fallback.tooling;
+  const packaging =
+    detail.packaging && typeof detail.packaging === "object"
+      ? { ...fallback.packaging, ...detail.packaging }
+      : fallback.packaging;
 
   return {
     ...fallback,
@@ -168,15 +163,26 @@ function resolveProductDetail(item) {
     headerTabs: Array.isArray(detail.headerTabs) ? detail.headerTabs : fallback.headerTabs,
     nav: Array.isArray(detail.nav) ? detail.nav : fallback.nav,
     summaryRows: Array.isArray(detail.summaryRows) ? detail.summaryRows : fallback.summaryRows,
-    capabilityItems: Array.isArray(detail.capabilityItems) ? detail.capabilityItems : fallback.capabilityItems,
-    specTableRows: Array.isArray(detail.specTableRows) ? detail.specTableRows : fallback.specTableRows,
-    tooling: detail.tooling ?? fallback.tooling,
-    stock: detail.stock ?? fallback.stock,
-    custom: detail.custom ?? fallback.custom,
-    packaging: detail.packaging ?? fallback.packaging,
-    documents: Array.isArray(detail.documents) ? detail.documents : fallback.documents,
-    supportLinks: Array.isArray(detail.supportLinks) ? detail.supportLinks : fallback.supportLinks,
-    sales: detail.sales ?? fallback.sales,
+    primaryActionLabel: text(detail.primaryActionLabel) || fallback.primaryActionLabel,
+    secondaryActionLabel: text(detail.secondaryActionLabel) || fallback.secondaryActionLabel,
+    tooling: {
+      ...tooling,
+      quote: text(tooling.quote) || readCardValue(tooling.cards, "模具费", "模具费用", "模具报价"),
+      leadTime: text(tooling.leadTime) || readCardValue(tooling.cards, "模具工期", "标准交期", "工期"),
+    },
+    stock: {
+      ...stock,
+      tiers: normalizeTierList(stock.tiers, stock.moq, stock.referencePrice),
+    },
+    custom: {
+      ...custom,
+      tiers: normalizeTierList(custom.tiers, custom.minimum, custom.basePrice),
+    },
+    packaging: {
+      ...packaging,
+      bullets:
+        Array.isArray(packaging.bullets) && packaging.bullets.length > 0 ? packaging.bullets : fallback.packaging.bullets,
+    },
   };
 }
 
@@ -222,7 +228,7 @@ function DetailSidebar({ item, detail, activeSection, onNavigate }) {
 
       <button
         type="button"
-        onClick={() => onNavigate("product-support")}
+        onClick={() => onNavigate("product-pricing")}
         className="mt-10 inline-flex w-full items-center justify-center rounded-[18px] bg-[#c6cdfd] px-4 py-3 text-sm font-semibold tracking-[0.1em] text-[#101320] transition hover:opacity-92"
       >
         提交询价
@@ -236,16 +242,70 @@ function DetailSidebar({ item, detail, activeSection, onNavigate }) {
   );
 }
 
-function CapabilityCard({ item }) {
-  const Icon = getIconComponent(item.icon);
-
+function SectionHeading({ title, eyebrow }) {
   return (
-    <div className="rounded-[22px] border border-white/6 bg-[#181818] p-4 text-center shadow-[0_20px_48px_rgba(0,0,0,0.16)]">
-      <div className="mx-auto grid h-11 w-11 place-items-center rounded-[16px] bg-[#c6cdfd]/12 text-[#c6cdfd]">
-        <Icon className="h-5 w-5" />
+    <div className="flex items-center justify-between gap-4">
+      <div
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "1.9rem",
+          fontWeight: 700,
+          letterSpacing: "-0.04em",
+        }}
+      >
+        {title}
       </div>
-      <div className="mt-4 text-sm font-semibold text-white">{item.label}</div>
-      <div className="mt-2 text-[11px] leading-6 text-white/48">{item.value}</div>
+      {eyebrow ? <div className="text-[10px] tracking-[0.28em] text-[#d5dbff]">{eyebrow}</div> : null}
+    </div>
+  );
+}
+
+function MetricCard({ label, value, className = "" }) {
+  return (
+    <div className={cn("rounded-[22px] border border-white/6 bg-[#111111] p-5", className)}>
+      <div className="text-[10px] tracking-[0.26em] text-white/36">{label}</div>
+      <div className="mt-3 text-xl font-semibold leading-tight text-white">{text(value) || "按项目确认"}</div>
+    </div>
+  );
+}
+
+function PricingCard({ title, summary, fields, tiers, accentClassName = "" }) {
+  return (
+    <div
+      className={cn(
+        "rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]",
+        accentClassName,
+      )}
+    >
+      <SectionHeading title={title} eyebrow="对外报价结构" />
+      {summary ? <p className="mt-3 text-sm leading-7 text-white/64">{summary}</p> : null}
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {fields.map((field) => (
+          <MetricCard key={field.label} label={field.label} value={field.value} className={field.className} />
+        ))}
+      </div>
+
+      <div className="mt-8 border-t border-white/6 pt-6">
+        <div className="text-[10px] tracking-[0.28em] text-white/34">阶梯报价（参考价）</div>
+        <div className="mt-4 space-y-3">
+          {tiers.length > 0 ? (
+            tiers.map((tier) => (
+              <div
+                key={`${tier.range}-${tier.value}`}
+                className="flex items-center justify-between gap-4 rounded-[18px] border border-white/6 bg-white/[0.02] px-4 py-3 text-sm"
+              >
+                <span className="text-white/62">{tier.range}</span>
+                <span className="font-semibold text-white">{tier.value}</span>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-[18px] border border-dashed border-white/10 px-4 py-3 text-sm text-white/52">
+              当前产品未配置阶梯参考价
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -265,6 +325,17 @@ export function ProductDetailPage() {
   const galleryImages = Array.isArray(item.thumbs) && item.thumbs.length > 0 ? item.thumbs : [item.hero].filter(Boolean);
   const activeImage = galleryImages[activeImageIndex] ?? galleryImages[0] ?? item.hero;
   const detail = useMemo(() => resolveProductDetail(item), [item]);
+  const heroFacts = [
+    { label: "公开参考价", value: text(item.price) || "待询价" },
+    { label: "产品编号", value: text(detail.sku) || text(item.id).toUpperCase() },
+    { label: "版本定位", value: text(item.version) || detail.heroSubtitle },
+  ];
+  const displayMeta = Array.isArray(item.meta)
+    ? item.meta
+        .map((entry) => (Array.isArray(entry) ? { label: text(entry[0]), value: text(entry[1]) } : null))
+        .filter((entry) => entry?.label && entry?.value)
+        .slice(0, 4)
+    : [];
 
   return (
     <div data-product-detail-layout="industrial-cn" className="min-h-screen bg-[#111111] text-white">
@@ -310,12 +381,14 @@ export function ProductDetailPage() {
           />
 
           <main className="space-y-6">
-            <section id="product-overview" data-testid="product-detail-hero" className="grid gap-6 xl:grid-cols-[minmax(0,0.48fr)_minmax(0,0.52fr)]">
+            <section id="product-overview" data-testid="product-detail-hero" className="grid gap-6 xl:grid-cols-[minmax(0,0.52fr)_minmax(0,0.48fr)]">
               <div className="relative overflow-hidden rounded-[34px] border border-white/6 bg-[#161616] shadow-[0_36px_90px_rgba(0,0,0,0.34)]">
                 <img src={activeImage} alt={item.name} className="absolute inset-0 h-full w-full object-cover opacity-28" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,rgba(255,255,255,0.06)_0%,rgba(255,255,255,0)_24%),linear-gradient(180deg,rgba(8,8,9,0.54)_0%,rgba(8,8,9,0.9)_100%)]" />
+
                 <div className="relative flex min-h-[560px] items-center justify-center p-8">
                   <div className="absolute left-7 top-7 text-[11px] tracking-[0.28em] text-white/38">{detail.heroSubtitle}</div>
+
                   <div className="relative w-full max-w-[420px] rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,#2b2b2b_0%,#171717_100%)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.42)]">
                     <div className="absolute inset-[10px] rounded-[22px] border border-white/8" />
                     <div className="absolute inset-x-8 top-4 flex items-center justify-between text-white/28">
@@ -376,26 +449,23 @@ export function ProductDetailPage() {
                 </h2>
                 <p className="mt-6 max-w-2xl text-base leading-8 text-white/70">{item.desc}</p>
 
-                <div className="mt-8 grid gap-6 border-t border-white/6 pt-6 sm:grid-cols-2">
-                  {detail.summaryRows.map((row) => (
-                    <div key={row.label}>
-                      <div className="text-[10px] tracking-[0.26em] text-white/36">{row.label}</div>
-                      <div className="mt-2 text-xl font-semibold text-white">{row.value}</div>
-                    </div>
+                <div className="mt-8 grid gap-4 border-t border-white/6 pt-6 sm:grid-cols-3">
+                  {heroFacts.map((fact) => (
+                    <MetricCard key={fact.label} label={fact.label} value={fact.value} />
                   ))}
                 </div>
 
                 <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                   <button
                     type="button"
-                    onClick={() => navigateToSection("product-support", setActiveSection)}
+                    onClick={() => navigateToSection("product-pricing", setActiveSection)}
                     className="inline-flex items-center justify-center rounded-[18px] bg-[#c6cdfd] px-6 py-4 text-sm font-semibold tracking-[0.1em] text-[#111421] transition hover:opacity-92"
                   >
                     {detail.primaryActionLabel}
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigateToSection("product-support", setActiveSection)}
+                    onClick={() => navigateToSection("product-packaging", setActiveSection)}
                     className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-white/10 bg-[#131313] px-6 py-4 text-sm font-semibold tracking-[0.1em] text-white transition hover:border-white/18"
                   >
                     {detail.secondaryActionLabel}
@@ -405,145 +475,82 @@ export function ProductDetailPage() {
               </div>
             </section>
 
-            <section data-testid="product-detail-capability-strip" className="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
-              {detail.capabilityItems.map((capability) => (
-                <CapabilityCard key={capability.label} item={capability} />
-              ))}
-            </section>
-
-            <section id="product-specs" data-testid="product-detail-spec-grid" className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_320px]">
+            <section id="product-basics" data-testid="product-detail-basics-grid" className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_320px]">
               <div className="rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div className="flex items-center justify-between gap-3">
-                  <div
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "1.9rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
-                    }}
-                  >
-                    {detail.specTableTitle}
-                  </div>
-                  <div className="text-[10px] tracking-[0.28em] text-[#d5dbff]">{detail.specTableBadge}</div>
-                </div>
-                <div className="mt-8 grid gap-5 md:grid-cols-2">
-                  {detail.specTableRows.map((row) => (
-                    <div key={row.label} className="border-b border-white/6 pb-4">
-                      <div className="text-[10px] tracking-[0.26em] text-white/34">{row.label}</div>
-                      <div className="mt-2 text-lg font-semibold text-white">{row.value}</div>
-                    </div>
+                <SectionHeading title="基础参数" eyebrow="对外展示基础字段" />
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  {detail.summaryRows.map((row) => (
+                    <MetricCard key={row.label} label={row.label} value={row.value} />
                   ))}
+                  <MetricCard label="产品编号" value={text(detail.sku) || text(item.id).toUpperCase()} />
+                  <MetricCard label="品牌" value={text(detail.brand) || "GLINT RISE"} />
                 </div>
               </div>
 
-              <div className="rounded-[30px] border border-white/6 bg-[#202020] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.75rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  {detail.tooling.title}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-white/62">{detail.tooling.summary}</p>
-
+              <div className="rounded-[30px] border border-white/6 bg-[#1f1f1f] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
+                <SectionHeading title="展示信息" eyebrow="公开页同步标签" />
                 <div className="mt-6 space-y-4">
-                  {detail.tooling.cards.map((card) => (
-                    <div key={card.label} className="rounded-[18px] bg-[#111111] p-4">
-                      <div className="text-[10px] tracking-[0.26em] text-white/36">{card.label}</div>
-                      <div className="mt-2 text-2xl font-bold text-white">{card.value}</div>
-                    </div>
-                  ))}
+                  {displayMeta.length > 0 ? (
+                    displayMeta.map((entry) => (
+                      <div key={entry.label} className="border-b border-white/6 pb-4 last:border-b-0 last:pb-0">
+                        <div className="text-[10px] tracking-[0.26em] text-white/34">{entry.label}</div>
+                        <div className="mt-2 text-sm leading-7 text-white/72">{entry.value}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm leading-7 text-white/60">当前产品暂无附加展示标签。</div>
+                  )}
                 </div>
               </div>
             </section>
 
-            <section id="product-supply" data-testid="product-detail-supply-grid" className="grid gap-6 xl:grid-cols-2">
-              <div className="rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.75rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  {detail.stock.title}
-                </div>
-                <div className="mt-6 grid gap-4 text-sm text-white/70 sm:grid-cols-2">
-                  <div>
-                    <div className="text-[10px] tracking-[0.26em] text-white/36">起订量</div>
-                    <div className="mt-2 text-lg font-semibold text-white">{detail.stock.moq}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] tracking-[0.26em] text-white/36">交付周期</div>
-                    <div className="mt-2 text-lg font-semibold text-white">{detail.stock.leadTime}</div>
-                  </div>
+            <section id="product-pricing" data-testid="product-detail-pricing-grid" className="grid gap-6 xl:grid-cols-2">
+              <PricingCard
+                title={detail.stock.title}
+                summary={detail.stock.summary}
+                fields={[
+                  { label: "对外起订量", value: detail.stock.moq },
+                  { label: "对外工期", value: detail.stock.leadTime },
+                ]}
+                tiers={detail.stock.tiers}
+              />
+
+              <PricingCard
+                title={detail.custom.title}
+                summary={detail.custom.summary}
+                accentClassName="bg-[linear-gradient(135deg,#1a1a1a_0%,#252525_100%)]"
+                fields={[
+                  { label: "产品可定制范围", value: detail.custom.range, className: "sm:col-span-2" },
+                  { label: "对外起订量", value: detail.custom.minimum },
+                  { label: "对外工期", value: detail.custom.leadTime },
+                ]}
+                tiers={detail.custom.tiers}
+              />
+            </section>
+
+            <section id="product-tooling" data-testid="product-detail-tooling-panel" className="rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] xl:items-center">
+                <div>
+                  <SectionHeading title={detail.tooling.title} eyebrow="项目打样与模具参考" />
+                  <p className="mt-4 max-w-2xl text-sm leading-7 text-white/66">{detail.tooling.summary}</p>
                 </div>
 
-                <div className="mt-8 space-y-3 border-t border-white/6 pt-6">
-                  {detail.stock.tiers.map((tier) => (
-                    <div key={tier.range} className="flex items-center justify-between gap-4 text-sm">
-                      <span className="text-white/62">{tier.range}</span>
-                      <span className="font-semibold text-white">{tier.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[30px] border border-white/6 bg-[linear-gradient(135deg,#1a1a1a_0%,#252525_100%)] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.75rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  {detail.custom.title}
-                </div>
-                <div className="mt-8 grid gap-5 text-sm text-white/68 sm:grid-cols-2">
-                  <div>
-                    <div className="text-[10px] tracking-[0.26em] text-white/36">定制范围</div>
-                    <div className="mt-2 text-base font-semibold text-white">{detail.custom.range}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] tracking-[0.26em] text-white/36">最低起订</div>
-                    <div className="mt-2 text-base font-semibold text-white">{detail.custom.minimum}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] tracking-[0.26em] text-white/36">交付周期</div>
-                    <div className="mt-2 text-base font-semibold text-white">{detail.custom.leadTime}</div>
-                  </div>
-                </div>
-
-                <div className="mt-10 rounded-[22px] border border-white/6 bg-[#111111] p-5">
-                  <div className="text-[10px] tracking-[0.26em] text-white/36">定制参考价</div>
-                  <div className="mt-2 text-4xl font-bold tracking-[-0.04em] text-white">{detail.custom.basePrice}</div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <MetricCard label="模具费对外报价（参考价）" value={detail.tooling.quote} />
+                  <MetricCard label="模具对外工期（参考工期）" value={detail.tooling.leadTime} />
                 </div>
               </div>
             </section>
 
             <section id="product-packaging" data-testid="product-detail-packaging-panel" className="rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-              <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-center">
+              <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)] xl:items-center">
                 <div className="overflow-hidden rounded-[22px] border border-white/6 bg-[#111111]">
                   <img src={galleryImages[galleryImages.length - 1] ?? item.hero} alt={`${item.name} 包装示意`} className="aspect-[4/3] w-full object-cover" />
                 </div>
                 <div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "1.8rem",
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
-                    }}
-                  >
-                    {detail.packaging.title}
-                  </div>
-                  <p className="mt-3 max-w-4xl text-sm leading-7 text-white/66">{detail.packaging.summary}</p>
-                  <div className="mt-5 flex flex-wrap gap-6">
+                  <SectionHeading title={detail.packaging.title} eyebrow="对外标准交付" />
+                  <p className="mt-4 max-w-4xl text-sm leading-7 text-white/66">{detail.packaging.summary}</p>
+                  <div className="mt-6 flex flex-wrap gap-6">
                     {detail.packaging.bullets.map((bullet) => (
                       <div key={bullet} className="inline-flex items-center gap-2 text-sm text-white/74">
                         <Shield className="h-4 w-4 text-[#d5dbff]" />
@@ -552,83 +559,6 @@ export function ProductDetailPage() {
                     ))}
                   </div>
                 </div>
-              </div>
-            </section>
-
-            <section id="product-support" data-testid="product-detail-support-grid" className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.7fr)_320px]">
-              <div className="rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.6rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  资料与合规
-                </div>
-                <div className="mt-6 space-y-3">
-                  {detail.documents.map((document) => {
-                    const Icon = getIconComponent(document.icon);
-
-                    return (
-                      <button
-                        key={document.title}
-                        type="button"
-                        className="flex w-full items-center justify-between rounded-[18px] border border-white/6 bg-[#111111] px-4 py-3 text-left transition hover:border-white/14"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#d5dbff]/12 text-[#d5dbff]">
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-white">{document.title}</div>
-                            <div className="mt-1 text-[11px] text-white/42">{document.caption}</div>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="h-4 w-4 text-white/36" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="rounded-[30px] border border-white/6 bg-[#171717] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.6rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  企业支持
-                </div>
-                <div className="mt-6 space-y-4">
-                  {detail.supportLinks.map((link) => (
-                    <div key={link} className="flex items-center justify-between border-b border-white/6 pb-4 text-sm text-white/70 last:border-b-0 last:pb-0">
-                      <span>{link}</span>
-                      <ChevronRight className="h-4 w-4 text-white/36" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[30px] border border-white/6 bg-[#1f1f1f] p-7 shadow-[0_28px_72px_rgba(0,0,0,0.2)]">
-                <div
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.6rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.04em",
-                  }}
-                >
-                  {detail.sales.title}
-                </div>
-                <p className="mt-4 text-sm leading-7 text-white/66">{detail.sales.summary}</p>
-                <a href={`mailto:${detail.sales.email}`} className="mt-8 inline-flex text-sm font-semibold text-[#d5dbff] hover:text-white">
-                  {detail.sales.email}
-                </a>
               </div>
             </section>
           </main>
