@@ -34,10 +34,7 @@ export function ProductDetailPage() {
   const galleryImages = item.thumbs;
   const activeImageIndex = galleryCarousel.activeIndex % galleryImages.length;
   const activeImage = galleryImages[activeImageIndex];
-  const sideRailImages = galleryImages
-    .map((thumb, index) => ({ thumb, index }))
-    .filter(({ index }) => index !== activeImageIndex)
-    .slice(0, 3);
+  const ecosystemImage = galleryImages[(activeImageIndex + 1) % galleryImages.length] ?? galleryImages[0];
   const specPairs = item.meta.slice(0, 3);
 
   return (
@@ -73,7 +70,7 @@ export function ProductDetailPage() {
             style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}
             {...galleryCarousel.hoverHandlers}
           >
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(220px,0.28fr)]">
+            <div className="grid gap-4">
               <div data-testid="product-detail-gallery-track" className="relative overflow-hidden rounded-[26px] bg-[#0f1014]">
                 <AnimatePresence mode="wait">
                   <motion.img
@@ -89,26 +86,9 @@ export function ProductDetailPage() {
                   />
                 </AnimatePresence>
               </div>
-
-              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                {sideRailImages.map(({ thumb, index }) => (
-                  <button
-                    type="button"
-                    key={thumb}
-                    onClick={() => galleryCarousel.goTo(index)}
-                    className={cn(
-                      "overflow-hidden rounded-[20px] border bg-[#0f1014] text-left transition",
-                      activeImage === thumb ? "border-[#bac3ff]" : "border-white/8 hover:border-white/18",
-                    )}
-                    aria-label={`查看第 ${index + 1} 张产品图`}
-                  >
-                    <img src={thumb} alt={`${item.name} 细节图 ${index + 1}`} className="aspect-[4/5] w-full object-cover" />
-                  </button>
-                ))}
-              </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-4 gap-3">
+            <div data-testid="product-detail-gallery-bottom-strip" className="mt-4 grid grid-cols-4 gap-3">
               {galleryImages.map((thumb, index) => (
                 <button
                   type="button"
@@ -216,11 +196,7 @@ export function ProductDetailPage() {
                 </div>
 
                 <div className="overflow-hidden bg-[#0f1014]">
-                  <img
-                    src={sideRailImages[0]?.thumb ?? galleryImages[0]}
-                    alt={`${item.name} 生态联动`}
-                    className="h-full min-h-[240px] w-full object-cover"
-                  />
+                  <img src={ecosystemImage} alt={`${item.name} 生态联动`} className="h-full min-h-[240px] w-full object-cover" />
                 </div>
               </div>
             </div>

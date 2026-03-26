@@ -105,6 +105,24 @@ function text(value) {
   return String(value ?? "").trim();
 }
 
+function numberOrZero(value) {
+  const normalized = text(value);
+  if (!normalized) {
+    return 0;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function normalizeTimelineCardSide(value) {
+  return text(value) === "below" ? "below" : "above";
+}
+
+function normalizeTimelineAccent(value) {
+  return text(value) === "featured" ? "featured" : "normal";
+}
+
 function normalizeTimeline(timeline) {
   return Array.isArray(timeline)
     ? timeline
@@ -142,6 +160,11 @@ function normalizeProjectPayload(input, existingProject = null) {
     year: text(payload.year ?? base.year),
     category: text(payload.category ?? base.category),
     publicCaseId: text(payload.publicCaseId ?? base.publicCaseId),
+    timelineYear: text(payload.timelineYear ?? base.timelineYear),
+    timelineQuarter: text(payload.timelineQuarter ?? base.timelineQuarter),
+    timelineOrder: numberOrZero(payload.timelineOrder ?? base.timelineOrder),
+    timelineCardSide: normalizeTimelineCardSide(payload.timelineCardSide ?? base.timelineCardSide),
+    timelineAccent: normalizeTimelineAccent(payload.timelineAccent ?? base.timelineAccent),
     summary: text(payload.summary ?? base.summary),
     short: text(payload.short ?? base.short),
     hero: text(payload.hero ?? base.hero),

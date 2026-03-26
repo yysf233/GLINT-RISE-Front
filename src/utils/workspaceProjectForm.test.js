@@ -13,6 +13,11 @@ describe("workspaceProjectForm helpers", () => {
 
     expect(defaults.owner).toBe("Maya");
     expect(defaults.status).toBe("draft");
+    expect(defaults.timelineYear).toBe("");
+    expect(defaults.timelineQuarter).toBe("");
+    expect(defaults.timelineOrder).toBe("");
+    expect(defaults.timelineCardSide).toBe("above");
+    expect(defaults.timelineAccent).toBe("normal");
     expect(defaults.timeline).toEqual([]);
     expect(defaults.relatedProducts).toEqual([]);
   });
@@ -21,53 +26,60 @@ describe("workspaceProjectForm helpers", () => {
     const mapped = mapWorkspaceProjectToForm(
       {
         id: "wp-case-001",
-        title: "北极星项目",
+        title: "North Star Program",
         status: "active",
         owner: "Maya",
         industry: "Retail",
         year: "2026",
         category: "Case Study",
         publicCaseId: "bosideng-aerospace",
-        summary: "公开案例链路的对齐样本。",
-        short: "旗舰案例上架对齐。",
+        timelineYear: "2024",
+        timelineQuarter: "Q3",
+        timelineOrder: 202403,
+        timelineCardSide: "below",
+        timelineAccent: "featured",
+        summary: "Public case alignment.",
+        short: "Short summary.",
         hero: "/hero.jpg",
-        timeline: [
-          { id: "t1", label: "启动", order: 1, description: "启动说明" },
-        ],
-        relatedProducts: [
-          { id: "wp-lumina-arc", publicProductId: "lumina-arc" },
-        ],
+        timeline: [{ id: "t1", label: "Kickoff", order: 1, description: "Started" }],
+        relatedProducts: [{ id: "wp-lumina-arc", publicProductId: "lumina-arc" }],
       },
       { name: "Fallback" },
     );
 
-    expect(mapped.title).toBe("北极星项目");
+    expect(mapped.title).toBe("North Star Program");
     expect(mapped.owner).toBe("Maya");
-    expect(mapped.timeline).toEqual([
-      { id: "t1", label: "启动", order: 1, description: "启动说明" },
-    ]);
-    expect(mapped.relatedProducts).toEqual([
-      { id: "wp-lumina-arc", publicProductId: "lumina-arc" },
-    ]);
+    expect(mapped.timelineYear).toBe("2024");
+    expect(mapped.timelineQuarter).toBe("Q3");
+    expect(mapped.timelineOrder).toBe("202403");
+    expect(mapped.timelineCardSide).toBe("below");
+    expect(mapped.timelineAccent).toBe("featured");
+    expect(mapped.timeline).toEqual([{ id: "t1", label: "Kickoff", order: 1, description: "Started" }]);
+    expect(mapped.relatedProducts).toEqual([{ id: "wp-lumina-arc", publicProductId: "lumina-arc" }]);
   });
 
   it("builds a normalized payload from form values", () => {
     const payload = buildWorkspaceProjectPayload({
       id: "wp-case-003",
-      title: "星港体验计划",
+      title: "Star Harbor",
       status: "active",
       owner: "Lydia",
       industry: "Retail",
       year: "2027",
       category: "Case Study",
       publicCaseId: "star-harbor",
-      summary: "完整项目发布链路。",
-      short: "短摘要",
+      timelineYear: "2024",
+      timelineQuarter: "Q4",
+      timelineOrder: "202404",
+      timelineCardSide: "above",
+      timelineAccent: "featured",
+      summary: "Release pipeline.",
+      short: "Short note",
       hero: "/star.jpg",
       timeline: [
-        { id: "", label: "立项", order: 2, description: "说明" },
-        { id: "x2", label: "交付", order: 5, description: "" },
-        { id: "", label: "   ", order: 8, description: "应被过滤" },
+        { id: "", label: "Initiation", order: 2, description: "Defined" },
+        { id: "x2", label: "Delivery", order: 5, description: "" },
+        { id: "", label: "   ", order: 8, description: "Filtered" },
       ],
       relatedProducts: [
         { id: "wp-smart-hub", publicProductId: "product-a" },
@@ -76,10 +88,15 @@ describe("workspaceProjectForm helpers", () => {
     });
 
     expect(payload.id).toBe("wp-case-003");
-    expect(payload.title).toBe("星港体验计划");
+    expect(payload.title).toBe("Star Harbor");
+    expect(payload.timelineYear).toBe("2024");
+    expect(payload.timelineQuarter).toBe("Q4");
+    expect(payload.timelineOrder).toBe(202404);
+    expect(payload.timelineCardSide).toBe("above");
+    expect(payload.timelineAccent).toBe("featured");
     expect(payload.timeline).toEqual([
-      { id: "timeline-1", label: "立项", order: 2, description: "说明" },
-      { id: "x2", label: "交付", order: 5, description: "" },
+      { id: "timeline-1", label: "Initiation", order: 2, description: "Defined" },
+      { id: "x2", label: "Delivery", order: 5, description: "" },
     ]);
     expect(payload.relatedProducts).toEqual([
       { id: "wp-smart-hub", publicProductId: "product-a" },
