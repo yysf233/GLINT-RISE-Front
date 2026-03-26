@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Share2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { MetaTile } from "../components/common/MetaTile";
+import {
+  APPLE_CAROUSEL_AUTOPLAY_MS,
+  appleCarouselSlideVariants,
+  APPLE_CAROUSEL_TRANSITION,
+  useAppleStyleCarousel,
+} from "../hooks/useAppleStyleCarousel";
 import { PageShell } from "../components/layout/PageShell";
 import { useNotice } from "../context/useNotice";
 import { getPublicProductById } from "../services/publicProductsCatalog";
@@ -14,19 +21,23 @@ export function ProductDetailPage() {
   const { id } = useParams();
   const { showNotice } = useNotice();
   const item = getPublicProductById(id);
-  const [activeImage, setActiveImage] = useState(item?.thumbs[0] ?? "");
 
-  useEffect(() => {
-    if (item) {
-      setActiveImage(item.thumbs[0]);
-    }
-  }, [item]);
+  const galleryCarousel = useAppleStyleCarousel({
+    length: item?.thumbs?.length ?? 0,
+    autoplayMs: APPLE_CAROUSEL_AUTOPLAY_MS,
+  });
 
   if (!item) {
     return <Navigate to="/products" replace />;
   }
 
-  const mediaRail = item.thumbs.slice(1, 4);
+  const galleryImages = item.thumbs;
+  const activeImageIndex = galleryCarousel.activeIndex % galleryImages.length;
+  const activeImage = galleryImages[activeImageIndex];
+  const sideRailImages = galleryImages
+    .map((thumb, index) => ({ thumb, index }))
+    .filter(({ index }) => index !== activeImageIndex)
+    .slice(0, 3);
   const specPairs = item.meta.slice(0, 3);
 
   return (
@@ -55,41 +66,57 @@ export function ProductDetailPage() {
         <div className="grid gap-8 xl:grid-cols-[minmax(0,0.62fr)_minmax(360px,0.38fr)]">
           <div
             data-testid="product-detail-gallery-grid"
+            data-carousel-style="apple-product"
+            data-carousel-state={galleryCarousel.isPaused ? "paused" : "playing"}
+            aria-roledescription="carousel"
             className="rounded-[30px] border border-white/6 bg-[#141519] p-5 md:p-6"
             style={{ boxShadow: "0 28px 72px rgba(0, 0, 0, 0.28)" }}
+            {...galleryCarousel.hoverHandlers}
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(220px,0.28fr)]">
-              <div className="overflow-hidden rounded-[26px] bg-[#0f1014]">
-                <img src={activeImage} alt={item.name} className="aspect-[4/5] w-full object-cover" />
+              <div data-testid="product-detail-gallery-track" className="relative overflow-hidden rounded-[26px] bg-[#0f1014]">
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={activeImage}
+                    src={activeImage}
+                    alt={item.name}
+                    className="aspect-[4/5] w-full object-cover"
+                    variants={appleCarouselSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={APPLE_CAROUSEL_TRANSITION}
+                  />
+                </AnimatePresence>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                {mediaRail.map((thumb, index) => (
+                {sideRailImages.map(({ thumb, index }) => (
                   <button
                     type="button"
                     key={thumb}
-                    onClick={() => setActiveImage(thumb)}
+                    onClick={() => galleryCarousel.goTo(index)}
                     className={cn(
                       "overflow-hidden rounded-[20px] border bg-[#0f1014] text-left transition",
                       activeImage === thumb ? "border-[#bac3ff]" : "border-white/8 hover:border-white/18",
                     )}
-                    aria-label={`查看第 ${index + 2} 张产品图`}
+                    aria-label={`查看第 ${index + 1} 张产品图`}
                   >
-                    <img src={thumb} alt={`${item.name} 细节图 ${index + 2}`} className="aspect-[4/5] w-full object-cover" />
+                    <img src={thumb} alt={`${item.name} 细节图 ${index + 1}`} className="aspect-[4/5] w-full object-cover" />
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-4 gap-3">
-              {item.thumbs.map((thumb, index) => (
+              {galleryImages.map((thumb, index) => (
                 <button
                   type="button"
                   key={`${thumb}-thumb`}
-                  onClick={() => setActiveImage(thumb)}
+                  onClick={() => galleryCarousel.goTo(index)}
                   className={cn(
                     "overflow-hidden rounded-[16px] border bg-[#111216] transition",
-                    activeImage === thumb ? "border-[#bac3ff]" : "border-white/8 hover:border-white/18",
+                    activeImageIndex === index ? "border-[#bac3ff]" : "border-white/8 hover:border-white/18",
                   )}
                   aria-label={`查看第 ${index + 1} 张产品图`}
                 >
@@ -190,7 +217,7 @@ export function ProductDetailPage() {
 
                 <div className="overflow-hidden bg-[#0f1014]">
                   <img
-                    src={mediaRail[0] ?? item.thumbs[0]}
+                    src={sideRailImages[0]?.thumb ?? galleryImages[0]}
                     alt={`${item.name} 生态联动`}
                     className="h-full min-h-[240px] w-full object-cover"
                   />

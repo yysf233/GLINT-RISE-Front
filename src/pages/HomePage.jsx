@@ -3,13 +3,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Cpu, Globe2, ScanSearch, Share2, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SearchBar } from "../components/common/SearchBar";
+import {
+  APPLE_CAROUSEL_AUTOPLAY_MS,
+  appleCarouselSlideVariants,
+  APPLE_CAROUSEL_TRANSITION,
+  useAppleStyleCarousel,
+} from "../hooks/useAppleStyleCarousel";
 import { PageShell } from "../components/layout/PageShell";
 import { cases } from "../data/siteContent";
 import { getPublicProductFilters, listPublicProducts } from "../services/publicProductsCatalog";
 import { readPublicSiteSettings, readPublishedHomeBanners } from "../services/publicSiteContent";
 import { ALL_PRODUCT_CATEGORY_LABEL } from "../utils/productSearch";
 
-const HERO_AUTOPLAY_MS = 5200;
 const CASE_PRIORITY = ["enterprise-data-synergy", "quantum-security-protocol", "bosideng-aerospace"];
 const PRODUCT_ICONS = [Cpu, Shield, ScanSearch, Globe2];
 const STORY_METRICS = [
@@ -171,11 +176,18 @@ export function HomePage() {
   const searchOptions = categoryOptions.length > 0 ? categoryOptions : [ALL_PRODUCT_CATEGORY_LABEL];
   const [searchValue, setSearchValue] = useState("");
   const [searchCategory, setSearchCategory] = useState(searchOptions[0]);
-  const [bannerIndex, setBannerIndex] = useState(0);
-  const [productIndex, setProductIndex] = useState(0);
-
   const featuredCases = useMemo(() => reorderCases(cases).slice(0, 4), []);
   const featuredProducts = useMemo(() => publicProducts.slice(0, 8), [publicProducts]);
+  const heroCarousel = useAppleStyleCarousel({
+    length: homeBanners.length,
+    autoplayMs: APPLE_CAROUSEL_AUTOPLAY_MS,
+  });
+  const productCarousel = useAppleStyleCarousel({
+    length: featuredProducts.length,
+    autoplayMs: APPLE_CAROUSEL_AUTOPLAY_MS,
+  });
+  const bannerIndex = homeBanners.length > 0 ? heroCarousel.activeIndex % homeBanners.length : 0;
+  const productIndex = featuredProducts.length > 0 ? productCarousel.activeIndex % featuredProducts.length : 0;
   const heroProduct = featuredProducts[0] ?? publicProducts[0] ?? null;
   const currentBanner = homeBanners[bannerIndex] ?? null;
   const heroVisual = currentBanner?.hero || heroProduct?.hero || featuredCases[0]?.hero || "";
@@ -194,52 +206,35 @@ export function HomePage() {
     }
   }, [searchCategory, searchOptions]);
 
-  useEffect(() => {
-    if (homeBanners.length <= 1) {
-      setBannerIndex(0);
-      return undefined;
-    }
-
-    const timer = window.setInterval(() => {
-      setBannerIndex((current) => (current + 1) % homeBanners.length);
-    }, HERO_AUTOPLAY_MS);
-
-    return () => window.clearInterval(timer);
-  }, [homeBanners.length]);
-
-  useEffect(() => {
-    if (bannerIndex >= homeBanners.length) {
-      setBannerIndex(0);
-    }
-  }, [bannerIndex, homeBanners.length]);
-
-  useEffect(() => {
-    if (productIndex >= featuredProducts.length && featuredProducts.length > 0) {
-      setProductIndex(0);
-    }
-  }, [featuredProducts.length, productIndex]);
-
   return (
     <PageShell>
       <section data-home-layout="prototype-dark" className="mx-auto max-w-[1600px] text-white">
         <div
+          data-testid="home-hero-carousel"
+          data-carousel-style="apple-product"
+          data-carousel-state={heroCarousel.isPaused ? "paused" : "playing"}
+          aria-roledescription="carousel"
           className="relative overflow-hidden rounded-[34px] border border-white/6 bg-[#0f1116] px-6 py-6 md:px-8 lg:px-10 lg:py-8"
           style={{ boxShadow: "0 32px 96px rgba(0, 0, 0, 0.32)" }}
+          {...heroCarousel.hoverHandlers}
         >
-          <AnimatePresence mode="wait">
-            {heroVisual ? (
-              <motion.img
-                key={heroVisual}
-                src={heroVisual}
-                alt={siteSettings.brand.name}
-                className="absolute inset-0 h-full w-full object-cover opacity-[0.14]"
-                initial={{ opacity: 0, scale: 1.06 }}
-                animate={{ opacity: 0.14, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
-              />
-            ) : null}
-          </AnimatePresence>
+          <div data-testid="home-hero-carousel-track" className="absolute inset-0">
+            <AnimatePresence mode="wait">
+              {heroVisual ? (
+                <motion.img
+                  key={heroVisual}
+                  src={heroVisual}
+                  alt={siteSettings.brand.name}
+                  className="absolute inset-0 h-full w-full object-cover opacity-[0.14]"
+                  variants={appleCarouselSlideVariants}
+                  initial="initial"
+                  animate={{ ...appleCarouselSlideVariants.animate, opacity: 0.14 }}
+                  exit="exit"
+                  transition={APPLE_CAROUSEL_TRANSITION}
+                />
+              ) : null}
+            </AnimatePresence>
+          </div>
 
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_36%,rgba(0,204,255,0.16),transparent_24%),radial-gradient(circle_at_82%_48%,rgba(0,110,242,0.22),transparent_36%),linear-gradient(90deg,rgba(12,14,18,0.98)_0%,rgba(12,14,18,0.9)_45%,rgba(12,14,18,0.76)_64%,rgba(12,14,18,0.94)_100%)]" />
           <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(8,9,12,0.56)_0%,rgba(8,9,12,0)_100%)]" />
@@ -331,7 +326,7 @@ export function HomePage() {
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setBannerIndex(index)}
+                      onClick={() => heroCarousel.goTo(index)}
                       className="h-2.5 rounded-full transition-all duration-300"
                       style={{
                         width: index === bannerIndex ? 34 : 11,
@@ -348,7 +343,12 @@ export function HomePage() {
         </div>
       </section>
 
-      <section data-testid="home-case-spotlight" className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white">
+      <section
+        data-testid="home-case-spotlight"
+        data-carousel-style="apple-product"
+        className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white"
+        {...heroCarousel.hoverHandlers}
+      >
         <SectionHeading
           eyebrow="公司案例轮播大图"
           subtitle="精选成功案例"
@@ -365,17 +365,32 @@ export function HomePage() {
           }
         />
 
-        <div className="grid gap-5 lg:grid-cols-[1.42fr_0.98fr]">
-          <CaseSpotlightCard item={spotlightCases[0]} onClick={() => navigate(`/case/${spotlightCases[0].id}`)} />
-          <CaseSpotlightCard
-            item={spotlightCases[1]}
-            layout="secondary"
-            onClick={() => navigate(`/case/${spotlightCases[1].id}`)}
-          />
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={spotlightCases.map((item) => item?.id ?? "empty").join(":")}
+            className="grid gap-5 lg:grid-cols-[1.42fr_0.98fr]"
+            variants={appleCarouselSlideVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={APPLE_CAROUSEL_TRANSITION}
+          >
+            <CaseSpotlightCard item={spotlightCases[0]} onClick={() => navigate(`/case/${spotlightCases[0].id}`)} />
+            <CaseSpotlightCard
+              item={spotlightCases[1]}
+              layout="secondary"
+              onClick={() => navigate(`/case/${spotlightCases[1].id}`)}
+            />
+          </motion.div>
+        </AnimatePresence>
       </section>
 
-      <section data-testid="home-product-carousel" className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white">
+      <section
+        data-testid="home-product-carousel"
+        data-carousel-style="apple-product"
+        data-carousel-state={productCarousel.isPaused ? "paused" : "playing"}
+        className="mx-auto mt-14 max-w-[1600px] border-t border-white/6 pt-14 text-white"
+      >
         <SectionHeading
           eyebrow="库中产品热门推荐轮播"
           subtitle="精选产品生态"
@@ -384,7 +399,7 @@ export function HomePage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setProductIndex((current) => (current - 1 + featuredProducts.length) % featuredProducts.length)}
+                onClick={() => productCarousel.prev()}
                 disabled={featuredProducts.length <= 1}
                 className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/4 text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="查看上一组产品"
@@ -393,7 +408,7 @@ export function HomePage() {
               </button>
               <button
                 type="button"
-                onClick={() => setProductIndex((current) => (current + 1) % featuredProducts.length)}
+                onClick={() => productCarousel.next()}
                 disabled={featuredProducts.length <= 1}
                 className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/4 text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="查看下一组产品"
@@ -404,11 +419,24 @@ export function HomePage() {
           }
         />
 
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {visibleProducts.map((item, index) => {
-            const Icon = PRODUCT_ICONS[index % PRODUCT_ICONS.length];
-            return <ProductShowcaseCard key={`${item.id}-${index}`} item={item} icon={Icon} onClick={() => navigate(`/product/${item.id}`)} />;
-          })}
+        <div className="overflow-hidden" {...productCarousel.hoverHandlers}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={visibleProducts.map((item) => item.id).join(":")}
+              data-testid="home-product-carousel-track"
+              className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4"
+              variants={appleCarouselSlideVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={APPLE_CAROUSEL_TRANSITION}
+            >
+              {visibleProducts.map((item, index) => {
+                const Icon = PRODUCT_ICONS[index % PRODUCT_ICONS.length];
+                return <ProductShowcaseCard key={`${item.id}-${index}`} item={item} icon={Icon} onClick={() => navigate(`/product/${item.id}`)} />;
+              })}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <div className="mt-10 flex justify-center">
